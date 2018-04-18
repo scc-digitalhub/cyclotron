@@ -4229,6 +4229,46 @@ cyclotronServices.factory 'commonConfigService', ->
                         required: false
                         defaultHidden: true
                         order: 18
+            slider:
+                name: 'slider'
+                label: 'Slider'
+                icon: 'fa-bar-chart-o'
+                properties:
+                    minDate:
+                        label: 'Beginning date'
+                        type: 'string'
+                        placeholder: 'DD/MM/YYYY'
+                        required: true
+                        order: 10
+                    maxDate:
+                        label: 'End date'
+                        type: 'string'
+                        placeholder: 'DD/MM/YYYY'
+                        required: true
+                        order: 11
+                    direction:
+                        label: 'Direction'
+                        description: 'Left-to-right or right-to-left'
+                        type: 'string'
+                        required: false
+                        default: 'ltr'
+                        options:
+                            ltr:
+                                value: 'ltr'
+                            rtl:
+                                value: 'rtl'
+                        order: 12
+                    orientation:
+                        label: 'Orientation'
+                        type: 'string'
+                        required: false
+                        default: 'horizontal'
+                        options:
+                            horizontal:
+                                value: 'horizontal'
+                            vertical:
+                                value: 'vertical'
+                        order: 13
     }  
 
 

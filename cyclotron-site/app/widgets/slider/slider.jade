@@ -1,0 +1,8 @@
+- var extraClass = {{ widget.orientation }} == 'vertical' ? 'vOrient' : 'hOrient'
+
+.slider-widget(ng-controller='SliderWidget')
+    h1.title(ng-if='::widget.title') {{ widgetTitle() }}
+
+    .widget-body
+        .widget-error(ng-if='widgetContext.dataSourceError == true')
+        .slider(sliderconfig='sliderconfig')

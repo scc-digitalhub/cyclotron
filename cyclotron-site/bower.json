@@ -60,7 +60,8 @@
     "script.js": "ded/script.js#2.5.7",
     "select2": "3.4.8",
     "spin.js": "2.1.0",
-    "uri.js": "1.15.1"
+    "uri.js": "1.15.1",
+    "nouislider": "^11.1.0"
   },
   "resolutions": {
     "d3": "3.5.6",
