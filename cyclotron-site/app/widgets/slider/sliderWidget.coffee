@@ -9,15 +9,15 @@ cyclotronApp.controller 'SliderWidget', ($scope, dashboardService, dataService) 
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     
-    minDate = moment($scope.widget.minDate, 'DD/MM/YYYY').toDate().getTime()
-    maxDate = moment($scope.widget.maxDate, 'DD/MM/YYYY').diff minDate, 'days'
+    minDateMillis = moment($scope.widget.minDate, 'DD/MM/YYYY').toDate().getTime()
+    maxDate = moment($scope.widget.maxDate, 'DD/MM/YYYY').diff minDateMillis, 'days'
 
     # Create formatter
     formatter =
         to: (value) ->
-            moment(minDate).add(value, 'days').format 'DD/MM/YYYY'
+            moment(minDateMillis).add(value, 'days').format 'DD/MM/YYYY'
         from: (value) ->
-            moment(value, 'DD/MM/YYYY').diff minDate, 'days'
+            moment(value, 'DD/MM/YYYY').diff minDateMillis, 'days'
 
     # Create slider configuration
     $scope.sliderconfig =
@@ -35,6 +35,9 @@ cyclotronApp.controller 'SliderWidget', ($scope, dashboardService, dataService) 
             density: 2
             values: 5
             format: formatter
+    
+    # Put current time on scope
+    $scope.startdate = minDateMillis
 ###
     getChart = ->
         defaults =

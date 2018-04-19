@@ -4,20 +4,24 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
         restrict: 'C'
         scope:
             sliderconfig: '='
+            startdate: '='
         
         link: (scope, element, attrs) ->
             sliderElement = element[0]
+            sliderCreated = false
             classes = sliderElement.className
-            console.log(classes)
             createSlider = ->
                 try
-                    noUiSlider.create sliderElement, scope.sliderconfig
-                    sliderElement.noUiSlider.on('change', (values, handle) ->
-                        console.log values[handle]
-                        #console.log scope.dashboard.parameters
-                        #console.log $window.Cyclotron.parameters
-                    )
-                    console.log(sliderElement.className)
+                    if sliderCreated == false
+                        if $window.Cyclotron.parameters.currentTime?
+                            $window.Cyclotron.parameters.currentTime = moment(scope.startdate).format 'DD-MM-YYYY'
+                        
+                        noUiSlider.create sliderElement, scope.sliderconfig
+                        sliderElement.noUiSlider.on('change', (values, handle) ->
+                            newCurrentTime = moment(scope.startdate).add(values[handle], 'days').format 'DD-MM-YYYY'
+                            $window.Cyclotron.parameters.currentTime = newCurrentTime
+                        )
+                        sliderCreated = true
                 catch e
                     console.log(e)
             
@@ -32,7 +36,11 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
             # Cleanup
             scope.$on '$destroy', ->
                 $(window).off 'resize', resizeFunction
-                return
+                sliderElement.noUiSlider.destroy()
+                sliderCreated = false
+                delete $window.Cyclotron.parameters['currentTime']
+            
+            return
     }
     ###
     {
@@ -85,18 +93,15 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
                     # Update each series with new data
                     _.each highchartsObj.series, (aSeries) ->
                         newSeries = _.find chart.series, { name: aSeries.name }
-
                         if scope.addshift
                             # Get original series array from the scope
                             originalSeries = _.find scope.chartSeries, { name: aSeries.name }
                         else
                             aSeries.setData(newSeries.data, false)
-                            
 
                     # Add new series to the chart
                     _.each chart.series, (toSeries, index) ->
                         existingSeries = _.find highchartsObj.series, { name: toSeries.name }
-
                         if !existingSeries?
                             highchartsObj.addSeries(toSeries, false)
 
@@ -120,21 +125,15 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
 
                     scope.chartSeries = newChart.series
                     highchartsObj = new Highcharts.Chart(newChart)
-
             , true)
 
-            #
             # Resize when layout changes
-            #
             resizeFunction = _.debounce resize, 100, { leading: false, maxWait: 300 }
             $(window).on 'resize', resizeFunction
 
-            #
             # Cleanup
-            #
             scope.$on '$destroy', ->
                 $(window).off 'resize', resizeFunction
-                
                 if highchartsObj?
                     highchartsObj.destroy()
                     highchartsObj = null
