@@ -4229,6 +4229,7 @@ cyclotronServices.factory 'commonConfigService', ->
                         required: false
                         defaultHidden: true
                         order: 18
+
             slider:
                 name: 'slider'
                 label: 'Slider'
@@ -4269,8 +4270,7 @@ cyclotronServices.factory 'commonConfigService', ->
                             vertical:
                                 value: 'vertical'
                         order: 13
-    }  
-
+    }
 
     # Copy Theme options to inherited locations
     exports.dashboard.properties.pages.properties.theme.options = exports.dashboard.properties.theme.options
@@ -4321,4 +4321,3 @@ cyclotronServices.factory 'commonConfigService', ->
         }
 
     return exports
-

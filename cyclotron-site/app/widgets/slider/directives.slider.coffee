@@ -15,7 +15,7 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
                     sliderElement.noUiSlider.on('change', (values, handle) ->
                         console.log values[handle]
                         #console.log scope.dashboard.parameters
-                        console.log $window.Cyclotron.parameters
+                        #console.log $window.Cyclotron.parameters
                     )
                     console.log(sliderElement.className)
                 catch e
