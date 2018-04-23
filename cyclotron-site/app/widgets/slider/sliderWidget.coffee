@@ -1,106 +1,72 @@
 #
 # Widget for noUiSlider
 #
-#import { NouiFormatter } from 'nouislider'
 
-#export class TimeFormatter implements NouiFormatter
-
-cyclotronApp.controller 'SliderWidget', ($scope, dashboardService, dataService) ->
+cyclotronApp.controller 'SliderWidget', ($scope) ->
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     
-    minDateMillis = moment($scope.widget.minDate, 'DD/MM/YYYY').toDate().getTime()
-    maxDate = moment($scope.widget.maxDate, 'DD/MM/YYYY').diff minDateMillis, 'days'
-
-    # Create formatter
+    # Read configuration
+    timeUnit = if $scope.widget.formatter? then $scope.widget.formatter else 'days'
+    minDateMillis = moment($scope.widget.minValue, 'YYYY-MM-DD HH:mm').toDate().getTime()
+    maxVal = moment($scope.widget.maxValue, 'YYYY-MM-DD HH:mm').diff minDateMillis, timeUnit
+    step = $scope.widget.step
+    timer = undefined
+    interval = if $scope.widget.player? and $scope.widget.player.showPlayer
+        if $scope.widget.player.interval then parseInt($scope.widget.player.interval, 10) * 1000 else 1000
+    else undefined
+    $scope.playing = false
+    $scope.currentSliderVal = 0
+    
+    # Formatter
     formatter =
         to: (value) ->
-            moment(minDateMillis).add(value, 'days').format 'DD/MM/YYYY'
+            moment(minDateMillis).add(value, timeUnit).format 'YYYY-MM-DD HH:mm'
         from: (value) ->
-            moment(value, 'DD/MM/YYYY').diff minDateMillis, 'days'
+            moment(value, 'YYYY-MM-DD HH:mm').diff minDateMillis, timeUnit
 
     # Create slider configuration
     $scope.sliderconfig =
-        start: 0
+        start: $scope.currentSliderVal
         range:
             'min': 0
-            'max': maxDate
+            'max': maxVal
         step: 1
         direction: $scope.widget.direction
         orientation: $scope.widget.orientation
-        tooltips: formatter
-        pips:
-            mode: 'count'
-            stepped: true
-            density: 2
-            values: 5
-            format: formatter
+        tooltips: if $scope.widget.tooltips then formatter else false
+    
+    # Configure slider pips
+    if $scope.widget.pips?
+        if !$scope.widget.pips.mode? then $scope.widget.pips.mode = 'range'
+        if $scope.widget.pips.values?
+            if $scope.widget.pips.mode in ['positions', 'values']
+                newvals = (parseInt(num, 10) for num in $scope.widget.pips.values.split ',')
+                $scope.widget.pips.values = newvals
+            else if $scope.widget.pips.mode = 'count'
+                $scope.widget.pips.values = parseInt $scope.widget.pips.values, 10
+            else delete $scope.widget.pips.values
+        if $scope.widget.pips.density?
+            $scope.widget.pips.density = parseInt $scope.widget.pips.density, 10
+        else $scope.widget.pips.density = 1
+        if typeof $scope.widget.pips.format == 'undefined' or $scope.widget.pips.format then $scope.widget.pips.format = formatter
+        $scope.sliderconfig.pips = $scope.widget.pips
     
     # Put current time on scope
-    $scope.startdate = minDateMillis
-###
-    getChart = ->
-        defaults =
-            credits:
-                enabled: false
-            exporting:
-                enabled: false
-            plotOptions: {}
-            title:
-                text:  null
+    $scope.startdatetime = minDateMillis
+    $scope.timeunit = timeUnit
 
-        # Merge dashboard options with the defaults
-        chart = _.merge(defaults, $scope.widget.highchart)
-        chart = _.compile(chart, {}, ['series'], true)
-        return chart
+    # Function triggered by play/pause button
+    updateOnPlay = ->
+        newDateTime = moment(Cyclotron.parameters.currentDateTime).add(1, timeUnit).format 'YYYY-MM-DD HH:mm'
+        Cyclotron.parameters.currentDateTime = newDateTime
+        $scope.currentSliderVal = moment(newDateTime).diff(moment(minDateMillis), timeUnit)
 
-    getSeries = (series, seriesData = $scope.rawData) ->
-        # Compile top-level properties
-        series = _.compile series, [], [], false
-        return series
-
-    $scope.createChart = ->
-
-        # Get the chart options
-        chart = getChart()
-
-        # Load the series from the chart
-        $scope.series = series = chart.series
-
-        # Expand each series with the actual data and apply to the chart
-        chart.series = _.map series, (s) -> getSeries(s, $scope.rawData)
-
-        # Set the highcharts object so the directive picks it up.
-        $scope.highchart = chart
-
-    $scope.reload = ->
-        if $scope.dataSource
-            $scope.dataSource.execute(true)
-
-    # Load Main data source
-    dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
-    $scope.dataSource = dataService.get dsDefinition
-
-    # Initialize
-    if $scope.dataSource?
-        # Data Source (re)loaded
-        $scope.$on 'dataSource:' + dsDefinition.name + ':data', (event, eventData) ->
-            $scope.widgetContext.dataSourceError = false
-            $scope.widgetContext.dataSourceErrorMessage = null
-
-            data = eventData.data[dsDefinition.resultSet].data
-            data = $scope.filterAndSortWidgetData(data)
-
-            # Check for no data
-            if data?
-                $scope.rawData = data
-                $scope.createChart()
-
-        # Data Source error
-        $scope.$on 'dataSource:' + dsDefinition.name + ':error', (event, data) ->
-            $scope.widgetContext.dataSourceError = true
-            $scope.widgetContext.dataSourceErrorMessage = data.error
-
-        # Initialize the Data Source
-        $scope.dataSource.init dsDefinition
-###
+    # Event handler for play/pause button
+    $scope.playPause = ->
+        if $scope.playing
+            clearInterval timer
+            $scope.playing = false
+        else
+            $scope.playing = true
+            timer = setInterval updateOnPlay, interval

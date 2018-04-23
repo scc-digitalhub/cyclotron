@@ -5,4 +5,5 @@
 
     .widget-body
         .widget-error(ng-if='widgetContext.dataSourceError == true')
-        .slider(sliderconfig='sliderconfig', startdate='startdate')
+        span.fa.player(ng-if='widget.player && widget.player.showPlayer', ng-class="{ 'fa-play-circle': !playing, 'fa-pause-circle': playing }", ng-click='playPause()')
+        .slider(sliderconfig='sliderconfig', ng-model='currentSliderVal', startdatetime='startdatetime', timeunit='timeunit')

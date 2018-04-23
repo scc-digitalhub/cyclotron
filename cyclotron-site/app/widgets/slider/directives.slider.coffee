@@ -1,10 +1,12 @@
 # Inspired by: https://github.com/rootux/angular-highcharts-directive
-cyclotronDirectives.directive 'slider', ($window, configService) ->
+cyclotronDirectives.directive 'slider', ($window, $rootScope, configService) ->
     {
         restrict: 'C'
         scope:
             sliderconfig: '='
-            startdate: '='
+            startdatetime: '='
+            timeunit: '='
+            ngModel: '='
         
         link: (scope, element, attrs) ->
             sliderElement = element[0]
@@ -13,13 +15,17 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
             createSlider = ->
                 try
                     if sliderCreated == false
-                        if $window.Cyclotron.parameters.currentTime?
-                            $window.Cyclotron.parameters.currentTime = moment(scope.startdate).format 'DD-MM-YYYY'
+                        if $window.Cyclotron.parameters.currentDateTime?
+                            $window.Cyclotron.parameters.currentDateTime = moment(scope.startdatetime).format 'YYYY-MM-DD HH:mm'
                         
                         noUiSlider.create sliderElement, scope.sliderconfig
                         sliderElement.noUiSlider.on('change', (values, handle) ->
-                            newCurrentTime = moment(scope.startdate).add(values[handle], 'days').format 'DD-MM-YYYY'
-                            $window.Cyclotron.parameters.currentTime = newCurrentTime
+                            newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format 'YYYY-MM-DD HH:mm'
+                            $window.Cyclotron.parameters.currentDateTime = newDateTime
+                            $rootScope.$broadcast('parameter:currentDateTime:changed')
+                        )
+                        sliderElement.noUiSlider.on('set', () ->
+                            $rootScope.$broadcast('parameter:currentDateTime:changed')
                         )
                         sliderCreated = true
                 catch e
@@ -28,6 +34,9 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
             scope.$watch 'sliderconfig', (sliderconfig) ->
                 #TODO check if slider has already been created
                 createSlider()
+            
+            scope.$watch 'ngModel', (ngModel) ->
+                sliderElement.noUiSlider.set ngModel
             
             # Update on window resizing
             resizeFunction = _.debounce createSlider, 100, { leading: false, maxWait: 300 }

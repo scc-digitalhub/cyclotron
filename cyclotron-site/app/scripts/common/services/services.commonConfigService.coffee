@@ -4235,18 +4235,27 @@ cyclotronServices.factory 'commonConfigService', ->
                 label: 'Slider'
                 icon: 'fa-bar-chart-o'
                 properties:
-                    minDate:
-                        label: 'Beginning date'
+                    minValue:
+                        label: 'Minimum date-time'
+                        description: 'Starting value of the slider'
                         type: 'string'
-                        placeholder: 'DD/MM/YYYY'
+                        placeholder: 'YYYY-MM-DD HH:mm'
                         required: true
                         order: 10
-                    maxDate:
-                        label: 'End date'
+                    maxValue:
+                        label: 'Maximum date-time'
+                        description: 'Ending value of the slider'
                         type: 'string'
-                        placeholder: 'DD/MM/YYYY'
+                        placeholder: 'YYYY-MM-DD HH:mm'
                         required: true
                         order: 11
+                    step:
+                        label: 'Step'
+                        description: 'Step (minutes/hours/days/months, specified in Formatter option) between slider values (default is 1)'
+                        type: 'integer'
+                        required: false
+                        default: 1
+                        order: 12
                     direction:
                         label: 'Direction'
                         description: 'Left-to-right or right-to-left'
@@ -4258,9 +4267,10 @@ cyclotronServices.factory 'commonConfigService', ->
                                 value: 'ltr'
                             rtl:
                                 value: 'rtl'
-                        order: 12
+                        order: 13
                     orientation:
                         label: 'Orientation'
+                        description: 'Horizontal or vertical'
                         type: 'string'
                         required: false
                         default: 'horizontal'
@@ -4269,7 +4279,99 @@ cyclotronServices.factory 'commonConfigService', ->
                                 value: 'horizontal'
                             vertical:
                                 value: 'vertical'
-                        order: 13
+                        order: 14
+                    player:
+                        label: 'Player'
+                        description: 'Play/pause button for automatic sliding'
+                        type: 'propertyset'
+                        properties:
+                            showPlayer:
+                                label: 'Show Player'
+                                type: 'boolean'
+                                required: false
+                                default: false
+                                order: 1
+                            interval:
+                                label: 'Interval'
+                                description: 'Seconds between each sliding'
+                                type: 'integer'
+                                required: false
+                                default: 1
+                                order: 2
+                        order: 15
+                    formatter:
+                        label: 'Formatter'
+                        description: 'Each slider value corresponds to a minute, hour, day or month'
+                        type: 'string'
+                        required: true
+                        options:
+                            minutes:
+                                value: 'minutes'
+                            hours:
+                                value: 'hours'
+                            days:
+                                value: 'days'
+                            months:
+                                value: 'months'
+                        order: 16
+                    pips:
+                        label: 'Pips'
+                        description: 'Scale/points shown near the slider'
+                        type: 'propertyset'
+                        properties:
+                            mode:
+                                label: 'Mode'
+                                description: 'Range mode places a pip for every point specified in the range. Steps mode places a pip for every step. Positions mode places pips at percentage-based positions (percentages can be specified in Values option). Count mode generates a fixed number of pips (specified in Values option). Values mode is the same as Positions mode but with values instead of percentages.'
+                                type: 'string'
+                                required: false
+                                default: 'steps'
+                                options:
+                                    range:
+                                        value: 'range'
+                                    steps:
+                                        value: 'steps'
+                                    positions:
+                                        value: 'positions'
+                                    count:
+                                        value: 'count'
+                                    values:
+                                        value: 'values'
+                                order: 1
+                            values:
+                                label: 'Values'
+                                description: 'Additional options for Positions, Count and Values mode. For count mode provide an intereg. For Positions and Values mode provide comma-separated integers.'
+                                type: 'string'
+                                required: false
+                                order: 2
+                            stepped:
+                                label: 'Stepped'
+                                description: 'Match pips with slider values (default is false)'
+                                required: false
+                                default: false
+                                type: 'boolean'
+                                order: 3
+                            density:
+                                label: 'Density'
+                                description: 'Number of pips in one percent of the slider range'
+                                type: 'integer'
+                                required: false
+                                default: 1
+                                order: 4
+                            format:
+                                label: 'Format'
+                                description: 'Show pip values in the same format as slider format (default is true)'
+                                type: 'boolean'
+                                required: false
+                                default: true
+                                order: 5
+                        order: 17
+                    tooltips:
+                        label: 'Tooltips'
+                        description: 'Show tooltips'
+                        type: 'boolean'
+                        required: false
+                        default: false
+                        order: 18
     }
 
     # Copy Theme options to inherited locations
