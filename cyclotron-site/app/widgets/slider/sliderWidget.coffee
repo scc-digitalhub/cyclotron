@@ -63,7 +63,6 @@ cyclotronApp.controller 'SliderWidget', ($scope, $timeout) ->
             $timeout ->
                 Cyclotron.parameters.currentDateTime = moment(minDateMillis).format 'YYYY-MM-DD HH:mm'
                 $scope.currentSliderVal = 0
-                console.log 'val set to 0', Cyclotron.parameters.currentDateTime
         
         newDateTime = moment(Cyclotron.parameters.currentDateTime).add(1, timeUnit).format 'YYYY-MM-DD HH:mm'
         Cyclotron.parameters.currentDateTime = newDateTime

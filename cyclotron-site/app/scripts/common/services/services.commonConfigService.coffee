@@ -4372,6 +4372,47 @@ cyclotronServices.factory 'commonConfigService', ->
                         required: false
                         default: false
                         order: 18
+            
+            openLayersMap:
+                name: 'openLayersMap'
+                label: 'OpenLayers Map'
+                properties:
+                    dataSource:
+                        label: 'Data Source'
+                        description: 'The name of the Data Source providing data for this Widget. It must be a table in which every row represents a layer.'
+                        placeholder: 'Data Source name'
+                        type: 'string'
+                        required: true
+                        options: datasourceOptions
+                        order: 10
+                    center:
+                        label: 'Center'
+                        description: 'X and Y coordinates to center the map on'
+                        type: 'propertyset'
+                        properties:
+                            x:
+                                label: 'X'
+                                type: 'string'
+                                required: true
+                                order: 1
+                            y:
+                                label: 'Y'
+                                type: 'string'
+                                required: true
+                                order: 2
+                        order: 11
+                    zoom:
+                        label: 'Zoom'
+                        description: 'Zoom level (0 is zoomed out)'
+                        type: 'integer'
+                        required: true
+                        order: 12
+                    tileServer:
+                        label: 'Tile Server URL'
+                        description: ''
+                        type: 'string'
+                        required: true
+                        order: 13
     }
 
     # Copy Theme options to inherited locations

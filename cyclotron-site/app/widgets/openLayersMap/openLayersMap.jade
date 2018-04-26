@@ -1,0 +1,5 @@
+.open-layers-map-widget(ng-controller='OpenLayersMapWidget')
+    h1.title(ng-if='::widget.title') {{ widgetTitle() }}
+    .widget-body
+        .widget-error(ng-if='widgetContext.dataSourceError == true')
+        #map.map

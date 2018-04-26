@@ -1,4 +1,4 @@
-# Inspired by: https://github.com/rootux/angular-highcharts-directive
+#
 cyclotronDirectives.directive 'slider', ($window, $rootScope, configService) ->
     {
         restrict: 'C'
@@ -24,8 +24,7 @@ cyclotronDirectives.directive 'slider', ($window, $rootScope, configService) ->
                             $window.Cyclotron.parameters.currentDateTime = newDateTime
                             $rootScope.$broadcast('parameter:currentDateTime:changed')
                         )
-                        sliderElement.noUiSlider.on('set', (values,handle) ->
-                            console.log('set',values[handle])
+                        sliderElement.noUiSlider.on('set', () ->
                             $rootScope.$broadcast('parameter:currentDateTime:changed')
                         )
                         sliderCreated = true
@@ -37,8 +36,6 @@ cyclotronDirectives.directive 'slider', ($window, $rootScope, configService) ->
                 createSlider()
             
             scope.$watch 'ngModel', (ngModel) ->
-                #WARN when end of playing is reached, watch is not triggered with value 0
-                console.log ngModel
                 sliderElement.noUiSlider.set ngModel
             
             # Update on window resizing
