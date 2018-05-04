@@ -1,5 +1,5 @@
 #
-cyclotronDirectives.directive 'slider', ($window, $rootScope, configService) ->
+cyclotronDirectives.directive 'slider', ($window, configService) ->
     {
         restrict: 'C'
         scope:
@@ -15,17 +15,18 @@ cyclotronDirectives.directive 'slider', ($window, $rootScope, configService) ->
             createSlider = ->
                 try
                     if sliderCreated == false
-                        if $window.Cyclotron.parameters.currentDateTime?
-                            $window.Cyclotron.parameters.currentDateTime = moment(scope.startdatetime).format 'YYYY-MM-DD HH:mm'
-                        
                         noUiSlider.create sliderElement, scope.sliderconfig
-                        sliderElement.noUiSlider.on('change', (values, handle) ->
+                        #create parameter currentDateTime
+                        $window.Cyclotron.parameters.currentDateTime = moment(scope.startdatetime).format 'YYYY-MM-DD HH:mm'
+                        
+                        sliderElement.noUiSlider.on('set', (values, handle) ->
                             newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format 'YYYY-MM-DD HH:mm'
-                            $window.Cyclotron.parameters.currentDateTime = newDateTime
-                            $rootScope.$broadcast('parameter:currentDateTime:changed')
-                        )
-                        sliderElement.noUiSlider.on('set', () ->
-                            $rootScope.$broadcast('parameter:currentDateTime:changed')
+                            if _.isEqual(newDateTime, $window.Cyclotron.parameters.currentDateTime)
+                                #slider has just been created or parameter was set in updateOnPlay()
+                                $window.Cyclotron.functions.parameterBroadcaster('currentDateTime')
+                            else
+                                $window.Cyclotron.parameters.currentDateTime = newDateTime
+                                $window.Cyclotron.functions.parameterBroadcaster('currentDateTime')
                         )
                         sliderCreated = true
                 catch e
@@ -47,7 +48,7 @@ cyclotronDirectives.directive 'slider', ($window, $rootScope, configService) ->
                 $(window).off 'resize', resizeFunction
                 sliderElement.noUiSlider.destroy()
                 sliderCreated = false
-                delete $window.Cyclotron.parameters['currentTime']
+                delete $window.Cyclotron.parameters['currentDateTime'] #necessary?
             
             return
     }

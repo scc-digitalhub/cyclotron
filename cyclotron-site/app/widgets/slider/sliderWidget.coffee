@@ -2,7 +2,7 @@
 # Widget for noUiSlider
 #
 
-cyclotronApp.controller 'SliderWidget', ($scope, $timeout) ->
+cyclotronApp.controller 'SliderWidget', ($scope, $timeout, $window) ->
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     
@@ -59,13 +59,13 @@ cyclotronApp.controller 'SliderWidget', ($scope, $timeout) ->
     # Function triggered by play/pause button
     updateOnPlay = ->
         #if max slider value is reached, restart
-        if not moment(Cyclotron.parameters.currentDateTime).isBefore(moment($scope.widget.maxValue, 'YYYY-MM-DD HH:mm'), timeUnit)
+        if not moment($window.Cyclotron.parameters.currentDateTime).isBefore(moment($scope.widget.maxValue, 'YYYY-MM-DD HH:mm'), timeUnit)
             $timeout ->
-                Cyclotron.parameters.currentDateTime = moment(minDateMillis).format 'YYYY-MM-DD HH:mm'
+                $window.Cyclotron.parameters.currentDateTime = moment(minDateMillis).format 'YYYY-MM-DD HH:mm'
                 $scope.currentSliderVal = 0
         
-        newDateTime = moment(Cyclotron.parameters.currentDateTime).add(1, timeUnit).format 'YYYY-MM-DD HH:mm'
-        Cyclotron.parameters.currentDateTime = newDateTime
+        newDateTime = moment($window.Cyclotron.parameters.currentDateTime).add(1, timeUnit).format 'YYYY-MM-DD HH:mm'
+        $window.Cyclotron.parameters.currentDateTime = newDateTime
         $scope.currentSliderVal = moment(newDateTime).diff(moment(minDateMillis), timeUnit)
 
     # Event handler for play/pause button
