@@ -4382,7 +4382,7 @@ cyclotronServices.factory 'commonConfigService', ->
                         description: 'The name of the Data Source providing data for this Widget. It must be a table in which every row represents a layer.'
                         placeholder: 'Data Source name'
                         type: 'string'
-                        required: true
+                        required: false
                         options: datasourceOptions
                         order: 10
                     center:
@@ -4407,12 +4407,155 @@ cyclotronServices.factory 'commonConfigService', ->
                         type: 'integer'
                         required: true
                         order: 12
-                    tileServer:
-                        label: 'Tile Server URL'
-                        description: ''
-                        type: 'string'
-                        required: true
+                    layers:
+                        label: 'Layers'
+                        singleLabel: 'layer'
+                        description: 'An array of layers that will be added to the map. Default is a single OpenStreetMap (OSM) layer.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        properties:
+                            type:
+                                label: 'Type'
+                                description: 'The type of layer that will be added to the map. Specifying a source is mandatory except for VectorTile layers. Heatmap layer also requires Weight to be specified. If no type nor source are specified, Tile and OSM are used.'
+                                type: 'string'
+                                required: false
+                                default: 'Tile'
+                                options:
+                                    image:
+                                        value: 'Image'
+                                    tile:
+                                        value: 'Tile'
+                                    heatmap:
+                                        value: 'Heatmap'
+                                    vectortile:
+                                        value: 'VectorTile'
+                                order: 1
+                            source:
+                                label: 'Source'
+                                description: 'Source for the layer. Please refer to the help page if you do not know which one you need. Note that depending on the layer type (Image, Tile, Heatmap or VectorTile) only a subset of these sources is accepted.'
+                                type: 'propertyset'
+                                properties:
+                                    name:
+                                        label: 'Name'
+                                        type: 'string'
+                                        required: false
+                                        default: 'OSM'
+                                        options:
+                                            BingMaps:
+                                                value: 'BingMaps'
+                                            CartoDB:
+                                                value: 'CartoDB'
+                                            Cluster:
+                                                value: 'Cluster'
+                                            ImageArcGISRest:
+                                                value: 'ImageArcGISRest'
+                                            ImageCanvas:
+                                                value: 'ImageCanvas'
+                                            ImageMapGuide:
+                                                value: 'ImageMapGuide'
+                                            ImageStatic:
+                                                value: 'ImageStatic'
+                                            ImageWMS:
+                                                value: 'ImageWMS'
+                                            OSM:
+                                                value: 'OSM'
+                                            Raster:
+                                                value: 'Raster'
+                                            Stamen:
+                                                value: 'Stamen'
+                                            TileArcGISRest:
+                                                value: 'TileArcGISRest'
+                                            TileDebug:
+                                                value: 'TileDebug'
+                                            TileJSON:
+                                                value: 'TileJSON'
+                                            TileUTFGrid:
+                                                value: 'TileUTFGrid'
+                                            TileWMS:
+                                                value: 'TileWMS'
+                                            Vector:
+                                                value: 'Vector'
+                                            VectorTile:
+                                                value: 'VectorTile'
+                                            WMTS:
+                                                value: 'WMTS'
+                                            XYZ:
+                                                value: 'XYZ'
+                                            Zoomify:
+                                                value: 'Zoomify'
+                                        order: 1
+                                    configuration:
+                                        label: 'Configuration'
+                                        description: 'Configuration object. Please refer to the widget help page to know how to configure each source.'
+                                        type: 'editor'
+                                        editorMode: 'javascript'
+                                        required: false
+                                        order: 2
+                                order: 2
+                            weight:
+                                label: 'Weight (for heatmap)'
+                                description: ''
+                                type: 'string'
+                                required: false
+                                order: 3
                         order: 13
+                    overlays:
+                        label: 'Overlays'
+                        singleLabel: 'overlay'
+                        description: 'An array of overlays that will be added to the map, i.e., elements that will be displayed over the map and attached to a given position.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        properties:
+                            position:
+                                label: 'Position'
+                                description: 'X and Y coordinates of the location where the overlay will be attached'
+                                type: 'propertyset'
+                                properties:
+                                    x:
+                                        label: 'X'
+                                        type: 'string'
+                                        required: true
+                                        order: 1
+                                    y:
+                                        label: 'Y'
+                                        type: 'string'
+                                        required: true
+                                        order: 2
+                                order: 1
+                            positioning:
+                                label: 'Positioning'
+                                description: 'Where the overlay is placed with respect to Position. Default is top-left.'
+                                type: 'string'
+                                required: false
+                                default: 'top-left'
+                                options:
+                                    bottomLeft:
+                                        value: 'bottom-left'
+                                    bottomCenter:
+                                        value: 'bottom-center'
+                                    bottomRight:
+                                        value: 'bottom-right'
+                                    centerLeft:
+                                        value: 'center-left'
+                                    centerCenter:
+                                        value: 'center-center'
+                                    centerRight:
+                                        value: 'center-right'
+                                    topLeft:
+                                        value: 'top-left'
+                                    topCenter:
+                                        value: 'top-center'
+                                    topRight:
+                                        value: 'top-right'
+                                order: 2
+                        order: 14
+                    controls:
+                        label: 'Controls'
+                        singleLabel: 'control'
+                        description: 'An array of controls that will be added to the map, i.e., elements that will be displayed over the map, e.g. buttons.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        order: 15
     }
 
     # Copy Theme options to inherited locations

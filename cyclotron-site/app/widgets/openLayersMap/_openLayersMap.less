@@ -1,5 +1,18 @@
 .open-layers-map-widget {
-    .map {
+    height: 100%;
+    .widget-body {
         height: 100%;
+        .map {
+            height: 100%;
+            overflow: hidden;
+        }
+        #circle-overlay {
+            opacity: .8;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            background-color: chartreuse;
+        }
     }
 }

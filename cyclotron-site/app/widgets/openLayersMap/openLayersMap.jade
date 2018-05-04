@@ -2,4 +2,5 @@
     h1.title(ng-if='::widget.title') {{ widgetTitle() }}
     .widget-body
         .widget-error(ng-if='widgetContext.dataSourceError == true')
-        #map.map
+        #map.map(ng-if='widgetContext.dataSourceError == false')
+            #circle-overlay
