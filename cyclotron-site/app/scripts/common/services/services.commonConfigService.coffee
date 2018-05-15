@@ -506,6 +506,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     defaultHidden: true
                                     order: 125
+                                genericEvents:
+                                    label: 'Generic Events'
+                                    singleLabel: 'param-event'
+                                    description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and events that can trigger their change within widgets.'
+                                    type: 'propertyset[]'
+                                    inlineJs: true
+                                    defaultHidden: true
+                                    default: []
+                                    properties:
+                                        paramName:
+                                            label: 'Parameter Name'
+                                            type: 'string'
+                                            required: true
+                                            order: 1
+                                        event:
+                                            label: 'Event'
+                                            type: 'string'
+                                            required: true
+                                            options:
+                                                changed:
+                                                    value: 'clickOnWidget'
+                                            order: 2
+                                    order: 126
+                                parameterSubscription:
+                                    label: 'Subscription To Parameters'
+                                    singleLabel: 'param'
+                                    description: ''
+                                    type: 'string[]'
+                                    inlineJs: true
+                                    defaultHidden: true
+                                    default: []
+                                    order: 127
                             order: 3
                         duration:
                             label: 'Auto-Rotate Duration (seconds)'
@@ -4249,37 +4281,46 @@ cyclotronServices.factory 'commonConfigService', ->
                         placeholder: 'YYYY-MM-DD HH:mm'
                         required: true
                         order: 11
+                    momentFormat:
+                        label: 'Date-time Format'
+                        description: 'Any valid moment() format. Default is YYYY-MM-DD HH:mm.'
+                        type: 'string'
+                        default: 'YYYY-MM-DD HH:mm'
+                        required: false
+                        order: 12
                     step:
                         label: 'Step'
-                        description: 'Step (minutes/hours/days/months, specified in Formatter option) between slider values (default is 1)'
+                        description: 'Number of time units (e.g. days) between slider values (default is 1)'
                         type: 'integer'
                         required: false
                         default: 1
-                        order: 12
+                        order: 13
                     direction:
                         label: 'Direction'
                         description: 'Left-to-right or right-to-left'
                         type: 'string'
                         required: false
+                        defaultHidden: true
                         default: 'ltr'
                         options:
                             ltr:
                                 value: 'ltr'
                             rtl:
                                 value: 'rtl'
-                        order: 13
+                        order: 14
                     orientation:
                         label: 'Orientation'
                         description: 'Horizontal or vertical'
                         type: 'string'
                         required: false
+                        defaultHidden: true
                         default: 'horizontal'
                         options:
                             horizontal:
                                 value: 'horizontal'
                             vertical:
                                 value: 'vertical'
-                        order: 14
+                        order: 15
                     player:
                         label: 'Player'
                         description: 'Play/pause button for automatic sliding'
@@ -4298,12 +4339,14 @@ cyclotronServices.factory 'commonConfigService', ->
                                 required: false
                                 default: 1
                                 order: 2
-                        order: 15
-                    formatter:
-                        label: 'Formatter'
-                        description: 'Each slider value corresponds to a minute, hour, day or month'
+                        order: 16
+                    timeUnit:
+                        label: 'Time Unit'
+                        description: 'Each slider value corresponds to a minute, hour, day or month. Default is days.'
                         type: 'string'
-                        required: true
+                        required: false
+                        defaultHidden: true
+                        default: 'days'
                         options:
                             minutes:
                                 value: 'minutes'
@@ -4313,7 +4356,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 value: 'days'
                             months:
                                 value: 'months'
-                        order: 16
+                        order: 17
                     pips:
                         label: 'Pips'
                         description: 'Scale/points shown near the slider'
@@ -4364,14 +4407,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                 required: false
                                 default: true
                                 order: 5
-                        order: 17
+                        order: 18
                     tooltips:
                         label: 'Tooltips'
                         description: 'Show tooltips'
                         type: 'boolean'
                         required: false
+                        defaultHidden: true
                         default: false
-                        order: 18
+                        order: 19
+                    specificEvents:
+                        label: 'Specific Events'
+                        singleLabel: 'param-event'
+                        description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and widget events that can trigger their change.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        defaultHidden: true
+                        default: []
+                        properties:
+                            paramName:
+                                label: 'Parameter Name'
+                                type: 'string'
+                                required: true
+                                order: 1
+                            event:
+                                label: 'Event'
+                                type: 'string'
+                                required: true
+                                options:
+                                    dateTimeChange:
+                                        value: 'dateTimeChange'
+                                order: 2
+                        order: 20
             
             openLayersMap:
                 name: 'openLayersMap'
@@ -4514,12 +4581,12 @@ cyclotronServices.factory 'commonConfigService', ->
                                     x:
                                         label: 'X'
                                         type: 'string'
-                                        required: true
+                                        required: false
                                         order: 1
                                     y:
                                         label: 'Y'
                                         type: 'string'
-                                        required: true
+                                        required: false
                                         order: 2
                                 order: 1
                             positioning:
@@ -4548,6 +4615,30 @@ cyclotronServices.factory 'commonConfigService', ->
                                     topRight:
                                         value: 'top-right'
                                 order: 2
+                            cssClass:
+                                label: 'CSS Class'
+                                description: 'CSS class name (defined beforehand in the Styles section of the dashboard) for the overlay'
+                                type: 'string'
+                                required: true
+                                order: 3
+                            cssClassSelected:
+                                label: 'CSS Class On Selection'
+                                description: 'Optional CSS class name (defined beforehand in the Styles section of the dashboard) for the overlay after it has been clicked'
+                                type: 'string'
+                                required: false
+                                order: 4
+                            generation:
+                                label: 'Generation'
+                                description: 'The overlay can be inline (rendered together with the map) or popup (generated where the map is clicked). Default is inline.'
+                                type: 'string'
+                                required: false
+                                default: 'inline'
+                                options:
+                                    inline:
+                                        value: 'inline'
+                                    popup:
+                                        value: 'popup'
+                                order: 5
                         order: 14
                     controls:
                         label: 'Controls'
@@ -4556,6 +4647,29 @@ cyclotronServices.factory 'commonConfigService', ->
                         type: 'propertyset[]'
                         inlineJs: true
                         order: 15
+                    specificEvents:
+                        label: 'Specific Events'
+                        singleLabel: 'param-event'
+                        description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and widget events that can trigger their change.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        defaultHidden: true
+                        default: []
+                        properties:
+                            paramName:
+                                label: 'Parameter Name'
+                                type: 'string'
+                                required: true
+                                order: 1
+                            event:
+                                label: 'Event'
+                                type: 'string'
+                                required: true
+                                options:
+                                    dateTimeChange:
+                                        value: 'clickOnMap'
+                                order: 2
+                        order: 16
     }
 
     # Copy Theme options to inherited locations

@@ -1,8 +1,14 @@
 #
 # Widget for OpenLayers map
 #
-cyclotronApp.controller 'OpenLayersMapWidget', ($scope) ->
+cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationService) ->
     #dataSource
+
+    ###
+    # Parameters
+    ###
+    parameterPropagationService.checkSpecificParams $scope
+    parameterPropagationService.checkParameterSubscription $scope
 
     ###
     # View
@@ -160,7 +166,6 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope) ->
         $scope.layersToAdd = [defaultLayer]
     else
         #check that each layer is valid
-        #_.each $scope.widget.layers, (layer) ->
         for layer in $scope.widget.layers
             layerType = if layer.type? then layer.type else null
             layerSource = if layer.source? then layer.source else null
@@ -192,9 +197,24 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope) ->
             $scope.layersToAdd = $scope.widget.layers
 
     ###
-    # Overlays #
+    # Overlays
     ###
+    if $scope.widget.overlays? and $scope.widget.overlays.length > 0
+        $scope.overlays = []
+        for overlay in $scope.widget.overlays
+            if overlay?
+                config = {}
+                if overlay.cssClass? then config.cssClass = overlay.cssClass
+                else
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'CSS Class name is missing'
+                if overlay.position?.x? and overlay.position?.y? and not
+                        (_.isEmpty(overlay.position.x) or _.isEmpty(overlay.position.y))
+                    config.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
+                if overlay.positioning? then config.positioning = overlay.positioning
+                config.generation = if overlay.generation? then overlay.generation else 'inline'
+                if overlay.cssClassSelected? then config.cssClassSelected = overlay.cssClassSelected
 
     ###
-    # Controls #
+    # Controls
     ###

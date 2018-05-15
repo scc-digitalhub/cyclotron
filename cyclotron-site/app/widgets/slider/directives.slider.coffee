@@ -1,5 +1,5 @@
 #
-cyclotronDirectives.directive 'slider', ($window, configService) ->
+cyclotronDirectives.directive 'slider', ($window, configService, parameterPropagationService) ->
     {
         restrict: 'C'
         scope:
@@ -7,26 +7,31 @@ cyclotronDirectives.directive 'slider', ($window, configService) ->
             startdatetime: '='
             timeunit: '='
             ngModel: '='
+            currentDateTime: '='
+            momentformat: '='
+            paramsGenerated: '='
+            sourceOfParams: '='
         
         link: (scope, element, attrs) ->
             sliderElement = element[0]
             sliderCreated = false
-            classes = sliderElement.className
             createSlider = ->
                 try
                     if sliderCreated == false
                         noUiSlider.create sliderElement, scope.sliderconfig
-                        #create parameter currentDateTime
-                        $window.Cyclotron.parameters.currentDateTime = moment(scope.startdatetime).format 'YYYY-MM-DD HH:mm'
+                        #store current value in the scope
+                        scope.currentDateTime.value = moment(scope.startdatetime).format scope.momentformat
                         
                         sliderElement.noUiSlider.on('set', (values, handle) ->
-                            newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format 'YYYY-MM-DD HH:mm'
-                            if _.isEqual(newDateTime, $window.Cyclotron.parameters.currentDateTime)
+                            newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format scope.momentformat
+                            if _.isEqual(newDateTime, scope.currentDateTime.value)
                                 #slider has just been created or parameter was set in updateOnPlay()
-                                $window.Cyclotron.functions.parameterBroadcaster('currentDateTime')
+                                if scope.sourceOfParams
+                                    parameterPropagationService.parameterBroadcaster scope.$parent.widget.widget, 'dateTimeChange', scope.currentDateTime.value
                             else
-                                $window.Cyclotron.parameters.currentDateTime = newDateTime
-                                $window.Cyclotron.functions.parameterBroadcaster('currentDateTime')
+                                scope.currentDateTime.value = newDateTime
+                                if scope.sourceOfParams
+                                    parameterPropagationService.parameterBroadcaster scope.$parent.widget.widget, 'dateTimeChange', scope.currentDateTime.value
                         )
                         sliderCreated = true
                 catch e
