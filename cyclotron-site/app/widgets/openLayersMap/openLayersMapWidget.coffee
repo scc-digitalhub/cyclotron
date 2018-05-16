@@ -199,22 +199,42 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
     ###
     # Overlays
     ###
-    if $scope.widget.overlays? and $scope.widget.overlays.length > 0
-        $scope.overlays = []
-        for overlay in $scope.widget.overlays
-            if overlay?
-                config = {}
-                if overlay.cssClass? then config.cssClass = overlay.cssClass
-                else
+    if $scope.widget.overlayGroups? and not _.isEmpty($scope.widget.overlayGroups)
+        $scope.overlayGroups = []
+        for group in $scope.widget.overlayGroups
+            if group?
+                if not group.name? or _.isEmpty(group.name)
                     $scope.widgetContext.dataSourceError = true
-                    $scope.widgetContext.dataSourceErrorMessage = 'CSS Class name is missing'
-                if overlay.position?.x? and overlay.position?.y? and not
-                        (_.isEmpty(overlay.position.x) or _.isEmpty(overlay.position.y))
-                    config.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
-                if overlay.positioning? then config.positioning = overlay.positioning
-                config.generation = if overlay.generation? then overlay.generation else 'inline'
-                if overlay.cssClassSelected? then config.cssClassSelected = overlay.cssClassSelected
-
+                    $scope.widgetContext.dataSourceErrorMessage = 'Overlay group name is missing'
+                else if not group.cssClass? or _.isEmpty(group.cssClass)
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'Overlay group CSS class is missing'
+                else if not group.overlays? or _.isEmpty(group.overlays) or
+                        (group.overlays.length == 1 and not group.overlays[0]?)
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'No overlay is defined for group '+group.name
+                else
+                    groupProperties = {name: group.name, cssClass: group.cssClass}
+                    if group.cssClassSelected? then groupProperties.cssClassSelected = group.cssClassSelected
+                    groupProperties.overlays = []
+                    for overlay in group.overlays
+                        if overlay?
+                            overlayProperties = {}
+                            if not overlay.name? or _.isEmpty(overlay.name)
+                                $scope.widgetContext.dataSourceError = true
+                                $scope.widgetContext.dataSourceErrorMessage = 'Overlay name is missing'
+                            else
+                                overlayProperties.id = overlay.name
+                                if overlay.position?.x? and overlay.position?.y? and not
+                                        (_.isEmpty(overlay.position.x) or _.isEmpty(overlay.position.y))
+                                    overlayProperties.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
+                                if overlay.positioning? then overlayProperties.positioning = overlay.positioning
+                                overlayProperties.generation = if overlay.generation? then overlay.generation else 'inline'
+                                groupProperties.overlays.push overlayProperties
+                    groupProperties.overlaySelected = ''
+                    $scope.overlayGroups.push groupProperties
+        console.log 'groups', $scope.overlayGroups
+    
     ###
     # Controls
     ###

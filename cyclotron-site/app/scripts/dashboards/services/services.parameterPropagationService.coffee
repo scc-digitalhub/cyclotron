@@ -7,7 +7,8 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
 
     #check if widget generates parameters
     checkSpecificParams = (scope) ->
-        if scope.widget.specificEvents?
+        if scope.widget.specificEvents? and not _.isEmpty(scope.widget.specificEvents) and not
+                (scope.widget.specificEvents.length == 1 and not scope.widget.specificEvents[0]?)
             for param_event in scope.widget.specificEvents
                 if not param_event.paramName? or not param_event.event?
                     scope.widgetContext.dataSourceError = true
@@ -17,8 +18,11 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                     scope.widgetContext.dataSourceErrorMessage = 'Parameter '+param_event.paramName+' not found among dashboard parameters'
                 else
                     scope.sourceOfParams = true
+                    section = if param_event.section? then param_event.section else scope.widget.widget
                     if not widgetEvents[scope.widget.widget] then widgetEvents[scope.widget.widget] = {}
-                    widgetEvents[scope.widget.widget][param_event.event] = param_event.paramName
+                    if not widgetEvents[scope.widget.widget][section] then widgetEvents[scope.widget.widget][section] = {}
+                    widgetEvents[scope.widget.widget][section][param_event.event] = param_event.paramName
+                    console.log widgetEvents
 
     #check if widget subscribes to any parameters
     checkParameterSubscription = (scope) ->
@@ -39,9 +43,11 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
             $window.Cyclotron.parameters[parameterName] = value
 
     #broadcast parameter change
-    parameterBroadcaster = (widget, event, value) ->
-        return unless event? and value?
-        paramName = widgetEvents[widget][event]
+    parameterBroadcaster = (widget, event, value, section) ->
+        return unless widget? and event? and value?
+        console.log 'broadcaster, section is', section
+        if not section? then section = widget
+        paramName = widgetEvents[widget][section][event]
         setParameterValue paramName, value
         console.log 'broadcasting', paramName
         logService.debug 'Broadcasting: '+paramName+':update'

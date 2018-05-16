@@ -4566,79 +4566,98 @@ cyclotronServices.factory 'commonConfigService', ->
                                 required: false
                                 order: 3
                         order: 13
-                    overlays:
-                        label: 'Overlays'
-                        singleLabel: 'overlay'
-                        description: 'An array of overlays that will be added to the map, i.e., elements that will be displayed over the map and attached to a given position.'
+                    overlayGroups:
+                        label: 'Overlay Groups'
+                        singleLabel: 'group'
+                        description: 'Groups of overlays that will be added to the map, i.e., elements that will be displayed over the map and attached to a given position. Each group of overlays has a CSS class applied to all its members and can have one overlay selected at a time.'
                         type: 'propertyset[]'
                         inlineJs: true
                         properties:
-                            position:
-                                label: 'Position'
-                                description: 'X and Y coordinates of the location where the overlay will be attached'
-                                type: 'propertyset'
-                                properties:
-                                    x:
-                                        label: 'X'
-                                        type: 'string'
-                                        required: false
-                                        order: 1
-                                    y:
-                                        label: 'Y'
-                                        type: 'string'
-                                        required: false
-                                        order: 2
-                                order: 1
-                            positioning:
-                                label: 'Positioning'
-                                description: 'Where the overlay is placed with respect to Position. Default is top-left.'
-                                type: 'string'
-                                required: false
-                                default: 'top-left'
-                                options:
-                                    bottomLeft:
-                                        value: 'bottom-left'
-                                    bottomCenter:
-                                        value: 'bottom-center'
-                                    bottomRight:
-                                        value: 'bottom-right'
-                                    centerLeft:
-                                        value: 'center-left'
-                                    centerCenter:
-                                        value: 'center-center'
-                                    centerRight:
-                                        value: 'center-right'
-                                    topLeft:
-                                        value: 'top-left'
-                                    topCenter:
-                                        value: 'top-center'
-                                    topRight:
-                                        value: 'top-right'
-                                order: 2
-                            cssClass:
-                                label: 'CSS Class'
-                                description: 'CSS class name (defined beforehand in the Styles section of the dashboard) for the overlay'
+                            name:
+                                label: 'Name'
                                 type: 'string'
                                 required: true
-                                order: 3
+                                order: 1
+                            cssClass:
+                                label: 'CSS Class'
+                                description: 'CSS class name (defined beforehand in the Styles section of the dashboard) for the overlays'
+                                type: 'string'
+                                required: true
+                                order: 2
                             cssClassSelected:
                                 label: 'CSS Class On Selection'
-                                description: 'Optional CSS class name (defined beforehand in the Styles section of the dashboard) for the overlay after it has been clicked'
+                                description: 'Optional CSS class name (defined beforehand in the Styles section of the dashboard) for the selected overlay'
                                 type: 'string'
                                 required: false
+                                order: 3
+                            overlays:
+                                label: 'Overlays'
+                                singleLabel: 'overlay'
+                                description: ''
+                                type: 'propertyset[]'
+                                inlineJs: true
+                                required: true
+                                properties:
+                                    name:
+                                        label: 'Name'
+                                        type: 'string'
+                                        required: true
+                                        order: 1
+                                    position:
+                                        label: 'Position'
+                                        description: 'X and Y coordinates of the location where the overlay will be attached'
+                                        type: 'propertyset'
+                                        properties:
+                                            x:
+                                                label: 'X'
+                                                type: 'string'
+                                                required: false
+                                                order: 1
+                                            y:
+                                                label: 'Y'
+                                                type: 'string'
+                                                required: false
+                                                order: 2
+                                        order: 2
+                                    positioning:
+                                        label: 'Positioning'
+                                        description: 'Where the overlay is placed with respect to Position. Default is top-left.'
+                                        type: 'string'
+                                        required: false
+                                        default: 'top-left'
+                                        options:
+                                            bottomLeft:
+                                                value: 'bottom-left'
+                                            bottomCenter:
+                                                value: 'bottom-center'
+                                            bottomRight:
+                                                value: 'bottom-right'
+                                            centerLeft:
+                                                value: 'center-left'
+                                            centerCenter:
+                                                value: 'center-center'
+                                            centerRight:
+                                                value: 'center-right'
+                                            topLeft:
+                                                value: 'top-left'
+                                            topCenter:
+                                                value: 'top-center'
+                                            topRight:
+                                                value: 'top-right'
+                                        order: 3
+                                    generation:
+                                        label: 'Generation'
+                                        description: 'The overlay can be inline (rendered together with the map) or popup (generated where the map is clicked). Default is inline.'
+                                        type: 'string'
+                                        required: false
+                                        default: 'inline'
+                                        options:
+                                            inline:
+                                                value: 'inline'
+                                            popup:
+                                                value: 'popup'
+                                        order: 4
                                 order: 4
-                            generation:
-                                label: 'Generation'
-                                description: 'The overlay can be inline (rendered together with the map) or popup (generated where the map is clicked). Default is inline.'
-                                type: 'string'
-                                required: false
-                                default: 'inline'
-                                options:
-                                    inline:
-                                        value: 'inline'
-                                    popup:
-                                        value: 'popup'
-                                order: 5
                         order: 14
                     controls:
                         label: 'Controls'
@@ -4666,9 +4685,15 @@ cyclotronServices.factory 'commonConfigService', ->
                                 type: 'string'
                                 required: true
                                 options:
-                                    dateTimeChange:
-                                        value: 'clickOnMap'
+                                    clickOnOverlay:
+                                        value: 'clickOnOverlay'
                                 order: 2
+                            section:
+                                label: 'Section'
+                                description: 'Name of the overlay group that triggers the event. If the event is triggered by the map itself, you can leave this option empty. Some widgets (e.g. slider) have one section only, therefore Section option is not required, while others may have some sections that trigger the same kind of event (e.g. in OpenLayers maps, all overlay groups can trigger clickOnOverlay event).'
+                                type: 'string'
+                                required: false
+                                order: 3
                         order: 16
     }
 
