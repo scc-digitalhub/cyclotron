@@ -200,9 +200,11 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
     # Overlays
     ###
     if $scope.widget.overlayGroups? and not _.isEmpty($scope.widget.overlayGroups)
-        $scope.overlayGroups = []
+        $scope.overlays = []
+        $scope.groups = {}
         for group in $scope.widget.overlayGroups
             if group?
+                #check group properties
                 if not group.name? or _.isEmpty(group.name)
                     $scope.widgetContext.dataSourceError = true
                     $scope.widgetContext.dataSourceErrorMessage = 'Overlay group name is missing'
@@ -214,26 +216,26 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                     $scope.widgetContext.dataSourceError = true
                     $scope.widgetContext.dataSourceErrorMessage = 'No overlay is defined for group '+group.name
                 else
-                    groupProperties = {name: group.name, cssClass: group.cssClass}
-                    if group.cssClassSelected? then groupProperties.cssClassSelected = group.cssClassSelected
-                    groupProperties.overlays = []
                     for overlay in group.overlays
                         if overlay?
-                            overlayProperties = {}
+                            #check overlay properties
                             if not overlay.name? or _.isEmpty(overlay.name)
                                 $scope.widgetContext.dataSourceError = true
                                 $scope.widgetContext.dataSourceErrorMessage = 'Overlay name is missing'
                             else
-                                overlayProperties.id = overlay.name
+                                #store overlay in $scope.overlays
+                                overlayToPush = {group: group.name}
+                                overlayToPush.id = overlay.name
                                 if overlay.position?.x? and overlay.position?.y? and not
                                         (_.isEmpty(overlay.position.x) or _.isEmpty(overlay.position.y))
-                                    overlayProperties.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
-                                if overlay.positioning? then overlayProperties.positioning = overlay.positioning
-                                overlayProperties.generation = if overlay.generation? then overlay.generation else 'inline'
-                                groupProperties.overlays.push overlayProperties
-                    groupProperties.overlaySelected = ''
-                    $scope.overlayGroups.push groupProperties
-        console.log 'groups', $scope.overlayGroups
+                                    overlayToPush.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
+                                if overlay.positioning? then overlayToPush.positioning = overlay.positioning
+                                overlayToPush.generation = if overlay.generation? then overlay.generation else 'inline'
+                                $scope.overlays.push overlayToPush
+                    $scope.groups[group.name] =
+                        cssClass: group.cssClass
+                        cssClassSelected: group.cssClassSelected || ''
+                        currentOverlay: ''
     
     ###
     # Controls

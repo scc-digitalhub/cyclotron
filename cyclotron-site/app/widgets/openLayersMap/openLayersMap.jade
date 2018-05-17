@@ -3,3 +3,5 @@
     .widget-body
         .widget-error(ng-if='widgetContext.dataSourceError == true')
         #map.map(ng-if='widgetContext.dataSourceError == false')
+            div(ng-repeat='ov in overlays', id='{{ ov.id }}', group='{{ ov.group }}',
+                ng-class='groups[ov.group].cssClass + " " + (groups[ov.group].currentOverlay === ov.id ? groups[ov.group].cssClassSelected : "")')

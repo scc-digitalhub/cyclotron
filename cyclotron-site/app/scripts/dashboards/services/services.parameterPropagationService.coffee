@@ -22,7 +22,6 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                     if not widgetEvents[scope.widget.widget] then widgetEvents[scope.widget.widget] = {}
                     if not widgetEvents[scope.widget.widget][section] then widgetEvents[scope.widget.widget][section] = {}
                     widgetEvents[scope.widget.widget][section][param_event.event] = param_event.paramName
-                    console.log widgetEvents
 
     #check if widget subscribes to any parameters
     checkParameterSubscription = (scope) ->
@@ -45,7 +44,6 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
     #broadcast parameter change
     parameterBroadcaster = (widget, event, value, section) ->
         return unless widget? and event? and value?
-        console.log 'broadcaster, section is', section
         if not section? then section = widget
         paramName = widgetEvents[widget][section][event]
         setParameterValue paramName, value

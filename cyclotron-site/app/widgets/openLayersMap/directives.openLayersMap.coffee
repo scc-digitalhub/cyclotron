@@ -1,5 +1,5 @@
 #
-cyclotronDirectives.directive 'map', ($window) ->
+cyclotronDirectives.directive 'map', ($window, $timeout) ->
     {
         restrict: 'C'
         #scope:
@@ -8,60 +8,56 @@ cyclotronDirectives.directive 'map', ($window) ->
             map = null
             paramNames = []
             createMap = ->
-                if not map?                    
-                    #create map layers
-                    mapLayers = []
-                    _.each scope.layersToAdd, (layer) ->
-                        options = scope.layerOptions[layer.type] #olClass, sources
-                        layerConfig = {}
-                        if layer.source?
-                            configObj = if layer.source.configuration? then _.jsEval layer.source.configuration else {}
-                            layerConfig.source = new options.sources[layer.source.name].srcClass(configObj)
-                        mapLayers.push new options.olClass(layerConfig)
+                if not map?
+                    $timeout ->             
+                        #create map layers
+                        mapLayers = []
+                        _.each scope.layersToAdd, (layer) ->
+                            options = scope.layerOptions[layer.type] #olClass, sources
+                            layerConfig = {}
+                            if layer.source?
+                                configObj = if layer.source.configuration? then _.jsEval layer.source.configuration else {}
+                                layerConfig.source = new options.sources[layer.source.name].srcClass(configObj)
+                            mapLayers.push new options.olClass(layerConfig)
 
-                    #create map view
-                    mapView = new ol.View({
-                        center: ol.proj.fromLonLat scope.center, 'EPSG:3857'
-                        zoom: scope.zoom
-                    })
+                        #create map view
+                        mapView = new ol.View({
+                            center: ol.proj.fromLonLat scope.center, 'EPSG:3857'
+                            zoom: scope.zoom
+                        })
 
-                    #create map
-                    map = new ol.Map({
-                        target: attrs.id
-                        layers: mapLayers
-                        view: mapView
-                    })
-                    ###
-                    #if there are overlays, create them and add them to the map
-                    if scope.overlayGroups? and scope.overlayGroups.length > 0
-                        #group = {name, cssClass, _cssClassSelected, overlays=[{id, _position, _positioning, generation}], overlaySelected}
-                        #for each group overlays, create them with the specified class bound
-                        for group in scope.overlayGroups
-                            for overlay in group.overlays
+                        #create map
+                        map = new ol.Map({
+                            target: attrs.id
+                            layers: mapLayers
+                            view: mapView
+                        })
+                        
+                        #if there are overlays, create them and add them to the map
+                        if scope.overlays? and scope.overlays.length > 0
+                            for overlay in scope.overlays
                                 if overlay.generation == 'inline'
-                                    #create DOM element
-                                    #if group.overlaySelected == overlay.id and group.cssClassSelected? then group.cssClassSelected else 
-                                    ##{group.cssClass + ' ' + (if group.overlaySelected == overlay.id then group.cssClassSelected)}
-                                    overlayElem = $( "<div id=\"#{overlay.id}\" ng-class=\"'ciao'\"></div>" )
-                                    console.log overlayElem
-                                    ###
-                                    #overlayElem[0].addEventListener 'click', ->
-                                        #TODO change group.overlaySelected to this.id
-                                        #console.log 'clicked', this
-                                        #TODO broadcast
-                                    ###
-                                    $(element).prepend overlayElem
+                                    #get DOM element
+                                    overlayElem = document.getElementById overlay.id
+                                    #add click listener
+                                    overlayElem.addEventListener 'click', ->
+                                        group = this.getAttribute('group')
+                                        if scope.groups[group].currentOverlay == this.id
+                                            #either nothing happens or reset scope.groups[group].currentOverlay to ''
+                                        else
+                                            scope.groups[group].currentOverlay = this.id
+                                    
                                     #add overlay to map
-                                    config = {element: overlayElem.get (0)}
+                                    config =
+                                        element: overlayElem
                                     if overlay.position? then config.position = ol.proj.fromLonLat(overlay.position, 'EPSG:3857')
                                     if overlay.positioning? then config.positioning = overlay.positioning
                                     map.addOverlay(new ol.Overlay(config))
-                    ###
 
-                    #if there are controls, create them and add them to the map
+                        #if there are controls, create them and add them to the map
 
-                    #parameters to be generated by the map
-                    #if scope.sourceOfParams
+                        #parameters to be generated by the map
+                        #if scope.sourceOfParams
                 else
                     map.updateSize()
             
