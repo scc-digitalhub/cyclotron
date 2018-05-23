@@ -62,7 +62,8 @@
     "spin.js": "2.1.0",
     "uri.js": "1.15.1",
     "nouislider": "^11.1.0",
-    "ol": "https://github.com/openlayers/openlayers/releases/download/v4.6.5/v4.6.5-dist.zip"
+    "ol": "https://github.com/openlayers/openlayers/releases/download/v4.6.5/v4.6.5-dist.zip",
+    "google-chart": "^2.0.0"
   },
   "resolutions": {
     "d3": "3.5.6",

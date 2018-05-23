@@ -3101,6 +3101,22 @@ cyclotronServices.factory 'commonConfigService', ->
                                 ]
                             trackBorderColor: '#666'
                         
+            gchart:
+             name: 'gchart'
+             icon: 'fa-rocket'
+             properties:
+                 property1:
+                     label: 'Property One'
+                     description: 'This is a new property'
+                     type: 'string'
+                     required: false
+                     order: 10
+                 property2:
+                     label: 'Property Two'
+                     description: 'This is a new property'
+                     type: 'string'
+                     required: false
+                     order: 10
             clock:
                 name: 'clock'
                 label: 'Clock'

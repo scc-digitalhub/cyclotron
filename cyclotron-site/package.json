@@ -38,7 +38,7 @@
     "gulp-ng-annotate": "~0.5.2",
     "gulp-order2": "^2.0.5",
     "gulp-output": "~0.0.1",
-    "gulp-plumber": "~1.0.0",
+    "gulp-plumber": "^1.0.2",
     "gulp-rename": "~1.2.0",
     "gulp-sequence": "~0.3.2",
     "gulp-uglify": "~1.1.0",

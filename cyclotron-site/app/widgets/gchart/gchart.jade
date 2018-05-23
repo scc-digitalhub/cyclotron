@@ -1,0 +1,7 @@
+.gchart-widget(ng-controller='GchartWidget')
+    h1.title(ng-if='::widget.title') {{ widgetTitle() }}
+    .widget-body
+        .widget-error(ng-if='widgetContext.dataSourceError == true')
+        div(google-chart chart="myChartObject" style={height:100%; width:100%;}) 
+        
+
