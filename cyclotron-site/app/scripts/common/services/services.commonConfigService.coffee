@@ -1320,7 +1320,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     placeholder: 'Number of Seconds'
                                     order: 11
+                        
+                        gchart: 
+                            value: 'gchart'
+                            label: 'Gchart'
+                            icon: 'fa-cloud-download'
+                            message: 'The Gchart Data Source generates sample data for testing a dashboard.'
+                            properties:
+                                format:
+                                    label: 'Format'
+                                    description: 'Selects the format of the gchart data from these possible values: ["object", "pie", "ducati"]. Defaults to "object".'
+                                    type: 'string'
+                                    required: false
+                                    default: 'object'
+                                    options:
+                                        object:
+                                            value: 'object'
+                                        pie:
+                                            value: 'pie'
+                                        large:
+                                            value: 'large'
+                                        ducati:
+                                            value: 'ducati'
+                                    order: 10
+                                refresh: 
+                                    label: 'Refresh'
+                                    description: 'Optional; specifies the number of seconds after which the Data Source reloads'
+                                    type: 'integer'
+                                    required: false
+                                    placeholder: 'Number of Seconds'
+                                    order: 11
 
+                        
                         splunk: 
                             value: 'splunk'
                             label: 'Splunk'
@@ -3105,18 +3136,27 @@ cyclotronServices.factory 'commonConfigService', ->
              name: 'gchart'
              icon: 'fa-rocket'
              properties:
+                dataSource:
+                        label: 'Data Source'
+                        description: 'The name of the Data Source providing data for this Widget.'
+                        placeholder: 'Data Source name'
+                        type: 'string'
+                        required: true
+                        options: datasourceOptions
+                        order: 10
                  property1:
                      label: 'Property One'
                      description: 'This is a new property'
                      type: 'string'
                      required: false
                      order: 10
-                 property2:
-                     label: 'Property Two'
-                     description: 'This is a new property'
-                     type: 'string'
-                     required: false
-                     order: 10
+                 highchart:
+                        label: 'Highchart Definition'
+                        description: 'Contains all the options for the chart, in the format expected by Highcharts. Any valid Highcharts properties can be set under this property and will be applied to the chart.'
+                        type: 'json'
+                        inlineJs: true
+                        required: false
+                        order: 12
             clock:
                 name: 'clock'
                 label: 'Clock'
