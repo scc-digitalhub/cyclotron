@@ -1,28 +1,25 @@
 #
 # Widget for OpenLayers map
 #
-cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationService) ->
-    #dataSource
-
-    ###
-    # Parameters
-    ###
-    parameterPropagationService.checkSpecificParams $scope
-    parameterPropagationService.checkParameterSubscription $scope
+cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationService, dashboardService, dataService) ->
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    mapConfig = {} #map configuration, .layersToAdd, .groups, .overlays, .controls
+    firstLoad = true
 
     ###
     # View
     ###
-    if not $scope.widget.center?.x? or not $scope.widget.center?.y? or
-            _.isEmpty($scope.widget.center.x) or _.isEmpty($scope.widget.center.y)
-        $scope.widgetContext.dataSourceError = true
-        $scope.widgetContext.dataSourceErrorMessage = 'X or Y coordinates are missing'
-    else if not $scope.widget.zoom?
-        $scope.widgetContext.dataSourceError = true
-        $scope.widgetContext.dataSourceErrorMessage = 'Zoom property is missing'
-    else
-        $scope.center = [parseFloat($scope.widget.center.x), parseFloat($scope.widget.center.y)]
-        $scope.zoom = parseInt $scope.widget.zoom, 10
+    checkViewProperties = (widget) ->
+        if not widget.center?.x? or not widget.center?.y? or
+                _.isEmpty(widget.center.x) or _.isEmpty(widget.center.y)
+            $scope.widgetContext.dataSourceError = true
+            $scope.widgetContext.dataSourceErrorMessage = 'X or Y coordinates are missing'
+        else if not widget.zoom?
+            $scope.widgetContext.dataSourceError = true
+            $scope.widgetContext.dataSourceErrorMessage = 'Zoom property is missing'
+        else
+            mapConfig.center = [parseFloat(widget.center.x), parseFloat(widget.center.y)]
+            mapConfig.zoom = parseInt widget.zoom, 10
 
     ###
     # Layers
@@ -58,6 +55,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                     srcClass: ol.source.ImageWMS
                     configRequired: true
                     config:
+                        url: ''
                         params: {}
                 'Raster':
                     srcClass: ol.source.Raster
@@ -155,88 +153,227 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                     config:
                         url: ''
     
-    if not $scope.widget.layers? or
-            ($scope.widget.layers.length == 1 and not $scope.widget.layers[0]?)
-        #set default layer, i.e., OSM map with no configuration
-        defaultLayer =
-            type: 'Tile'
-            source:
-                name: 'OSM'
-                configuration: '{}'
-        $scope.layersToAdd = [defaultLayer]
-    else
-        #check that each layer is valid
-        for layer in $scope.widget.layers
-            layerType = if layer.type? then layer.type else null
-            layerSource = if layer.source? then layer.source else null
-            configObj = if layerSource?.configuration? then _.jsEval layerSource.configuration  else null
-            sourcesKeys =  if layerType? then _.keys($scope.layerOptions[layerType].sources) else null
-            
-            configKeys = if layerType? and layerSource? and layerSource.name?
-            then _.keys($scope.layerOptions[layerType].sources[layerSource.name].config)
-            else null
+    checkLayerProperties = (widget) ->
+        if not widget.layers? or
+                (widget.layers.length == 1 and not widget.layers[0]?)
+            #set default layer, i.e., OSM map with no configuration
+            defaultLayer =
+                type: 'Tile'
+                source:
+                    name: 'OSM'
+                    configuration: '{}'
+            mapConfig.layersToAdd = [defaultLayer]
+        else
+            #check that each layer is valid
+            for layer in widget.layers
+                layerType = if layer.type? then layer.type else null
+                layerSource = if layer.source? then layer.source else null
+                configObj = if layerSource?.configuration? then _.jsEval layerSource.configuration  else null
+                sourcesKeys =  if layerType? then _.keys($scope.layerOptions[layerType].sources) else null
+                
+                configKeys = if layerType? and layerSource? and layerSource.name?
+                then _.keys($scope.layerOptions[layerType].sources[layerSource.name].config)
+                else null
 
-            #allow VectorTile to skip source tests since source is not required
-            if layerType == 'VectorTile' and not layerSource?
-                continue
+                #allow VectorTile to skip source tests since source is not required
+                if layerType == 'VectorTile' and not layerSource?
+                    continue
 
-            #check that both type and source are defined
-            if (layerType and not layerSource) or (layerSource and not layerType)
-                $scope.widgetContext.dataSourceError = true
-                $scope.widgetContext.dataSourceErrorMessage = 'Type or source are missing for some layers'
-            #check that source name is defined and can be passed to the layer
-            else if not layerSource.name? or layerSource.name not in sourcesKeys
-                $scope.widgetContext.dataSourceError = true
-                $scope.widgetContext.dataSourceErrorMessage = 'Source name for '+layerType+' layer is missing or the source you selected cannot be used. Please refer to the help page.'
-            #check that source configuration is valid
-            else if $scope.layerOptions[layerType].sources[layerSource.name].configRequired and
-                    (not configObj or not _.isEmpty(_.difference(_.keys(configObj), configKeys)))
-                $scope.widgetContext.dataSourceError = true
-                $scope.widgetContext.dataSourceErrorMessage = 'Configuration is missing or invalid for source '+layerSource.name+'. Please refer to the help page.'
-        if $scope.widgetContext.dataSourceError == false
-            $scope.layersToAdd = $scope.widget.layers
+                #check that both type and source are defined
+                if (layerType and not layerSource) or (layerSource and not layerType)
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'Type or source are missing for some layers'
+                #check that source name is defined and can be passed to the layer
+                else if not layerSource.name? or layerSource.name not in sourcesKeys
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'Source name for '+layerType+' layer is missing or the source you selected cannot be used. Please refer to the help page.'
+                #check that source configuration is valid
+                else if $scope.layerOptions[layerType].sources[layerSource.name].configRequired and
+                        (not configObj or not _.isEmpty(_.difference(_.keys(configObj), configKeys)))
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'Configuration is missing or invalid for source '+layerSource.name+'. Please refer to the help page.'
+            if $scope.widgetContext.dataSourceError == false
+                mapConfig.layersToAdd = widget.layers
+
+    setOverlays = (overlays, groupName) ->
+        overlaysChecked = []
+        for overlay in overlays
+            if overlay?
+                if not overlay.name? or _.isEmpty(overlay.name)
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'Some overlay name is missing'
+                    return
+                else
+                    overlayToPush = {group: groupName}
+                    overlayToPush.id = overlay.name
+                    if overlay.position?.x? and overlay.position?.y? and not
+                            (_.isEmpty(overlay.position.x) or _.isEmpty(overlay.position.y))
+                        overlayToPush.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
+                    if overlay.positioning? then overlayToPush.positioning = overlay.positioning
+                    if overlay.template?
+                        overlayToPush.template = _.jsExec overlay.template
+                    overlaysChecked.push overlayToPush
+        return overlaysChecked
 
     ###
     # Overlays
     ###
-    if $scope.widget.overlayGroups? and not _.isEmpty($scope.widget.overlayGroups)
-        $scope.overlays = []
-        $scope.groups = {}
-        for group in $scope.widget.overlayGroups
-            if group?
-                #check group properties
-                if not group.name? or _.isEmpty(group.name)
-                    $scope.widgetContext.dataSourceError = true
-                    $scope.widgetContext.dataSourceErrorMessage = 'Overlay group name is missing'
-                else if not group.cssClass? or _.isEmpty(group.cssClass)
-                    $scope.widgetContext.dataSourceError = true
-                    $scope.widgetContext.dataSourceErrorMessage = 'Overlay group CSS class is missing'
-                else if not group.overlays? or _.isEmpty(group.overlays) or
-                        (group.overlays.length == 1 and not group.overlays[0]?)
-                    $scope.widgetContext.dataSourceError = true
-                    $scope.widgetContext.dataSourceErrorMessage = 'No overlay is defined for group '+group.name
-                else
-                    for overlay in group.overlays
-                        if overlay?
-                            #check overlay properties
-                            if not overlay.name? or _.isEmpty(overlay.name)
-                                $scope.widgetContext.dataSourceError = true
-                                $scope.widgetContext.dataSourceErrorMessage = 'Overlay name is missing'
-                            else
-                                #store overlay in $scope.overlays
-                                overlayToPush = {group: group.name}
-                                overlayToPush.id = overlay.name
-                                if overlay.position?.x? and overlay.position?.y? and not
-                                        (_.isEmpty(overlay.position.x) or _.isEmpty(overlay.position.y))
-                                    overlayToPush.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
-                                if overlay.positioning? then overlayToPush.positioning = overlay.positioning
-                                overlayToPush.generation = if overlay.generation? then overlay.generation else 'inline'
-                                $scope.overlays.push overlayToPush
-                    $scope.groups[group.name] =
-                        cssClass: group.cssClass
-                        cssClassSelected: group.cssClassSelected || ''
-                        currentOverlay: ''
-    
+    checkOverlayProperties = (widget) ->
+        if widget.overlayGroups? and not _.isEmpty(widget.overlayGroups)
+            if not mapConfig.overlays? and not mapConfig.groups?
+                mapConfig.overlays = []
+                mapConfig.groups = {}
+                for group in widget.overlayGroups
+                    if group?
+                        #check group properties
+                        if not group.name? or _.isEmpty(group.name)
+                            $scope.widgetContext.dataSourceError = true
+                            $scope.widgetContext.dataSourceErrorMessage = 'Overlay group name is missing'
+                        else if not group.cssClass? or _.isEmpty(group.cssClass)
+                            $scope.widgetContext.dataSourceError = true
+                            $scope.widgetContext.dataSourceErrorMessage = 'Overlay group CSS class is missing'
+                        else if not group.overlays? or _.isEmpty(group.overlays) or
+                                (group.overlays.length == 1 and not group.overlays[0]?)
+                            $scope.widgetContext.dataSourceError = true
+                            $scope.widgetContext.dataSourceErrorMessage = 'Overlay group must have at least one overlay'
+                        else
+                            mapConfig.groups[group.name] =
+                                cssClass: group.cssClass
+                                cssClassSelected: group.cssClassSelected || ''
+                                currentOverlay: ''
+                            
+                            mapConfig.overlays = setOverlays group.overlays, group.name
+            else
+                console.log 'not first load'
+                #substitute old overlay content
+                for group in widget.overlayGroups
+                    newOverlays = setOverlays group.overlays, group.name
+                    for overlay, index in newOverlays
+                        if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
+                            mapConfig.overlays[index].template = overlay.template
+
     ###
     # Controls
     ###
+
+    #configuration object for controls
+    $scope.controlOptions =
+        'Attribution': ol.control.Attribution
+        'MousePosition': ol.control.MousePosition
+        'OverviewMap': ol.control.OverviewMap
+        'ScaleLine': ol.control.ScaleLine
+        'Zoom': ol.control.Zoom
+        'ZoomSlider': ol.control.ZoomSlider
+        'ZoomExtent': ol.control.ZoomExtent
+
+    checkControlProperties = (widget) ->
+        if widget.controls? and not mapConfig.controls?
+            mapConfig.controls = []
+            for control in widget.controls
+                if control?
+                    mapConfig.controls.push control.control
+    
+    ###
+    # Datasource
+    ###
+    $scope.reload = ->
+        $scope.dataSource.execute(true)
+    
+    dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
+    $scope.dataSource = dataService.get dsDefinition
+    
+    if $scope.dataSource?
+        $scope.dataVersion = 0
+        $scope.widgetContext.loading = true
+
+        # Data Source (re)loaded
+        $scope.$on 'dataSource:' + dsDefinition.name + ':data', (event, eventData) ->
+            return unless eventData.version > $scope.dataVersion
+            $scope.dataVersion = eventData.version
+
+            $scope.widgetContext.dataSourceError = false
+            $scope.widgetContext.dataSourceErrorMessage = null
+
+            data = eventData.data[dsDefinition.resultSet].data
+            data = $scope.filterAndSortWidgetData(data)
+
+            if data?
+                console.log 'data', data
+                ovData = _.cloneDeep data
+                _.each ovData, (row, index) -> row.__index = index
+                
+                if not mapConfig.overlays? and not mapConfig.groups?
+                    mapConfig.overlays = []
+                    mapConfig.groups = {}
+
+                    for group in ovData
+                        if not group.name? or _.isEmpty(group.name)
+                            $scope.widgetContext.dataSourceError = true
+                            $scope.widgetContext.dataSourceErrorMessage = 'Datasource objects must have a name'
+                        else if not group.cssClass? or _.isEmpty(group.cssClass)
+                            $scope.widgetContext.dataSourceError = true
+                            $scope.widgetContext.dataSourceErrorMessage = 'Datasource objects must have a CSS class'
+                        else if not group.overlays? or _.isEmpty(group.overlays)
+                            $scope.widgetContext.dataSourceError = true
+                            $scope.widgetContext.dataSourceErrorMessage = 'Datasource objects must have at least one overlay'
+                        else
+                            mapConfig.groups[group.name] =
+                                cssClass: group.cssClass
+                                cssClassSelected: group.cssClassSelected || ''
+                                currentOverlay: ''
+                            
+                            mapConfig.overlays = setOverlays group.overlays, group.name
+                else
+                    console.log 'not first load'
+                    #substitute old overlay content
+                    for group in ovData
+                        newOverlays = setOverlays group.overlays, group.name
+                        for overlay, index in newOverlays
+                            if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
+                                mapConfig.overlays[index].template = overlay.template
+
+            $scope.widgetContext.loading = false
+
+        # Data Source error
+        $scope.$on 'dataSource:' + dsDefinition.name + ':error', (event, data) ->
+            $scope.widgetContext.dataSourceError = true
+            $scope.widgetContext.dataSourceErrorMessage = data.error
+            $scope.widgetContext.nodata = null
+            $scope.widgetContext.loading = false
+            mapConfig.overlays = []
+            mapConfig.groups = {}
+
+        # Data Source loading
+        $scope.$on 'dataSource:' + dsDefinition.name + ':loading', ->
+            $scope.widgetContext.loading = true
+        
+        # Initialize the Data Source
+        $scope.dataSource.init dsDefinition
+
+    else 
+        # Override the widget feature of exporting data, since there is no data
+        $scope.widgetContext.allowExport = false
+
+    $scope.loadWidget = ->
+        console.log '(re)loading widget', $scope.randomId
+        $scope.widgetContext.loading = true
+        #set parameters (only at first loading)
+        if firstLoad
+            parameterPropagationService.checkSpecificParams $scope
+            parameterPropagationService.checkParameterSubscription $scope
+            firstLoad = false
+        
+        #substitute any placeholder with parameter values, then check the configuration
+        widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+        checkViewProperties(widgedWithoutPlaceholders)
+        checkLayerProperties(widgedWithoutPlaceholders)
+        if $scope.dataSource?
+            $scope.reload()
+        else
+            checkOverlayProperties(widgedWithoutPlaceholders)
+        checkControlProperties(widgedWithoutPlaceholders) #done only once because it cannot be parametric
+
+        $scope.mapConfig = mapConfig
+        $scope.widgetContext.loading = false
+    
+    $scope.loadWidget()

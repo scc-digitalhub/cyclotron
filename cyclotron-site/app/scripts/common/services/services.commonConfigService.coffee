@@ -4502,7 +4502,7 @@ cyclotronServices.factory 'commonConfigService', ->
                 properties:
                     dataSource:
                         label: 'Data Source'
-                        description: 'The name of the Data Source providing data for this Widget. It must be a table in which every row represents a layer.'
+                        description: 'The name of the Data Source providing data for the overlays.'
                         placeholder: 'Data Source name'
                         type: 'string'
                         required: false
@@ -4652,7 +4652,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 description: ''
                                 type: 'propertyset[]'
                                 inlineJs: true
-                                required: true
+                                required: false
                                 properties:
                                     name:
                                         label: 'Name'
@@ -4701,26 +4701,45 @@ cyclotronServices.factory 'commonConfigService', ->
                                             topRight:
                                                 value: 'top-right'
                                         order: 3
-                                    generation:
-                                        label: 'Generation'
-                                        description: 'The overlay can be inline (rendered together with the map) or popup (generated where the map is clicked). Default is inline.'
-                                        type: 'string'
+                                    template:
+                                        label: 'Template'
+                                        description: 'HTML template for overlay content.'
+                                        type: 'editor'
+                                        editorMode: 'html'
                                         required: false
-                                        default: 'inline'
-                                        options:
-                                            inline:
-                                                value: 'inline'
-                                            popup:
-                                                value: 'popup'
+                                        default: ''
                                         order: 4
                                 order: 4
                         order: 14
                     controls:
                         label: 'Controls'
                         singleLabel: 'control'
-                        description: 'An array of controls that will be added to the map, i.e., elements that will be displayed over the map, e.g. buttons.'
+                        description: 'An array of controls that will be added to the map.'
                         type: 'propertyset[]'
                         inlineJs: true
+                        defaultHidden: true
+                        default: []
+                        properties:
+                            control:
+                                label: 'Control'
+                                type: 'string'
+                                required: false
+                                options:
+                                    Attribution:
+                                        value: 'Attribution'
+                                    MousePosition:
+                                        value: 'MousePosition'
+                                    OverviewMap:
+                                        value: 'OverviewMap'
+                                    ScaleLine:
+                                        value: 'ScaleLine'
+                                    Zoom:
+                                        value: 'Zoom'
+                                    ZoomSlider:
+                                        value: 'ZoomSlider'
+                                    ZoomExtent:
+                                        value: 'ZoomExtent'
+                                order: 1
                         order: 15
                     specificEvents:
                         label: 'Specific Events'
