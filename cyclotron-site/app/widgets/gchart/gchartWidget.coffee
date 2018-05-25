@@ -18,8 +18,9 @@ cyclotronApp.controller 'GchartWidget', ($scope, $window, parameterPropagationSe
       data = eventData.data[dsDefinition.resultSet].data
       data = $scope.filterAndSortWidgetData(data)
       console.log 'data', data
+      console.log 'chart selected:', $scope.widget.chartType
       $scope.myChartObject = {
-        "type": "LineChart",
+        "type": $scope.widget.chartType,
         "displayed": false,
         "data": data[0],
         "options": {
