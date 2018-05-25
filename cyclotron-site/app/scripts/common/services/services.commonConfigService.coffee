@@ -1321,37 +1321,6 @@ cyclotronServices.factory 'commonConfigService', ->
                                     placeholder: 'Number of Seconds'
                                     order: 11
                         
-                        gchart: 
-                            value: 'gchart'
-                            label: 'Gchart'
-                            icon: 'fa-cloud-download'
-                            message: 'The Gchart Data Source generates sample data for testing a dashboard.'
-                            properties:
-                                format:
-                                    label: 'Format'
-                                    description: 'Selects the format of the gchart data from these possible values: ["object", "pie", "ducati"]. Defaults to "object".'
-                                    type: 'string'
-                                    required: false
-                                    default: 'object'
-                                    options:
-                                        object:
-                                            value: 'object'
-                                        pie:
-                                            value: 'pie'
-                                        large:
-                                            value: 'large'
-                                        ducati:
-                                            value: 'ducati'
-                                    order: 10
-                                refresh: 
-                                    label: 'Refresh'
-                                    description: 'Optional; specifies the number of seconds after which the Data Source reloads'
-                                    type: 'integer'
-                                    required: false
-                                    placeholder: 'Number of Seconds'
-                                    order: 11
-
-                        
                         splunk: 
                             value: 'splunk'
                             label: 'Splunk'
@@ -3157,6 +3126,7 @@ cyclotronServices.factory 'commonConfigService', ->
                         inlineJs: true
                         required: false
                         order: 12
+            
             clock:
                 name: 'clock'
                 label: 'Clock'
@@ -4622,6 +4592,21 @@ cyclotronServices.factory 'commonConfigService', ->
                                 required: false
                                 order: 3
                         order: 13
+                    dataSourceMapping:
+                        label: 'DataSource Mapping'
+                        description: 'Overlay properties must be mapped to datasource fields. The datasource is required to have at least fields for group ID, CSS class and the list of overlays.'
+                        type: 'propertyset'
+                        properties:
+                            identifier:
+                                label: 'Identifier'
+                                description: 'Datasource field with a unique identifier for the overlay group. If it is not specified and the datasource provides more that one object (i.e. overlay group), each group will be assigned a random ID.'
+                                type: 'string'
+                                required: false
+                                order: 1
+                            cssClass:
+                                label: 'CSS Class Name'
+                                description: 'Name of a CSS class (that must be defined in the Styles section of the editor) to apply to each group.'
+                        order: 14
                     overlayGroups:
                         label: 'Overlay Groups'
                         singleLabel: 'group'
@@ -4710,7 +4695,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                         default: ''
                                         order: 4
                                 order: 4
-                        order: 14
+                        order: 15
                     controls:
                         label: 'Controls'
                         singleLabel: 'control'
@@ -4740,7 +4725,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                     ZoomExtent:
                                         value: 'ZoomExtent'
                                 order: 1
-                        order: 15
+                        order: 16
                     specificEvents:
                         label: 'Specific Events'
                         singleLabel: 'param-event'
@@ -4769,7 +4754,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 type: 'string'
                                 required: false
                                 order: 3
-                        order: 16
+                        order: 17
     }
 
     # Copy Theme options to inherited locations
