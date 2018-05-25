@@ -42,7 +42,7 @@ cyclotronDataSources.factory 'gchartDataSource', ($q, dataSourceFactory, logServ
         q = $q.defer()    
 
         if !options.format? || options.format == 'object'
-            state.cache = [ 
+            state.cache = [
                 {
                     "cols": [
                         {
@@ -139,21 +139,21 @@ cyclotronDataSources.factory 'gchartDataSource', ($q, dataSourceFactory, logServ
                         }
                     ]
                 }
-                ###
-                {color: "red", number: 1, state: "WA", status: "green"}
-                {state: "CA", color: "green", number: 41, status: "green"}
-                {state: "CA", color: "red", number: 2, status: "green"}
-                {color: "red", number: 15, state: "WA", country: "USA", status: "green"}
-                {color: "blue", number: 23, state: "CO", status: "yellow"}
-                {color: "black", number: 45, state: "WA", status: "red"}
-                {color: "green", number: 32, state: "WA", status: "yellow"}
-                {color: "green", number: 99, state: "WA", status: "yellow"}
-                {color: "black", number: 1, state: "WA", status: "red"}
-                {color: "black", number: 45, state: "CA", status: "red"}
-                {color: "white", number: 24, state: "AK", status: "red"}
-                {color: "white", number: 16, state: "AK", status: "yellow"}
-                ###
             ]
+            ###
+            {color: "red", number: 1, state: "WA", status: "green"}
+            {state: "CA", color: "green", number: 41, status: "green"}
+            {state: "CA", color: "red", number: 2, status: "green"}
+            {color: "red", number: 15, state: "WA", country: "USA", status: "green"}
+            {color: "blue", number: 23, state: "CO", status: "yellow"}
+            {color: "black", number: 45, state: "WA", status: "red"}
+            {color: "green", number: 32, state: "WA", status: "yellow"}
+            {color: "green", number: 99, state: "WA", status: "yellow"}
+            {color: "black", number: 1, state: "WA", status: "red"}
+            {color: "black", number: 45, state: "CA", status: "red"}
+            {color: "white", number: 24, state: "AK", status: "red"}
+            {color: "white", number: 16, state: "AK", status: "yellow"}
+            ###
 
         else if options.format == 'pie'
             state.cache = [ 
