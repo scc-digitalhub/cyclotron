@@ -200,20 +200,25 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
         for overlay in overlays
             if overlay?
                 if not overlay.name? or _.isEmpty(overlay.name)
-                    $scope.widgetContext.dataSourceError = true
-                    $scope.widgetContext.dataSourceErrorMessage = 'Some overlay name is missing'
-                    return
-                else
-                    overlayToPush = {group: groupName}
-                    overlayToPush.id = overlay.name
-                    if overlay.position?.x? and overlay.position?.y? and not
-                            (_.isEmpty(overlay.position.x) or _.isEmpty(overlay.position.y))
-                        overlayToPush.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
-                    if overlay.positioning? then overlayToPush.positioning = overlay.positioning
-                    if overlay.template?
-                        overlayToPush.template = _.jsExec overlay.template
-                    overlaysChecked.push overlayToPush
+                    overlay.name = 'ov' + Math.floor(Math.random()*1000)
+                
+                overlayToPush = {group: groupName}
+                overlayToPush.id = overlay.name
+                if overlay.position?.x? and overlay.position?.y? and not
+                        ((_.isString(overlay.position.x) and _.isEmpty(overlay.position.x)) or (_.isString(overlay.position.y) and  _.isEmpty(overlay.position.y)))
+                    overlayToPush.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
+                if overlay.positioning? then overlayToPush.positioning = overlay.positioning
+                if overlay.template?
+                    overlayToPush.template = _.jsExec overlay.template
+                overlaysChecked.push overlayToPush
         return overlaysChecked
+
+    updateOverlayTemplates = (groups) ->
+        for group in groups
+            newOverlays = setOverlays group.overlays, group.name
+            for overlay, index in newOverlays
+                if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
+                    mapConfig.overlays[index].template = overlay.template
 
     ###
     # Overlays
@@ -244,13 +249,8 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                             
                             mapConfig.overlays = setOverlays group.overlays, group.name
             else
-                console.log 'not first load'
                 #substitute old overlay content
-                for group in widget.overlayGroups
-                    newOverlays = setOverlays group.overlays, group.name
-                    for overlay, index in newOverlays
-                        if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
-                            mapConfig.overlays[index].template = overlay.template
+                updateOverlayTemplates(widget.overlayGroups)
 
     ###
     # Controls
@@ -279,6 +279,21 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
     $scope.reload = ->
         $scope.dataSource.execute(true)
     
+    #returns [{name: '', position: {x: '', y: ''}, positioning: '', template: ''}]
+    mapOverlays = (overlayList, mapping) ->
+        copy = []
+        for ov in overlayList
+            mapped = {}
+            if mapping.overlayIdField? then mapped.name = ov[mapping.overlayIdField]
+            if mapping.positionField?
+                mapped.position = {x: ov[mapping.positionField][0], y: ov[mapping.positionField][1]}
+            else if mapping.xField? and mapping.yField?
+                mapped.position = {x: ov[mapping.xField], y: ov[mapping.yField]}
+            if mapping.positioningField? then mapped.positioning = ov[mapping.positioningField]
+            if mapping.templateField? then mapped.template = ov[mapping.templateField]
+            copy.push mapped
+        return copy
+    
     dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
     $scope.dataSource = dataService.get dsDefinition
     
@@ -296,41 +311,56 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
 
             data = eventData.data[dsDefinition.resultSet].data
             data = $scope.filterAndSortWidgetData(data)
+            isUpdate = eventData.isUpdate
 
             if data?
-                console.log 'data', data
-                ovData = _.cloneDeep data
-                _.each ovData, (row, index) -> row.__index = index
-                
-                if not mapConfig.overlays? and not mapConfig.groups?
+                if !isUpdate and _.isEmpty(mapConfig.overlays) and _.isEmpty(mapConfig.groups)
+                    $scope.ovData = _.cloneDeep data
+                    _.each $scope.ovData, (row, index) -> row.__index = index
+
                     mapConfig.overlays = []
                     mapConfig.groups = {}
+                    mapping = if $scope.widget.dataSourceMapping? then $scope.widget.dataSourceMapping else null
 
-                    for group in ovData
-                        if not group.name? or _.isEmpty(group.name)
-                            $scope.widgetContext.dataSourceError = true
-                            $scope.widgetContext.dataSourceErrorMessage = 'Datasource objects must have a name'
-                        else if not group.cssClass? or _.isEmpty(group.cssClass)
-                            $scope.widgetContext.dataSourceError = true
-                            $scope.widgetContext.dataSourceErrorMessage = 'Datasource objects must have a CSS class'
-                        else if not group.overlays? or _.isEmpty(group.overlays)
-                            $scope.widgetContext.dataSourceError = true
-                            $scope.widgetContext.dataSourceErrorMessage = 'Datasource objects must have at least one overlay'
-                        else
+                    #read datasource mapping
+                    if not mapping? or not (mapping.overlayListField? and mapping.cssClassField?)
+                        $scope.widgetContext.dataSourceError = true
+                        $scope.widgetContext.dataSourceErrorMessage = 'DataSource mapping is not defined. Mapping for at least Overlay List Field and either CSS Class Field or Style Field must be provided'
+                    else
+                        $scope.mapping =
+                            groupIdField: if mapping.identifierField? then mapping.identifierField else null
+                            cssClassField: if mapping.cssClassField then mapping.cssClassField else null
+                            cssClassSelectedField: if mapping.cssClassOnSelectionField? then mapping.cssClassOnSelectionField else null
+                            overlayListField: mapping.overlayListField
+                            overlayIdField: if mapping.overlayIdField? then mapping.overlayIdField else null
+                            positionField: if mapping.positionField? then mapping.positionField else null
+                            xField: if mapping.xField? then mapping.xField else null
+                            yField: if mapping.yField? then mapping.yField else null
+                            positioningField: if mapping.positioningField? then mapping.positioningField else null
+                            templateField: if mapping.templateField? then mapping.templateField else null
+
+                        for group in $scope.ovData
+                            group.name = if $scope.mapping.groupIdField? then group[$scope.mapping.groupIdField] else 'group' + Math.floor(Math.random()*1000)
                             mapConfig.groups[group.name] =
-                                cssClass: group.cssClass
-                                cssClassSelected: group.cssClassSelected || ''
+                                cssClass: group[$scope.mapping.cssClassField]
+                                cssClassSelected: group[$scope.mapping.cssClassSelectedField] || ''
                                 currentOverlay: ''
+                            
+                            group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
+                            delete group[$scope.mapping.overlayListField]
                             
                             mapConfig.overlays = setOverlays group.overlays, group.name
                 else
-                    console.log 'not first load'
-                    #substitute old overlay content
-                    for group in ovData
-                        newOverlays = setOverlays group.overlays, group.name
-                        for overlay, index in newOverlays
-                            if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
-                                mapConfig.overlays[index].template = overlay.template
+                    oldData = _.cloneDeep $scope.ovData
+                    $scope.ovData = _.cloneDeep data
+                    _.each $scope.ovData, (row, index) -> row.__index = index
+
+                    for group, i in $scope.ovData
+                        group.name = oldData[i].name
+                        group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
+                        delete group[$scope.mapping.overlayListField]
+
+                    updateOverlayTemplates $scope.ovData
 
             $scope.widgetContext.loading = false
 
@@ -356,7 +386,6 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
 
     $scope.loadWidget = ->
         console.log '(re)loading widget', $scope.randomId
-        $scope.widgetContext.loading = true
         #set parameters (only at first loading)
         if firstLoad
             parameterPropagationService.checkSpecificParams $scope
@@ -367,13 +396,13 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
         widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
         checkViewProperties(widgedWithoutPlaceholders)
         checkLayerProperties(widgedWithoutPlaceholders)
-        if $scope.dataSource?
-            $scope.reload()
+        if $scope.dataSource? and $scope.ovData?
+            console.log 'we are here'
+            updateOverlayTemplates($scope.ovData)
         else
             checkOverlayProperties(widgedWithoutPlaceholders)
         checkControlProperties(widgedWithoutPlaceholders) #done only once because it cannot be parametric
 
         $scope.mapConfig = mapConfig
-        $scope.widgetContext.loading = false
     
     $scope.loadWidget()
