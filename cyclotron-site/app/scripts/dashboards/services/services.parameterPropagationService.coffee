@@ -3,10 +3,33 @@
 #
 cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, configService, logService) ->
     #mapping of widgets, the events they produce and the parameters associated to such events
-    widgetEvents = {}
+    _widgetEvents = {}
 
     #mapping of widgets and the parameters they subscribed to
-    subscriptions = {}
+    _subscriptions = {}
+
+    #mapping of parameters and the datasources subscribed to them
+    _dsSubscriptions = {}
+    
+    #set value of Cyclotron parameter
+    _setParameterValue = (parameterName, value) ->
+        return unless parameterName? and value?
+        if parameterName of $window.Cyclotron.parameters
+            if $window.Cyclotron.parameters[parameterName] == value
+                #value is unchanged
+                return false
+            else
+                console.log 'setting', parameterName, value
+                $window.Cyclotron.parameters[parameterName] = value
+    
+    #place a listener for parameter changes
+    _parameterListener = (scope, parameterName) ->
+        return unless parameterName?
+        console.log 'subscribing to', parameterName
+        message = 'parameter:'+parameterName+':update'
+        scope.$on message, (event, args) ->
+            console.log message, args
+            scope.loadWidget()
 
     #check if widget generates parameters
     checkSpecificParams = (scope) ->
@@ -22,60 +45,60 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                 else
                     scope.sourceOfParams = true
                     section = if param_event.section? then param_event.section else scope.widget.widget
-                    if not widgetEvents[scope.widget.widget] then widgetEvents[scope.widget.widget] = {}
-                    if not widgetEvents[scope.widget.widget][section] then widgetEvents[scope.widget.widget][section] = {}
-                    widgetEvents[scope.widget.widget][section][param_event.event] = param_event.paramName
+                    if not _widgetEvents[scope.widget.widget] then _widgetEvents[scope.widget.widget] = {}
+                    if not _widgetEvents[scope.widget.widget][section] then _widgetEvents[scope.widget.widget][section] = {}
+                    _widgetEvents[scope.widget.widget][section][param_event.event] = param_event.paramName
 
     #check if widget subscribes to any parameters
     checkParameterSubscription = (scope) ->
         if scope.widget.parameterSubscription?
-            subscriptions[scope.widget.widget+scope.randomId] = []
+            _subscriptions[scope.widget.widget+scope.randomId] = []
             for param in scope.widget.parameterSubscription
                 if not (param of $window.Cyclotron.parameters)
                     scope.widgetContext.dataSourceError = true
                     scope.widgetContext.dataSourceErrorMessage = 'Parameter '+param+' not found among dashboard parameters'
                 else
-                    subscriptions[scope.widget.widget+scope.randomId].push param
-                    parameterListener scope, param
+                    _subscriptions[scope.widget.widget+scope.randomId].push param
+                    _parameterListener scope, param
     
-    #set value of Cyclotron parameter
-    setParameterValue = (parameterName, value) ->
-        return unless parameterName? and value?
-        console.log 'setting', parameterName, value
-        if parameterName of $window.Cyclotron.parameters
-            $window.Cyclotron.parameters[parameterName] = value
+    #check if datasource subscribes to any parameters
+    checkDSParameterSubscription = (dsOptions) ->
+        if dsOptions.parameterSubscription.length > 0
+            for param in dsOptions.parameterSubscription
+                if not _.isEmpty(param) and (param of $window.Cyclotron.parameters)
+                    if not _dsSubscriptions[param]? then _dsSubscriptions[param] = []
+                    _dsSubscriptions[param].push dsOptions.name
 
     #broadcast parameter change
     parameterBroadcaster = (widget, event, value, section) ->
         return unless widget? and event? and value?
         if not section? then section = widget
-        paramName = widgetEvents[widget][section][event]
-        setParameterValue paramName, value
-        console.log 'broadcasting', paramName
-        logService.debug 'Broadcasting: '+paramName+':update'
-        $rootScope.$broadcast('parameter:'+paramName+':update', {})
+        paramName = _widgetEvents[widget][section][event]
+        changed = _setParameterValue paramName, value
+
+        if changed
+            #notify widget
+            console.log 'broadcasting', paramName
+            logService.debug 'Broadcasting: '+paramName+':update'
+            $rootScope.$broadcast('parameter:'+paramName+':update', {})
+
+            #re-execute datasources
+            if _dsSubscriptions[paramName]?
+                for ds in _dsSubscriptions[paramName]
+                    $window.Cyclotron.dataSources[ds].execute(true)
     
-    #place a listener for parameter changes
-    parameterListener = (scope, parameterName) ->
-        return unless parameterName?
-        console.log 'subscribing to', parameterName
-        message = 'parameter:'+parameterName+':update'
-        scope.$on message, (event, args) ->
-            console.log message, args
-            scope.loadWidget()
-    
-    traverseWidget = (widget, keys, operation) ->
+    _traverseObject = (obj, keys, operation) ->
         for key in keys
-            if typeof widget[key] == 'object'
-                traverseWidget widget[key], _.keys(widget[key]), operation
+            if typeof obj[key] == 'object'
+                _traverseObject obj[key], _.keys(obj[key]), operation
             else
-                widget[key] = operation(widget[key], $window.Cyclotron.parameters)
-    
-    #check if string contains a placeholder #{} for a parameter
+                obj[key] = operation(obj[key], $window.Cyclotron.parameters)
+
+    #check if widget properties contain placeholders #{} for parameters and substitute them with their value
     substitutePlaceholders = (scope) ->
         #check that parameters the widget is subscribed to have a value
         paramsHaveValue = true
-        for param in subscriptions[scope.widget.widget+scope.randomId]
+        for param in _subscriptions[scope.widget.widget+scope.randomId]
             if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
                 scope.widgetContext.dataSourceError = true
                 scope.widgetContext.dataSourceErrorMessage = 'You subscribed to parameter '+param+', but it has no value, therefore the widget cannot be loaded'
@@ -87,13 +110,29 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
             clone = _.cloneDeep scope.widget
             substitute = (str, obj) ->
                 _.varSub str, obj
-            traverseWidget clone, intersect, substitute
+            _traverseObject clone, intersect, substitute
+            return clone
+    
+    #check if datasource properties contain placeholders #{} for parameters and substitute them with their value
+    substituteDSPlaceholders = (dsOptions) ->
+        paramsHaveValue = true
+        for param of _dsSubscriptions
+            if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
+                paramsHaveValue = false
+        
+        if paramsHaveValue
+            keys = _.keys(dsOptions)
+            clone = _.cloneDeep dsOptions
+            substitute = (str, obj) ->
+                _.varSub str, obj
+            _traverseObject clone, keys, substitute
             return clone
     
     return {
         checkSpecificParams: checkSpecificParams
         checkParameterSubscription: checkParameterSubscription
-        setParameterValue: setParameterValue
         parameterBroadcaster: parameterBroadcaster
         substitutePlaceholders: substitutePlaceholders
+        checkDSParameterSubscription: checkDSParameterSubscription
+        substituteDSPlaceholders: substituteDSPlaceholders
     }

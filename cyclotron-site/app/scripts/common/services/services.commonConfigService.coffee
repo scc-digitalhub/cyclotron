@@ -670,6 +670,15 @@ cyclotronServices.factory 'commonConfigService', ->
                             required: false
                             defaultHidden: true
                             order: 104
+                        parameterSubscription:
+                            label: 'Subscription To Parameters'
+                            singleLabel: 'param'
+                            description: ''
+                            type: 'string[]'
+                            inlineJs: true
+                            defaultHidden: true
+                            default: []
+                            order: 105
                     options:
                         cloudwatch:
                             value: 'cloudwatch'
@@ -4610,15 +4619,66 @@ cyclotronServices.factory 'commonConfigService', ->
                         description: 'Overlay properties must be mapped to datasource fields. The datasource is required to have at least fields for group ID, CSS class and the list of overlays.'
                         type: 'propertyset'
                         properties:
-                            identifier:
-                                label: 'Identifier'
+                            identifierField:
+                                label: 'Identifier Field'
                                 description: 'Datasource field with a unique identifier for the overlay group. If it is not specified and the datasource provides more that one object (i.e. overlay group), each group will be assigned a random ID.'
                                 type: 'string'
                                 required: false
                                 order: 1
-                            cssClass:
-                                label: 'CSS Class Name'
-                                description: 'Name of a CSS class (that must be defined in the Styles section of the editor) to apply to each group.'
+                            cssClassField:
+                                label: 'CSS Class Field'
+                                description: 'Datasource field with the style for the overlay group as name of a CSS class defined in the Styles section of the editor.'
+                                type: 'string'
+                                required: true
+                                order: 2
+                            cssClassOnSelectionField:
+                                label: 'CSS Class On Selection Field'
+                                description: 'Optional datasource field with the CSS class for an overlay after is has been clicked. It must be the name of a CSS class defined in the Styles section of the editor.'
+                                type: 'string'
+                                required: false
+                                order: 3
+                            overlayListField:
+                                label: 'Overlay List Field'
+                                description: 'Datasource field containing the list of overlays for the group'
+                                type: 'string'
+                                required: true
+                                order: 4
+                            overlayIdField:
+                                label: 'Overlay Identifier Field'
+                                description: 'Datasource field with a unique identifier for each overlay in the group list. If it is missing, a random ID will be generated.'
+                                type: 'string'
+                                required: false
+                                order: 5
+                            positionField:
+                                label: 'Position Field'
+                                description: 'Datasource field with an array of coordinates (i.e. [x_coord, y_coord]) for each overlay in the group list. Alternatively, single fields for X and Y can be specified.'
+                                type: 'string'
+                                required: false
+                                order: 6
+                            xField:
+                                label: 'X Coordinate Field'
+                                description: 'Datasource field with X coordinate for each overlay in the group list.'
+                                type: 'string'
+                                required: false
+                                order: 7
+                            yField:
+                                label: 'Y Coordinate Field'
+                                description: 'Datasource field with Y coordinate for each overlay in the group list.'
+                                type: 'string'
+                                required: false
+                                order: 8
+                            positioningField:
+                                label: 'Positioning Field'
+                                description: 'Datasource field with the positioning (e.g. "center-center") of each overlay.'
+                                type: 'string'
+                                required: false
+                                order: 9
+                            templateField:
+                                label: 'Template Field'
+                                description: 'Datasource field with the HTML template for the content of each overlay.'
+                                type: 'string'
+                                required: false
+                                order: 10
                         order: 14
                     overlayGroups:
                         label: 'Overlay Groups'

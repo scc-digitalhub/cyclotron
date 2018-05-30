@@ -35,6 +35,7 @@ cyclotronDataSources.factory 'jsonDataSource', ($q, $http, configService, dataSo
 
         if options.queryParameters?
             # Get and update existing query params (if any)
+            console.log 'logging from json datasource, parameters:', options.queryParameters
             queryParams = url.search(true)
             _.forIn options.queryParameters, (value, key) ->
                 queryParams[_.jsExec(key)] = _.jsExec value

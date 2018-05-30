@@ -29,7 +29,7 @@
 # Support multiple result sets per Data Source.  Implementations using this factory which do not
 # allow multiple result sets should return a result set named '0'.
 #
-cyclotronDataSources.factory 'dataSourceFactory', ($rootScope, $interval, configService, dataService, analyticsService, logService) ->
+cyclotronDataSources.factory 'dataSourceFactory', ($rootScope, $interval, configService, dataService, analyticsService, logService, parameterPropagationService) ->
 
     {
         create: (dataSourceType, runner, analyticsDetails) ->
@@ -99,6 +99,9 @@ cyclotronDataSources.factory 'dataSourceFactory', ($rootScope, $interval, config
                         startTime = performance.now()
 
                         currentOptions = _.compile options, options
+
+                        currentOptions = parameterPropagationService.substituteDSPlaceholders currentOptions
+
                         if preProcessor?
                             preProcessedResult = preProcessor currentOptions
                             if _.isObject preProcessedResult
@@ -196,6 +199,10 @@ cyclotronDataSources.factory 'dataSourceFactory', ($rootScope, $interval, config
                             # Set the default result set if not specified
                             dataSourceDefinition.resultSet ?= '0'
 
+                            # Check if datasource is parametric
+                            if firstLoad == true
+                                parameterPropagationService.checkDSParameterSubscription options
+
                             # Check the cache for a previously-retrieved result
                             if cachedResult?
                                 broadcastData()
@@ -244,6 +251,10 @@ cyclotronDataSources.factory 'dataSourceFactory', ($rootScope, $interval, config
                                 loadingCallback
                                 dataSourceDefinition
                             }
+                            
+                            # Check if datasource is parametric
+                            if firstLoad == true
+                                parameterPropagationService.checkDSParameterSubscription options
 
                             # Check the cache for a previously-retrieved result
                             if cachedResult?
