@@ -32,7 +32,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
             scope.loadWidget()
 
     #check if widget generates parameters
-    checkSpecificParams = (scope) ->
+    checkSpecificParams = (scope, optSection) ->
         if scope.widget.specificEvents? and not _.isEmpty(scope.widget.specificEvents) and not
                 (scope.widget.specificEvents.length == 1 and not scope.widget.specificEvents[0]?)
             for param_event in scope.widget.specificEvents
@@ -44,10 +44,11 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                     scope.widgetContext.dataSourceErrorMessage = 'Parameter '+param_event.paramName+' not found among dashboard parameters'
                 else
                     scope.sourceOfParams = true
-                    section = if param_event.section? then param_event.section else scope.widget.widget
-                    if not _widgetEvents[scope.widget.widget] then _widgetEvents[scope.widget.widget] = {}
-                    if not _widgetEvents[scope.widget.widget][section] then _widgetEvents[scope.widget.widget][section] = {}
-                    _widgetEvents[scope.widget.widget][section][param_event.event] = param_event.paramName
+                    widget = scope.widget.widget + scope.randomId
+                    section = if param_event.section? then param_event.section else if optSection? then optSection else widget
+                    if not _widgetEvents[widget] then _widgetEvents[widget] = {}
+                    if not _widgetEvents[widget][section] then _widgetEvents[widget][section] = {}
+                    _widgetEvents[widget][section][param_event.event] = param_event.paramName
 
     #check if widget subscribes to any parameters
     checkParameterSubscription = (scope) ->
@@ -56,7 +57,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
             for param in scope.widget.parameterSubscription
                 if not (param of $window.Cyclotron.parameters)
                     scope.widgetContext.dataSourceError = true
-                    scope.widgetContext.dataSourceErrorMessage = 'Parameter '+param+' not found among dashboard parameters'
+                    scope.widgetContext.dataSourceErrorMessage = 'Parameter '+param+' not found among dashboard parameters. Cannot subscribe to it.'
                 else
                     _subscriptions[scope.widget.widget+scope.randomId].push param
                     _parameterListener scope, param
@@ -117,8 +118,9 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
     substituteDSPlaceholders = (dsOptions) ->
         paramsHaveValue = true
         for param of _dsSubscriptions
-            if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
-                paramsHaveValue = false
+            if _dsSubscriptions[param].includes dsOptions.name
+                if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
+                    paramsHaveValue = false
         
         if paramsHaveValue
             keys = _.keys(dsOptions)
@@ -127,6 +129,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                 _.varSub str, obj
             _traverseObject clone, keys, substitute
             return clone
+        else return dsOptions
     
     return {
         checkSpecificParams: checkSpecificParams

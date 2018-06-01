@@ -93,6 +93,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         configObj = _.jsEval layer.source.configuration
                         newSource = new scope.layerOptions[layer.type].sources[layer.source.name].srcClass(configObj)
                         currentLayer.setSource(newSource)
+                currentMapConfig.layersToAdd = _.cloneDeep newConfig.layersToAdd
 
             #if overlay content has changed (i.e. because it is parametric), update it on the map
             updateOverlays = (newConfig) ->
@@ -103,11 +104,12 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                     currentMapConfig.overlays = _.cloneDeep newConfig.overlays
                 else
                     _.each newConfig.overlays, (overlay, index) ->
-                        if overlay.template? and not _.isEqual(overlay.template, currentMapConfig.overlays[index].template)
+                        if not _.isEqual(overlay.template, currentMapConfig.overlays[index].template)
                             newContent = $compile(overlay.template)(scope)
                             overlayElem = document.getElementById overlay.id
                             angular.element(overlayElem).contents().remove()
                             angular.element(overlayElem).append newContent
+                    currentMapConfig.overlays = _.cloneDeep newConfig.overlays
             
             scope.$watch('mapConfig', (mapConfig, oldMapConfig) ->
                 return unless mapConfig
@@ -133,6 +135,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
 
             # Cleanup
             scope.$on '$destroy', ->
+                console.log 'destroy was called'
                 $(window).off 'resize', resizeFunction
                 map.setTarget(null)
                 map = null

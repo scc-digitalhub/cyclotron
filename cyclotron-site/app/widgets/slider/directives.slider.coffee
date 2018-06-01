@@ -27,11 +27,11 @@ cyclotronDirectives.directive 'slider', ($window, configService, parameterPropag
                             if _.isEqual(newDateTime, scope.currentDateTime.value)
                                 #slider has just been created or parameter was set in updateOnPlay()
                                 if scope.sourceOfParams
-                                    parameterPropagationService.parameterBroadcaster scope.$parent.widget.widget, 'dateTimeChange', scope.currentDateTime.value
+                                    parameterPropagationService.parameterBroadcaster (scope.$parent.widget.widget + scope.$parent.randomId), 'dateTimeChange', scope.currentDateTime.value
                             else
                                 scope.currentDateTime.value = newDateTime
                                 if scope.sourceOfParams
-                                    parameterPropagationService.parameterBroadcaster scope.$parent.widget.widget, 'dateTimeChange', scope.currentDateTime.value
+                                    parameterPropagationService.parameterBroadcaster (scope.$parent.widget.widget + scope.$parent.randomId), 'dateTimeChange', scope.currentDateTime.value
                         )
                         sliderCreated = true
                 catch e

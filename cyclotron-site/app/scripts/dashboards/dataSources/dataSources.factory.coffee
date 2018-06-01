@@ -98,9 +98,9 @@ cyclotronDataSources.factory 'dataSourceFactory', ($rootScope, $interval, config
                         logService.info dataSourceType, 'Data Source "' + options.name + '" Started'
                         startTime = performance.now()
 
-                        currentOptions = _.compile options, options
+                        currentOptionsParametric = parameterPropagationService.substituteDSPlaceholders options
 
-                        currentOptions = parameterPropagationService.substituteDSPlaceholders currentOptions
+                        currentOptions = _.compile currentOptionsParametric, currentOptionsParametric
 
                         if preProcessor?
                             preProcessedResult = preProcessor currentOptions

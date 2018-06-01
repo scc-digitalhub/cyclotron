@@ -3,6 +3,7 @@
 #
 cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationService, dashboardService, dataService) ->
     $scope.randomId = '' + Math.floor(Math.random()*1000)
+    $scope.widgetName = $scope.widget.widget + $scope.randomId
     mapConfig = {} #map configuration, .layersToAdd, .groups, .overlays, .controls
     firstLoad = true
 
@@ -247,7 +248,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                                 cssClassSelected: group.cssClassSelected || ''
                                 currentOverlay: ''
                             
-                            mapConfig.overlays = setOverlays group.overlays, group.name
+                            mapConfig.overlays = mapConfig.overlays.concat(setOverlays group.overlays, group.name)
             else
                 #substitute old overlay content
                 updateOverlayTemplates(widget.overlayGroups)
@@ -314,7 +315,8 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
             isUpdate = eventData.isUpdate
 
             if data?
-                if !isUpdate and _.isEmpty(mapConfig.overlays) and _.isEmpty(mapConfig.groups)
+                console.log 'isUpdate:', isUpdate, 'data:', $scope.ovData?
+                if !isUpdate or !$scope.ovData?
                     $scope.ovData = _.cloneDeep data
                     _.each $scope.ovData, (row, index) -> row.__index = index
 
@@ -325,11 +327,11 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                     #read datasource mapping
                     if not mapping? or not (mapping.overlayListField? and mapping.cssClassField?)
                         $scope.widgetContext.dataSourceError = true
-                        $scope.widgetContext.dataSourceErrorMessage = 'DataSource mapping is not defined. Mapping for at least Overlay List Field and either CSS Class Field or Style Field must be provided'
+                        $scope.widgetContext.dataSourceErrorMessage = 'DataSource mapping is not defined. Mapping for at least Overlay List Field and CSS Class Field  must be provided'
                     else
                         $scope.mapping =
                             groupIdField: if mapping.identifierField? then mapping.identifierField else null
-                            cssClassField: if mapping.cssClassField then mapping.cssClassField else null
+                            cssClassField: mapping.cssClassField
                             cssClassSelectedField: if mapping.cssClassOnSelectionField? then mapping.cssClassOnSelectionField else null
                             overlayListField: mapping.overlayListField
                             overlayIdField: if mapping.overlayIdField? then mapping.overlayIdField else null
@@ -349,9 +351,12 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                             group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
                             delete group[$scope.mapping.overlayListField]
                             
-                            mapConfig.overlays = setOverlays group.overlays, group.name
+                            mapConfig.overlays = mapConfig.overlays.concat(setOverlays group.overlays, group.name)
+
+                            parameterPropagationService.checkSpecificParams $scope, group.name
                 else
                     oldData = _.cloneDeep $scope.ovData
+                    console.log 'check old data', oldData
                     $scope.ovData = _.cloneDeep data
                     _.each $scope.ovData, (row, index) -> row.__index = index
 
@@ -359,6 +364,8 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                         group.name = oldData[i].name
                         group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
                         delete group[$scope.mapping.overlayListField]
+                    
+                    console.log 'about to update overlay templates'
 
                     updateOverlayTemplates $scope.ovData
 
@@ -386,22 +393,22 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
 
     $scope.loadWidget = ->
         console.log '(re)loading widget', $scope.randomId
-        #set parameters (only at first loading)
+        
+        #substitute any placeholder with parameter values, then check the configuration
         if firstLoad
-            parameterPropagationService.checkSpecificParams $scope
+            #when using a datasource, the call to checkSpecificParams is done after the overlay groups
+            #have been parsed and theis names, i.e. sections of the map, are already known
+            if not $scope.dataSource? then parameterPropagationService.checkSpecificParams $scope
             parameterPropagationService.checkParameterSubscription $scope
             firstLoad = false
         
-        #substitute any placeholder with parameter values, then check the configuration
         widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+
         checkViewProperties(widgedWithoutPlaceholders)
         checkLayerProperties(widgedWithoutPlaceholders)
-        if $scope.dataSource? and $scope.ovData?
-            console.log 'we are here'
-            updateOverlayTemplates($scope.ovData)
-        else
-            checkOverlayProperties(widgedWithoutPlaceholders)
         checkControlProperties(widgedWithoutPlaceholders) #done only once because it cannot be parametric
+        if not $scope.dataSource?
+            checkOverlayProperties(widgedWithoutPlaceholders)
 
         $scope.mapConfig = mapConfig
     
