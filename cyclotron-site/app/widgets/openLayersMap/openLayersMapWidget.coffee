@@ -3,7 +3,7 @@
 #
 cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationService, dashboardService, dataService) ->
     $scope.randomId = '' + Math.floor(Math.random()*1000)
-    $scope.widgetName = $scope.widget.widget + $scope.randomId
+    $scope.widgetId = $scope.widget.widget + $scope.randomId
     mapConfig = {} #map configuration, .layersToAdd, .groups, .overlays, .controls
     firstLoad = true
 
@@ -400,6 +400,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
             #have been parsed and theis names, i.e. sections of the map, are already known
             if not $scope.dataSource? then parameterPropagationService.checkSpecificParams $scope
             parameterPropagationService.checkParameterSubscription $scope
+            parameterPropagationService.checkGenericParams $scope
             firstLoad = false
         
         widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope

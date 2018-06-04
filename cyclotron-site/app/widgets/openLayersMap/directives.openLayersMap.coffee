@@ -6,12 +6,21 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
             mapConfig: '='
             layerOptions: '='
             sourceOfParams: '='
-            widgetType: '='
+            widgetId: '='
             controlOptions: '='
+            genericEventHandlers: '='
+            widgetName: '='
         
         link: (scope, element, attrs) ->
             map = null
             currentMapConfig = null
+
+            #handle generic parameters
+            if scope.genericEventHandlers?.widgetSelection?
+                handler = scope.genericEventHandlers.widgetSelection.handler
+                jqueryElem = $(element).closest('.dashboard-widget')
+                handler jqueryElem, scope.genericEventHandlers.widgetSelection.paramName, scope.widgetName
+
             resize = ->
                 #TODO improve
                 if map?
@@ -35,7 +44,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                                 scope.mapConfig.groups[group].currentOverlay = this.id
                                 #broadcast parameter change if needed
                                 if scope.sourceOfParams
-                                    parameterPropagationService.parameterBroadcaster scope.widgetType, 'clickOnOverlay', scope.mapConfig.groups[group].currentOverlay, group
+                                    parameterPropagationService.parameterBroadcaster scope.widgetId, 'clickOnOverlay', scope.mapConfig.groups[group].currentOverlay, group
                         
                         #add overlay to map
                         config =
@@ -52,7 +61,9 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         options = scope.layerOptions[layer.type]
                         layerConfig = {}
                         if layer.source?
-                            configObj = if layer.source.configuration? then _.jsEval layer.source.configuration else {}
+                            console.log 'before jsexec', layer.source.configuration
+                            configObj = if layer.source.configuration? then _.jsEval(_.jsExec layer.source.configuration) else {}
+                            console.log 'after jsexec', configObj
                             layerConfig.source = new options.sources[layer.source.name].srcClass(configObj)
                         mapLayers.push new options.olClass(layerConfig)
 
@@ -90,7 +101,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                     if layer.source?.configuration? and not
                             _.isEqual(layer.source.configuration, currentMapConfig.layersToAdd[index].source.configuration)
                         currentLayer = map.getLayers().getArray()[index]
-                        configObj = _.jsEval layer.source.configuration
+                        configObj = _.jsEval(_.jsExec layer.source.configuration)
                         newSource = new scope.layerOptions[layer.type].sources[layer.source.name].srcClass(configObj)
                         currentLayer.setSource(newSource)
                 currentMapConfig.layersToAdd = _.cloneDeep newConfig.layersToAdd

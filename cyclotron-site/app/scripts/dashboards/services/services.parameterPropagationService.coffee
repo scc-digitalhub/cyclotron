@@ -10,6 +10,9 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
 
     #mapping of parameters and the datasources subscribed to them
     _dsSubscriptions = {}
+
+    #mapping of widget IDs and names
+    _widgetNames = {}
     
     #set value of Cyclotron parameter
     _setParameterValue = (parameterName, value) ->
@@ -49,6 +52,50 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                     if not _widgetEvents[widget] then _widgetEvents[widget] = {}
                     if not _widgetEvents[widget][section] then _widgetEvents[widget][section] = {}
                     _widgetEvents[widget][section][param_event.event] = param_event.paramName
+
+    #check if widget generates generic (i.e. not specific to widget type) parameters
+    checkGenericParams = (scope) ->
+        if scope.widget.genericEvents? and not _.isEmpty(scope.widget.genericEvents) and not
+                (scope.widget.genericEvents.length == 1 and not scope.widget.genericEvents[0]?)
+            if not scope.widget.name?
+                scope.widgetContext.dataSourceError = true
+                scope.widgetContext.dataSourceErrorMessage = 'Widget name is missing. It is required for the generation of specific parameters.'
+            else
+                for param_event in scope.widget.genericEvents
+                    if not param_event.paramName? or not param_event.event?
+                        scope.widgetContext.dataSourceError = true
+                        scope.widgetContext.dataSourceErrorMessage = 'Parameter name or event are missing'
+                    else if not (param_event.paramName of $window.Cyclotron.parameters)
+                        scope.widgetContext.dataSourceError = true
+                        scope.widgetContext.dataSourceErrorMessage = 'Parameter '+param_event.paramName+' not found among dashboard parameters'
+                    else
+                        _widgetNames[scope.randomId] = scope.widget.name
+                        if not scope.genericEventHandlers then scope.genericEventHandlers = {}
+                        if param_event.event == 'clickOnWidget'
+                            eventHandler = (jqueryElem, param, value) ->
+                                jqueryElem.on 'click', ->
+                                    oldValue = $window.Cyclotron.parameters[param]
+                                    if oldValue == value
+                                        jqueryElem.removeAttr 'style'
+                                        #reset parameter to default value
+                                        paramDefinition = _.find scope.dashboard.parameters, { name: param }
+                                        _setParameterValue param, paramDefinition?.defaultValue
+                                        $rootScope.$broadcast('parameter:'+param+':update', {})
+                                    else
+                                        _setParameterValue param, value
+                                        jqueryElem.css 'border', '1px solid red'
+                                        $rootScope.$broadcast('parameter:'+param+':update', {})
+
+                                        #if another widget was previously selected, deselect it
+                                        _.each _widgetNames, (name, id) ->
+                                            if name == oldValue
+                                                oldElem = $('#' + id).closest('.dashboard-widget')
+                                                oldElem.removeAttr 'style'
+
+                            scope.genericEventHandlers.widgetSelection = {
+                                paramName: param_event.paramName,
+                                handler: eventHandler
+                            }
 
     #check if widget subscribes to any parameters
     checkParameterSubscription = (scope) ->
@@ -99,6 +146,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
     substitutePlaceholders = (scope) ->
         #check that parameters the widget is subscribed to have a value
         paramsHaveValue = true
+        clone = _.cloneDeep scope.widget
         for param in _subscriptions[scope.widget.widget+scope.randomId]
             if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
                 scope.widgetContext.dataSourceError = true
@@ -108,11 +156,11 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
         if paramsHaveValue
             widgetConfig = _.keys configService.widgets[scope.widget.widget].properties
             intersect = _.intersection widgetConfig, _.keys(scope.widget)
-            clone = _.cloneDeep scope.widget
             substitute = (str, obj) ->
                 _.varSub str, obj
+            
             _traverseObject clone, intersect, substitute
-            return clone
+        return clone
     
     #check if datasource properties contain placeholders #{} for parameters and substitute them with their value
     substituteDSPlaceholders = (dsOptions) ->
@@ -138,4 +186,5 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
         substitutePlaceholders: substitutePlaceholders
         checkDSParameterSubscription: checkDSParameterSubscription
         substituteDSPlaceholders: substituteDSPlaceholders
+        checkGenericParams: checkGenericParams
     }

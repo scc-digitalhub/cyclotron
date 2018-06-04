@@ -509,7 +509,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 genericEvents:
                                     label: 'Generic Events'
                                     singleLabel: 'param-event'
-                                    description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and events that can trigger their change within widgets.'
+                                    description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and events that can trigger their change within widgets. Note that adding a Name to this widget is mandatory for this property to work.'
                                     type: 'propertyset[]'
                                     inlineJs: true
                                     defaultHidden: true
@@ -525,7 +525,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                             type: 'string'
                                             required: true
                                             options:
-                                                changed:
+                                                clickOnWidget:
                                                     value: 'clickOnWidget'
                                             order: 2
                                     order: 126
@@ -4618,6 +4618,7 @@ cyclotronServices.factory 'commonConfigService', ->
                         label: 'DataSource Mapping'
                         description: 'Overlay properties must be mapped to datasource fields. The datasource is required to have at least fields for group ID, CSS class and the list of overlays.'
                         type: 'propertyset'
+                        defaultHidden: true
                         properties:
                             identifierField:
                                 label: 'Identifier Field'

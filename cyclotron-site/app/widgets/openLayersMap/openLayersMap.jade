@@ -4,6 +4,7 @@
         .widget-error(ng-if='widgetContext.dataSourceError == true')
         .map(ng-if='widgetContext.dataSourceError == false', id='{{ randomId }}',
             map-config='mapConfig', layer-options='layerOptions', control-options='controlOptions',
-            source-of-params='sourceOfParams', widget-type='widgetName')
+            source-of-params='sourceOfParams', widget-id='widgetId',
+            widget-name='widget.name', generic-event-handlers='genericEventHandlers')
             div(ng-repeat='ov in mapConfig.overlays track by ov.id', id='{{ ov.id }}', group='{{ ov.group }}',
                 ng-class='mapConfig.groups[ov.group].cssClass + " " + (mapConfig.groups[ov.group].currentOverlay === ov.id ? mapConfig.groups[ov.group].cssClassSelected : "")')
