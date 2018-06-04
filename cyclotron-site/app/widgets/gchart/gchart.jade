@@ -2,4 +2,4 @@
     h1.title(ng-if='::widget.title') {{ widgetTitle() }}
     .widget-body
         .widget-error(ng-if='widgetContext.dataSourceError == true')
-        div(google-chart chart='myChartObject' style='{height:100%; width:100%; background-color: none;}')
+        div(id='{{ randomId }}', google-chart chart='myChartObject' style='{height:100%; width:100%; background-color: none;}')

@@ -1,4 +1,12 @@
-cyclotronApp.controller 'GchartWidget', ($scope, $window, parameterPropagationService, dashboardService, dataService) ->
+cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationService, dashboardService, dataService) ->
+  $scope.randomId = '' + Math.floor(Math.random()*1000)
+  parameterPropagationService.checkGenericParams $scope
+
+  if $scope.genericEventHandlers?.widgetSelection?
+    handler = $scope.genericEventHandlers.widgetSelection.handler
+    jqueryElem = $($element).closest('.dashboard-widget')
+    handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
+  
   dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
   $scope.dataSource = dataService.get dsDefinition
   
@@ -52,124 +60,3 @@ cyclotronApp.controller 'GchartWidget', ($scope, $window, parameterPropagationSe
 
     # Initialize the Data Source
     $scope.dataSource.init dsDefinition
-###    
-  $scope.myChartObject = {
-    "type": "LineChart",
-    "displayed": false,
-    "data": data   #here data come from dataSource 
-
-    {
-      "cols": [
-        {
-          "id": "month",
-          "label": "Month",
-          "type": "string",
-          "p": {}
-        },
-        {
-          "id": "laptop-id",
-          "label": "Laptop",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "desktop-id",
-          "label": "Desktop",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "server-id",
-          "label": "Server",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "cost-id",
-          "label": "Shipping",
-          "type": "number"
-        }
-      ],
-      "rows": [
-        {
-          "c": [
-            {
-              "v": "January"
-            },
-            {
-              "v": 19,
-              "f": "42 items"
-            },
-            {
-              "v": 12,
-              "f": "Ony 12 items"
-            },
-            {
-              "v": 7,
-              "f": "7 servers"
-            },
-            {
-              "v": 4
-            }
-          ]
-        },
-        {
-          "c": [
-            {
-              "v": "February"
-            },
-            {
-              "v": 13
-            },
-            {
-              "v": 1,
-              "f": "1 unit (Out of stock this month)"
-            },
-            {
-              "v": 12
-            },
-            {
-              "v": 2
-            }
-          ]
-        },
-        {
-          "c": [
-            {
-              "v": "March"
-            },
-            {
-              "v": 24
-            },
-            {
-              "v": 5
-            },
-            {
-              "v": 11
-            },
-            {
-              "v": 6
-            }
-          ]
-        }
-      ]
-    }
-    ,
-    "options": {
-      "title": "Sales per month",
-      "isStacked": "true",
-      "fill": 20,
-      "displayExactValues": true,
-      "vAxis": {
-        "title": "Sales unit",
-        "gridlines": {
-          "count": 10
-        }
-      },
-      "hAxis": {
-        "title": "Date"
-      }
-    },
-    "formatters": {}
-  }
-  ###
