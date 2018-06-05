@@ -3111,43 +3111,41 @@ cyclotronServices.factory 'commonConfigService', ->
                             trackBorderColor: '#666'
                         
             gchart:
-             name: 'gchart'
-             icon: 'fa-rocket'
-             properties:
-                chartType:
-                    label: 'Type of Chart'
-                    description: 'Type of the chart. Please select what type of chart you want.'
-                    type: 'string'
-                    required: true
-                    order: 10
+                name: 'gchart'
+                icon: 'fa-rocket'
+                properties:
+                    dataSource:
+                        label: 'Data Source'
+                        description: 'The name of the Data Source providing data for this Widget.'
+                        placeholder: 'Data Source name'
+                        type: 'string'
+                        required: true
+                        options: datasourceOptions
+                        order: 10
+                    chartType:
+                        label: 'Type of Chart'
+                        description: 'Type of the chart. Please select what type of chart you want.'
+                        type: 'string'
+                        required: true
+                        options:
+                            AreaChart:
+                                value: 'AreaChart'
+                            BarChart:
+                                value: 'BarChart'
+                            ColumnChart:
+                                value: 'ColumnChart'
+                            LineChart:
+                                value: 'LineChart'
+                            PieChart:
+                                value: 'PieChart'
+                        order: 11
                     options:
-                        AreaChart:
-                            value: 'AreaChart'
-                        BarChart:
-                            value: 'BarChart'
-                        ColumnChart:
-                            value: 'ColumnChart'
-                        LineChart:
-                            value: 'LineChart'
-                        PieChart:
-                            value: 'PieChart'
-                        
-                dataSource:
-                    label: 'Data Source'
-                    description: 'The name of the Data Source providing data for this Widget.'
-                    placeholder: 'Data Source name'
-                    type: 'string'
-                    required: true
-                    options: datasourceOptions
-                    order: 10
-                
-                highchart:
-                    label: 'Highchart Definition'
-                    description: 'Contains all the options for the chart, in the format expected by Highcharts. Any valid Highcharts properties can be set under this property and will be applied to the chart.'
-                    type: 'json'
-                    inlineJs: true
-                    required: false
-                    order: 12
+                        label: 'Options'
+                        description: 'JSON object with configuration options for the chart. Please refer to the Google Charts API documentation of the selected chart type (https://developers.google.com/chart/interactive/docs/gallery) to see the list of available options.'
+                        type: 'json'
+                        inlineJs: true
+                        required: false
+                        order: 12
             
             clock:
                 name: 'clock'

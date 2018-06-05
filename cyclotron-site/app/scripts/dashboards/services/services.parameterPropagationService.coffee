@@ -144,9 +144,9 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
 
     #check if widget properties contain placeholders #{} for parameters and substitute them with their value
     substitutePlaceholders = (scope) ->
-        #check that parameters the widget is subscribed to have a value
         paramsHaveValue = true
         clone = _.cloneDeep scope.widget
+        #check that parameters the widget is subscribed to have a value
         for param in _subscriptions[scope.widget.widget+scope.randomId]
             if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
                 scope.widgetContext.dataSourceError = true

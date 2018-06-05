@@ -7,6 +7,8 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
     jqueryElem = $($element).closest('.dashboard-widget')
     handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
   
+  options = if $scope.widget.options? then _.jsEval($scope.widget.options) else null
+  
   dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
   $scope.dataSource = dataService.get dsDefinition
   
@@ -26,33 +28,25 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
       data = eventData.data[dsDefinition.resultSet].data
       data = $scope.filterAndSortWidgetData(data)
       console.log 'data', data
-      console.log 'chart selected:', $scope.widget.chartType
-      $scope.myChartObject = {
-        "type": $scope.widget.chartType,
-        "displayed": false,
-        "data": data[0],
-        "options": {
-          "title": "Sales per month",
-          "isStacked": "true",
-          "fill": 20,
-          "displayExactValues": true,
-          "vAxis": {
-            "title": "Sales unit",
-            "gridlines": {
-              "count": 10
-            }
-          },
-          "hAxis": {
-            "title": "Date"
-          }
-        },
-        "formatters": {}
-      }
+      #isStacked, fill, displayExactValues, vAxis{title, gridlines{count}}, hAxis{title}
+      if $scope.widget.chartType?
+        $scope.myChartObject = {
+          type: $scope.widget.chartType,
+          data: data[0]
+        }
+        if options? then $scope.myChartObject.options = options
+      else
+        $scope.widgetContext.dataSourceError = false
+        $scope.widgetContext.dataSourceErrorMessage = 'Chart type is missing'
 
       $scope.widgetContext.loading = false
 
     # Data Source error
     $scope.$on 'dataSource:' + dsDefinition.name + ':error', (event, data) ->
+      $scope.widgetContext.dataSourceError = true
+      $scope.widgetContext.dataSourceErrorMessage = data.error
+      $scope.widgetContext.nodata = null
+      $scope.widgetContext.loading = false
 
     # Data Source loading
     $scope.$on 'dataSource:' + dsDefinition.name + ':loading', ->

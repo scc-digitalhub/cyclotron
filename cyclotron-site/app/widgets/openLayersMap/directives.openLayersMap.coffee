@@ -61,9 +61,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         options = scope.layerOptions[layer.type]
                         layerConfig = {}
                         if layer.source?
-                            console.log 'before jsexec', layer.source.configuration
                             configObj = if layer.source.configuration? then _.jsEval(_.jsExec layer.source.configuration) else {}
-                            console.log 'after jsexec', configObj
                             layerConfig.source = new options.sources[layer.source.name].srcClass(configObj)
                         mapLayers.push new options.olClass(layerConfig)
 
