@@ -202,9 +202,13 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
             if overlay?
                 if not overlay.name? or _.isEmpty(overlay.name)
                     overlay.name = 'ov' + Math.floor(Math.random()*1000)
+                if not overlay.cssClass? or _.isEmpty(overlay.cssClass)
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'Overlay CSS class is missing'
                 
-                overlayToPush = {group: groupName}
+                overlayToPush = {group: groupName, cssClass: overlay.cssClass}
                 overlayToPush.id = overlay.name
+                if overlay.cssClassSelected? then overlayToPush.cssClassSelected = overlay.cssClassSelected
                 if overlay.position?.x? and overlay.position?.y? and not
                         ((_.isString(overlay.position.x) and _.isEmpty(overlay.position.x)) or (_.isString(overlay.position.y) and  _.isEmpty(overlay.position.y)))
                     overlayToPush.position = [parseFloat(overlay.position.x), parseFloat(overlay.position.y)]
@@ -214,12 +218,20 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                 overlaysChecked.push overlayToPush
         return overlaysChecked
 
-    updateOverlayTemplates = (groups) ->
+    updateOverlays = (groups) ->
         for group in groups
             newOverlays = setOverlays group.overlays, group.name
             for overlay, index in newOverlays
                 if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
                     mapConfig.overlays[index].template = overlay.template
+                if not _.isEqual(overlay.cssClass, mapConfig.overlays[index].cssClass)
+                    mapConfig.overlays[index].cssClass = overlay.cssClass
+                if not _.isEqual(overlay.cssClassSelected, mapConfig.overlays[index].cssClassSelected)
+                    mapConfig.overlays[index].cssClassSelected = overlay.cssClassSelected
+                if not _.isEqual(overlay.position, mapConfig.overlays[index].position)
+                    mapConfig.overlays[index].position = overlay.position
+                if not _.isEqual(overlay.positioning, mapConfig.overlays[index].positioning)
+                    mapConfig.overlays[index].positioning = overlay.positioning
 
     ###
     # Overlays
@@ -235,23 +247,18 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                         if not group.name? or _.isEmpty(group.name)
                             $scope.widgetContext.dataSourceError = true
                             $scope.widgetContext.dataSourceErrorMessage = 'Overlay group name is missing'
-                        else if not group.cssClass? or _.isEmpty(group.cssClass)
-                            $scope.widgetContext.dataSourceError = true
-                            $scope.widgetContext.dataSourceErrorMessage = 'Overlay group CSS class is missing'
                         else if not group.overlays? or _.isEmpty(group.overlays) or
                                 (group.overlays.length == 1 and not group.overlays[0]?)
                             $scope.widgetContext.dataSourceError = true
                             $scope.widgetContext.dataSourceErrorMessage = 'Overlay group must have at least one overlay'
                         else
                             mapConfig.groups[group.name] =
-                                cssClass: group.cssClass
-                                cssClassSelected: group.cssClassSelected || ''
-                                currentOverlay: ''
+                                currentOverlay: group.initiallySelected || ''
                             
                             mapConfig.overlays = mapConfig.overlays.concat(setOverlays group.overlays, group.name)
             else
                 #substitute old overlay content
-                updateOverlayTemplates(widget.overlayGroups)
+                updateOverlays(widget.overlayGroups)
 
     ###
     # Controls
@@ -280,11 +287,13 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
     $scope.reload = ->
         $scope.dataSource.execute(true)
     
-    #returns [{name: '', position: {x: '', y: ''}, positioning: '', template: ''}]
+    #returns [{name: '', position: {x: '', y: ''}, positioning: '', template: '', cssClass: '', cssClassSelected: ''}]
     mapOverlays = (overlayList, mapping) ->
         copy = []
         for ov in overlayList
             mapped = {}
+            mapped.cssClass = ov[mapping.cssClassField]
+            if mapping.cssClassSelectedField? then mapped.cssClassSelected = ov[mapping.cssClassSelectedField] else ''
             if mapping.overlayIdField? then mapped.name = ov[mapping.overlayIdField]
             if mapping.positionField?
                 mapped.position = {x: ov[mapping.positionField][0], y: ov[mapping.positionField][1]}
@@ -333,6 +342,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                             groupIdField: if mapping.identifierField? then mapping.identifierField else null
                             cssClassField: mapping.cssClassField
                             cssClassSelectedField: if mapping.cssClassOnSelectionField? then mapping.cssClassOnSelectionField else null
+                            initiallySelectedField: if mapping.initiallySelectedField? then mapping.initiallySelectedField else null
                             overlayListField: mapping.overlayListField
                             overlayIdField: if mapping.overlayIdField? then mapping.overlayIdField else null
                             positionField: if mapping.positionField? then mapping.positionField else null
@@ -344,9 +354,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                         for group in $scope.ovData
                             group.name = if $scope.mapping.groupIdField? then group[$scope.mapping.groupIdField] else 'group' + Math.floor(Math.random()*1000)
                             mapConfig.groups[group.name] =
-                                cssClass: group[$scope.mapping.cssClassField]
-                                cssClassSelected: group[$scope.mapping.cssClassSelectedField] || ''
-                                currentOverlay: ''
+                                currentOverlay: group[$scope.mapping.initiallySelectedField] || ''
                             
                             group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
                             delete group[$scope.mapping.overlayListField]
@@ -365,9 +373,9 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                         group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
                         delete group[$scope.mapping.overlayListField]
                     
-                    console.log 'about to update overlay templates'
+                    console.log 'about to update overlays'
 
-                    updateOverlayTemplates $scope.ovData
+                    updateOverlays $scope.ovData
 
             $scope.widgetContext.loading = false
 

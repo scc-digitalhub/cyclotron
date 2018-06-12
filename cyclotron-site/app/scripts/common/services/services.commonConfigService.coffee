@@ -3116,15 +3116,15 @@ cyclotronServices.factory 'commonConfigService', ->
                 properties:
                     dataSource:
                         label: 'Data Source'
-                        description: 'The name of the Data Source providing data for this Widget.'
+                        description: 'The name of the Data Source providing data for this Widget. The dataset it provides must be in a table-like format, i.e., an array of objects whose keys are the names of the columns. E.g.: [{"Col_A": val1, "Col_B": val2}, {"Col_A": val3, "Col_B": val4}]'
                         placeholder: 'Data Source name'
                         type: 'string'
                         required: true
                         options: datasourceOptions
                         order: 10
                     chartType:
-                        label: 'Type of Chart'
-                        description: 'Type of the chart. Please select what type of chart you want.'
+                        label: 'Chart Type'
+                        description: 'Type of the chart.'
                         type: 'string'
                         required: true
                         options:
@@ -3146,6 +3146,59 @@ cyclotronServices.factory 'commonConfigService', ->
                         inlineJs: true
                         required: false
                         order: 12
+                    columns:
+                        label: 'Columns'
+                        singleLabel: 'column'
+                        description: 'Array of columns of the table-like dataset. If not provided, the column labels will be inferred from the keys of the first dataset object. Note that this property must be used if some columns contain dates, times or datetimes.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        required: false
+                        properties:
+                            name:
+                                label: 'Name'
+                                description: 'Indicates the name of the data source field to use for this column.'
+                                type: 'string'
+                                inlineJs: true
+                                order: 1
+                            type:
+                                label: 'Type'
+                                description: 'Type of the column values. If omitted, "string" will be assigned.'
+                                type: 'string'
+                                required: true
+                                options:
+                                    string:
+                                        value: 'string'
+                                    number:
+                                        value: 'number'
+                                    boolean:
+                                        value: 'boolean'
+                                    date:
+                                        value: 'date'
+                                    datetime:
+                                        value: 'datetime'
+                                    timeofday:
+                                        value: 'timeofday'
+                                order: 2
+                        order: 13
+                    formatters:
+                        label: 'Formatters'
+                        singleLabel: 'formatter'
+                        type: 'propertyset[]'
+                        properties:
+                            columnName:
+                                label: 'Column Name'
+                                description: 'Indicates the name of the datasource column'
+                                type: 'string'
+                                inlineJs: true
+                                order: 1
+                            formatter:
+                                label: 'Formatter'
+                                description: 'Optional JavaScript function that will be applied to all the values of a datasource column. It must take a single value as argument and return the new value.'
+                                type: 'editor'
+                                editorMode: 'javascript'
+                                required: false
+                                order: 2
+                        order: 14
             
             clock:
                 name: 'clock'
@@ -4626,58 +4679,64 @@ cyclotronServices.factory 'commonConfigService', ->
                                 order: 1
                             cssClassField:
                                 label: 'CSS Class Field'
-                                description: 'Datasource field with the style for the overlay group as name of a CSS class defined in the Styles section of the editor.'
+                                description: 'Datasource field with the style for each overlay in the group as name of a CSS class defined in the Styles section of the editor.'
                                 type: 'string'
                                 required: true
                                 order: 2
                             cssClassOnSelectionField:
                                 label: 'CSS Class On Selection Field'
-                                description: 'Optional datasource field with the CSS class for an overlay after is has been clicked. It must be the name of a CSS class defined in the Styles section of the editor.'
+                                description: 'Optional datasource field with the CSS class for each overlay after is has been clicked. It must be the name of a CSS class defined in the Styles section of the editor.'
                                 type: 'string'
                                 required: false
                                 order: 3
+                            initiallySelectedField:
+                                label: 'Overlay Initially Selected Field'
+                                description: 'Optional datasource field with the ID of the overlay that will be assigned the CSS class on selection when the page is loaded. If not provided, all overlays will have the regular CSS class until one is clicked.'
+                                type: 'string'
+                                required: false
+                                order: 4
                             overlayListField:
                                 label: 'Overlay List Field'
                                 description: 'Datasource field containing the list of overlays for the group'
                                 type: 'string'
                                 required: true
-                                order: 4
+                                order: 5
                             overlayIdField:
                                 label: 'Overlay Identifier Field'
                                 description: 'Datasource field with a unique identifier for each overlay in the group list. If it is missing, a random ID will be generated.'
                                 type: 'string'
                                 required: false
-                                order: 5
+                                order: 6
                             positionField:
                                 label: 'Position Field'
                                 description: 'Datasource field with an array of coordinates (i.e. [x_coord, y_coord]) for each overlay in the group list. Alternatively, single fields for X and Y can be specified.'
                                 type: 'string'
                                 required: false
-                                order: 6
+                                order: 7
                             xField:
                                 label: 'X Coordinate Field'
                                 description: 'Datasource field with X coordinate for each overlay in the group list.'
                                 type: 'string'
                                 required: false
-                                order: 7
+                                order: 8
                             yField:
                                 label: 'Y Coordinate Field'
                                 description: 'Datasource field with Y coordinate for each overlay in the group list.'
                                 type: 'string'
                                 required: false
-                                order: 8
+                                order: 9
                             positioningField:
                                 label: 'Positioning Field'
                                 description: 'Datasource field with the positioning (e.g. "center-center") of each overlay.'
                                 type: 'string'
                                 required: false
-                                order: 9
+                                order: 10
                             templateField:
                                 label: 'Template Field'
                                 description: 'Datasource field with the HTML template for the content of each overlay.'
                                 type: 'string'
                                 required: false
-                                order: 10
+                                order: 11
                         order: 14
                     overlayGroups:
                         label: 'Overlay Groups'
@@ -4691,18 +4750,12 @@ cyclotronServices.factory 'commonConfigService', ->
                                 type: 'string'
                                 required: true
                                 order: 1
-                            cssClass:
-                                label: 'CSS Class'
-                                description: 'CSS class name (defined beforehand in the Styles section of the dashboard) for the overlays'
-                                type: 'string'
-                                required: true
-                                order: 2
-                            cssClassSelected:
-                                label: 'CSS Class On Selection'
-                                description: 'Optional CSS class name (defined beforehand in the Styles section of the dashboard) for the selected overlay'
+                            initiallySelected:
+                                label: 'Overlay Initially Selected'
+                                description: 'Name of the overlay that will be assigned the CSS class on selection when the page is loaded. If not provided, all overlays will have the regular CSS class until one is clicked. Note that to use this field you must provide names for the overlays.'
                                 type: 'string'
                                 required: false
-                                order: 3
+                                order: 2
                             overlays:
                                 label: 'Overlays'
                                 singleLabel: 'overlay'
@@ -4713,9 +4766,22 @@ cyclotronServices.factory 'commonConfigService', ->
                                 properties:
                                     name:
                                         label: 'Name'
+                                        description: 'Unique identifier for the overlay'
+                                        type: 'string'
+                                        required: false
+                                        order: 1
+                                    cssClass:
+                                        label: 'CSS Class'
+                                        description: 'CSS class name (defined beforehand in the Styles section of the dashboard) for the overlay'
                                         type: 'string'
                                         required: true
-                                        order: 1
+                                        order: 2
+                                    cssClassSelected:
+                                        label: 'CSS Class On Selection'
+                                        description: 'Optional CSS class name (defined beforehand in the Styles section of the dashboard) for the selected overlay'
+                                        type: 'string'
+                                        required: false
+                                        order: 3
                                     position:
                                         label: 'Position'
                                         description: 'X and Y coordinates of the location where the overlay will be attached'
@@ -4731,7 +4797,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                                 type: 'string'
                                                 required: false
                                                 order: 2
-                                        order: 2
+                                        order: 4
                                     positioning:
                                         label: 'Positioning'
                                         description: 'Where the overlay is placed with respect to Position. Default is top-left.'
@@ -4757,7 +4823,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                                 value: 'top-center'
                                             topRight:
                                                 value: 'top-right'
-                                        order: 3
+                                        order: 5
                                     template:
                                         label: 'Template'
                                         description: 'HTML template for overlay content.'
@@ -4765,8 +4831,8 @@ cyclotronServices.factory 'commonConfigService', ->
                                         editorMode: 'html'
                                         required: false
                                         default: ''
-                                        order: 4
-                                order: 4
+                                        order: 6
+                                order: 3
                         order: 15
                     controls:
                         label: 'Controls'

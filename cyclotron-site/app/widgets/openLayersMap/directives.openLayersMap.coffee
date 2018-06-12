@@ -118,6 +118,13 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                             overlayElem = document.getElementById overlay.id
                             angular.element(overlayElem).contents().remove()
                             angular.element(overlayElem).append newContent
+                        
+                        if not _.isEqual(overlay.position, currentMapConfig.overlays[index].position)
+                            map.getOverlayById(overlay.id).setPosition(ol.proj.fromLonLat(overlay.position))
+                        
+                        if not _.isEqual(overlay.positioning, currentMapConfig.overlays[index].positioning)
+                            map.getOverlayById(overlay.id).setPositioning(overlay.positioning)
+                    
                     currentMapConfig.overlays = _.cloneDeep newConfig.overlays
             
             scope.$watch('mapConfig', (mapConfig, oldMapConfig) ->
