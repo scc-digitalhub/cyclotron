@@ -2,11 +2,12 @@
 # Widget for noUiSlider
 #
 
-cyclotronApp.controller 'SliderWidget', ($scope, parameterPropagationService) ->
+cyclotronApp.controller 'SliderWidget', ($scope, $interval, parameterPropagationService) ->
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     $scope.randomId = '' + Math.floor(Math.random()*1000)
     firstLoad = true
+    timer = null
 
     # Check configuration
     checkConfiguration = (widget) ->
@@ -21,7 +22,6 @@ cyclotronApp.controller 'SliderWidget', ($scope, parameterPropagationService) ->
             minDateMillis = moment(widget.minValue, $scope.momentFormat).toDate().getTime()
             maxVal = moment(widget.maxValue, $scope.momentFormat).diff minDateMillis, timeUnit
             step = if widget.step? then parseInt(widget.step, 10) else 1
-            timer = undefined
             interval = if widget.player? and widget.player.showPlayer
                 if widget.player.interval then parseInt(widget.player.interval, 10) * 1000 else 1000
             else undefined
@@ -81,14 +81,11 @@ cyclotronApp.controller 'SliderWidget', ($scope, parameterPropagationService) ->
             # Event handler for play/pause button
             $scope.playPause = ->
                 if $scope.playing
-                    clearInterval timer
+                    $interval.cancel timer
                     $scope.playing = false
                 else
                     $scope.playing = true
-                    timer = setInterval updateOnPlay, interval
-    ###
-    # TODO handle generic events in the parent of widget controllers
-    ###
+                    timer = $interval updateOnPlay, interval
 
     $scope.loadWidget = ->
         $scope.widgetContext.loading = true
@@ -102,3 +99,9 @@ cyclotronApp.controller 'SliderWidget', ($scope, parameterPropagationService) ->
         $scope.widgetContext.loading = false
     
     $scope.loadWidget()
+
+    # Cleanup
+    $scope.$on '$destroy', ->
+        if timer?
+            $interval.cancel timer
+            timer = null

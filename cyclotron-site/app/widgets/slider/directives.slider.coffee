@@ -38,7 +38,7 @@ cyclotronDirectives.directive 'slider', ($window, configService, parameterPropag
                     console.log(e)
             
             scope.$watch 'sliderconfig', (sliderconfig) ->
-                #TODO check if slider has already been created
+                #TODO check if slider has already been created and check differences between old and new config
                 createSlider()
             
             scope.$watch 'ngModel', (ngModel) ->
