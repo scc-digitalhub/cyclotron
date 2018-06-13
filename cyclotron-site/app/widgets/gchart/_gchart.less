@@ -1,4 +1,11 @@
 .gchart-widget {
-    overflow: auto;
-    height: auto;
+    overflow: hidden;
+
+    .widget-body {
+        overflow: hidden;
+
+        div[google-charts] {
+            overflow: hidden;
+        }
+    }
 }
