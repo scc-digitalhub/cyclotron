@@ -9,6 +9,8 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
 
     options = if $scope.widget.options? then _.jsEval($scope.widget.options) else null
 
+    currentChart = null
+
     dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
     $scope.dataSource = dataService.get dsDefinition
 
@@ -63,14 +65,20 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
                         c.push {'v': val}
                     rows.push {'c': c}
 
-                $scope.myChartObject = {
+                chartObject = {
                     type: $scope.widget.chartType,
                     data: {'cols': columns, 'rows': rows}
                 }
                 if options?
                     # handle Google Charts hidden element by setting a fixed size
                     if not options.height? then options.height = $element.parent().height()
-                    $scope.myChartObject.options = options
+                    chartObject.options = options
+                
+                if $scope.myChartObject?
+                    $scope.myChartObject.data = chartObject.data
+                else
+                    $scope.myChartObject = _.cloneDeep chartObject
+                    currentChart = _.cloneDeep chartObject
             else
                 $scope.widgetContext.dataSourceError = true
                 $scope.widgetContext.dataSourceErrorMessage = 'Chart type is missing'
