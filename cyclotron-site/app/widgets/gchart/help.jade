@@ -1,0 +1,81 @@
+h3 Google Charts Widget
+p
+    | The Google Charts Widget uses the wrapper directive for Google Chart Tools 
+    a(href='http://angular-google-chart.github.io/angular-google-chart/', target="_blank") angular-google-charts
+    |  to create several types of charts.
+    
+p.
+    This widget requires a Data Source, indicating where the data will come from.
+
+h4 Properties
+p.
+    These are the properties specific to this widget.  
+    General Cyclotron widget properties are not repeated here (e.g. layout properties).
+
+property-table(properties='config.widgets.gchart.properties')
+
+h4 Options
+p
+    | Options property provides configuration options for the chart. Please refer to the 
+    a(href='https://developers.google.com/chart/interactive/docs/gallery', target="_blank") Google Charts API documentation
+    |  of the selected chart type to see the list of available options.
+
+h4 Columns
+p.
+    Columns property specifies how to read dataset columns, i.e., their names and types. While columns with strings, numbers and booleans can be easily identified, 
+    this property is useful for datasets containing dates or times, which are otherwise not recognized by the directive.
+
+property-table(properties='config.widgets.gchart.properties.columns.properties')
+
+h4 Formatters
+p.
+    Formatters property specifies an array of JavaScript functions to format data in a given dataset column.
+
+p.
+    In the following example, dates in the column named Day are given a different datetime format:
+
+pre.code.
+    "formatters": [{
+        "columnName": "Day",
+        "formatter": "p = function(value){ return moment(value, 'YYYY-MM-DD').format('dd DD'); }"
+    }]
+
+property-table(properties='config.widgets.gchart.properties.formatters.properties')
+
+h3 Examples
+
+h4 Basic Line Chart
+
+pre.code.
+    {
+        "widget": "gchart",
+        "chartType": "LineChart",
+        "dataSource": "dataSource_1"
+    }
+
+h4 Column Chart
+p.
+    Column Chart with a formatter and some configuration options.
+
+pre.code.
+    {
+        "widget": "gchart",
+        "chartType": "ColumnChart",
+        "dataSource": "week_data"
+        "options": {
+            "chartArea": {
+                "height": "70%",
+                "left": "7%",
+                "top": 19,
+                "width": "90%"
+            },
+            "colors": ["#0000ff", "#ff0000", "#ff00ee"],
+            "fontSize": 10,
+            "legend": "none",
+            "title": "Last Week"
+        },
+        "formatters": [{
+            "columnName": "Day",
+            "formatter": "p = function(value){ return moment(value, 'YYYY-MM-DD').format('dd DD'); }"
+        }]
+    }

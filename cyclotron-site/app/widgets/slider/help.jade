@@ -1,0 +1,95 @@
+h3 Slider Widget
+p
+    | The Slider Widget wraps the excellent 
+    a(href='https://refreshless.com/nouislider/', target="_blank") noUiSlider
+    |  library to create a time range slider.
+    | For the most part, all features available in noUiSlider
+    | can be used in this widget.
+
+h4 Properties
+p.
+    These are the properties specific to this widget.  
+    General Cyclotron widget properties are not repeated here (e.g. layout properties).
+
+property-table(properties='config.widgets.slider.properties')
+
+h4 Min and max value
+p
+    | These properties indicate the range of the time slider. They must have the same valid moment.js format, which can be specified in 
+    em momentFormat 
+    | property.
+
+h4 Player
+p.
+    Player property specifies an optional play/pause button that will cause the slider to slide automatically after each interval of the specified length. 
+    The button is displayed before (if horizontal) or on top of the slider (if vertical).
+
+property-table(properties='config.widgets.slider.properties.player.properties')
+
+h4 Pips
+p.
+    Points shown along the slider. More details and examples are provided in the noUiSlider documentation.
+
+p.
+    Mode property configures the way pips are displayed.
+ul
+    li Range mode places a pip for every point specified in the range.
+    li Steps mode places a pip for every step.
+    li Positions mode places pips at percentage-based positions (percentages can be specified in Values option).
+    li Count mode generates a fixed number of pips (specified in Values option).
+    li Values mode is the same as Positions mode but with values instead of percentages.
+
+property-table(properties='config.widgets.slider.properties.pips.properties')
+
+h4 Specific events
+
+p.
+    Events generated exclusively by the Slider Widget. The following table shows such events and the value they produce, that will be stored in the given Parameter. 
+    Note that Parameters must be defined in the Parameters section.
+
+table
+    thead
+        tr
+            th Event
+            th Value
+    tbody
+        tr
+            td dateTimeChange
+            td Date or time selected on the slider
+
+h3 Examples
+
+h4 Basic horizontal slider with pips
+pre.code.
+    {
+        "maxValue": "2018-03-30 00:00",
+        "minValue": "2017-09-10 00:00",
+        "momentFormat": "YYYY-MM-DD",
+        "pips": {
+            "density": 2,
+            "mode": "count",
+            "stepped": true,
+            "values": "4"
+        },
+        "widget": "slider"
+    }
+
+h4 Vertical slider with player and Parameter generation
+pre.code.
+    {
+        "direction": "rtl",
+        "maxValue": "2018-03-30 00:00",
+        "minValue": "2017-09-10 00:00",
+        "momentFormat": "YYYY-MM-DD",
+        "orientation": "vertical",
+        "player": {
+            "interval": 2,
+            "showPlayer": true
+        },
+        "specificEvents": [{
+            "event": "dateTimeChange",
+            "paramName": "sliderVal"
+        }],
+        "tooltips": true,
+        "widget": "slider"
+    }

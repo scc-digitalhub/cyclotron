@@ -1,0 +1,380 @@
+h3 OpenLayers Map Widget
+p
+    | The OpenLayers Map Widget wraps the excellent 
+    a(href='http://openlayers.org/', target="_blank") OpenLayers
+    |  library to create dynamic maps and represent geographical data.
+
+p.
+    This widget can have a Data Source, although it is not required.
+
+h4 Properties
+p.
+    These are the properties specific to this widget.  
+    General Cyclotron widget properties are not repeated here (e.g. layout properties).
+
+property-table(properties='config.widgets.openLayersMap.properties')
+
+h4 Layers
+p.
+    Layers property defines the layers that will be added to the OpenLayers map. Every layer must have a source, except VectorTile layers. 
+    Note that although OpenLayers provides many optional properties to configure layers, the current implementation of the OpenLayers Map Widget only allows 
+    mandatory properties (i.e. source) to be specified. Refer to the following table to know how to configure layers:
+
+table
+    thead
+        tr
+            th Type
+            th Source
+            th Configuration Required
+            th Notes
+    tbody
+        tr
+            td Image
+            td ImageArcGISRest
+            td No
+            td 
+        tr
+            td 
+            td ImageCanvas
+            td Yes
+            td 
+        tr
+            td 
+            td ImageMapGuide
+            td No
+            td 
+        tr
+            td 
+            td ImageStatic
+            td Yes
+            td 
+        tr
+            td 
+            td ImageWMS
+            td Yes
+            td 
+        tr
+            td 
+            td Raster
+            td Yes
+            td 
+        tr
+            td Tile
+            td BingMaps
+            td Yes
+            td 
+        tr
+            td 
+            td CartoDB
+            td Yes
+            td 
+        tr
+            td 
+            td OSM
+            td No
+            td 
+        tr
+            td 
+            td Stamen
+            td Yes
+            td 
+        tr
+            td 
+            td TileArcGISRest
+            td No
+            td 
+        tr
+            td 
+            td TileDebug
+            td Yes
+            td 
+        tr
+            td 
+            td TileJSON
+            td Yes
+            td 
+        tr
+            td 
+            td TileUTFGrid
+            td Yes
+            td 
+        tr
+            td 
+            td TileWMS
+            td Yes
+            td 
+        tr
+            td 
+            td WMTS
+            td Yes
+            td 
+        tr
+            td 
+            td XYZ
+            td No
+            td 
+        tr
+            td 
+            td Zoomify
+            td Yes
+            td 
+        tr
+            td Heatmap
+            td Cluster
+            td Yes
+            td Requires Weight property
+        tr
+            td 
+            td Vector
+            td No
+            td Requires Weight property
+        tr
+            td VectorTile
+            td VectorTile
+            td No
+            td 
+
+p
+    | If no layer type nor source are specified, a single Tile layer with an OSM (Open Street Map) source will be added to the map. 
+    | The configuration of sources is described in the documentation of 
+    a(href='http://openlayers.org/en/latest/apidoc/ol.source.html', target="_blank") OpenLayers API
+    | .
+
+h4 Overlay Groups
+p.
+    Overlays are elements that will be displayed over the map and attached to a given position. Each of them can have 
+    its own style, positioning and content. They are selectable and the Name of the selected overlays can be stored in a 
+    Parameter (read on for further details). They must be part of a group, even if there is only one group on the map, 
+    and each group of overlays can have one overlay selected at a time.
+
+p.
+    Each overlay has the following properties:
+
+property-table(properties='config.widgets.openLayersMap.properties.overlayGroups.properties.overlays.properties')
+
+p.
+    Note that Name property is not required, but it will be generated automatically if not provided, therefore if you want it to be 
+    stored in a Parameter you will not recognize which overlay the name belongs to if you do not provide it.
+
+p.
+    If an Overlay Initially Selected is provided for a group, that overlay will have its CSS Class On Selection 
+    applied at loading.
+
+p.
+    Instead of configuring the overlays in the Overlay Groups property, it is possible to provide them via a Data Source. Read Data Source Mapping section for more details.
+
+h4 Controls
+p.
+    Controls are graphical elements on a fixed position over the map. They can provide user input or information.
+
+table
+    thead
+        tr
+            th Control
+            th Description
+    tbody
+        tr
+            td Attribution
+            td Informational button showing the attributions for the map layer sources
+        tr
+            td MousePosition
+            td Shows the coordinates of the mouse cursor
+        tr
+            td OverviewMap
+            td Shows an overview of the main map
+        tr
+            td ScaleLine
+            td Shows a scale line with rough Y-axis distances
+        tr
+            td Zoom
+            td Buttons for zoom-in and zoom-out
+        tr
+            td ZoomSlider
+            td Slider for zooming in or out
+        tr
+            td ZoomToExtent
+            td Button for zooming to an extent (default is zooming to zoom 0)
+
+p
+    | More information on controls can be found in the 
+    a(href='http://openlayers.org/en/latest/apidoc/ol.control.html', target="_blank") OpenLayers API
+    |  documentation, e.g. CSS classes to modify control styles.
+
+h4 Data Source Mapping
+p.
+    As mentioned in the Overlay Groups section, a Data Source can also be used to provide overlays for the map. In that case, 
+    a mapping must be provided for the Widget to correctly read the dataset. The following Data Source Mapping properties specify which fields 
+    contain the pieces of data necessary for configuring the overlays:
+
+property-table(properties='config.widgets.openLayersMap.properties.dataSourceMapping.properties')
+
+p.
+    The dataset structure differs a bit from the Data Sources for the other Widgets, in that it contains more complex objects. 
+    It recalls the same structure of the Overlay Groups property, i.e., a list of overlay groups:
+
+pre.code.
+    [{
+        "groupID": "g1",
+        "selectedOverlay": "ov1",
+        "overlays": [{
+                "css": "my-css-class",
+                "cssSelected": "my-css-class-sel",
+                "id": "ov1",
+                "content": "#{'<div>'}Overlay content#{'</div>'}",
+                "coordinates": [11, 46],
+                "positioning": "top-left"
+            },
+            {
+                "css": "my-css-class",
+                "cssSelected": "my-css-class-sel",
+                "id": "ov2",
+                "content": "#{'<div>'}Overlay content#{'</div>'}",
+                "coordinates": [10, 45],
+                "positioning": "bottom-right"
+            }
+        ]
+    }]
+
+p.
+    The mapping for this Data Source would then be:
+
+pre.code.
+    "dataSourceMapping": {
+        "identifierField": "groupID",
+        "initiallySelectedField": "selectedOverlay",
+        "overlayListField": "overlays",
+        "cssClassField": "css",
+        "cssClassOnSelectionField": "cssSelected",
+        "overlayIdField": "id",
+        "positionField": "coordinates",
+        "positioningField": "positioning",
+        "templateField": "content"
+    }
+
+h4 Specific Events
+
+p.
+    Events generated exclusively by the OpenLayers Map Widget. The following table shows such events and the value they produce, that will be stored in the given Parameter. 
+    Note that Parameters must be defined in the Parameters section.
+
+table
+    thead
+        tr
+            th Event
+            th Value
+    tbody
+        tr
+            td clickOnOverlay
+            td Name of the overlay clicked
+
+p
+    | The Specific Events property has a subproperty named Section, which can be used to specify the name of the map portion (e.g. an overlay group) 
+    | that triggers the event. If the event is triggered by the map itself, you can leave this option empty. Some widgets (e.g. Slider) have one section only, 
+    | therefore they do not have Section subproperty, while others may have different sections that trigger the same kind of event. 
+    | That is the case of OpenLayers maps, where all overlay groups can trigger the 
+    em clickOnOverlay 
+    | event:
+
+pre.code.
+    "specificEvents": [
+        {
+            "event": "clickOnOverlay",
+            "paramName": "circleSelected"
+            "section": "g1"
+        },
+        {
+            "event": "clickOnOverlay",
+            "paramName": "squareSelected"
+            "section": "g2"
+        }
+    ]
+
+h3 Examples
+p
+    | Many examples of maps can be found on the 
+    a(href='http://openlayers.org/en/latest/examples/', target="_blank") OpenLayers website
+    | , although not all of them are reproducible with Cyclotron.
+
+h4 Basic map with Tile layer
+pre.code.
+    {
+        "center": {
+            "x": "12.5",
+            "y": "41.9"
+        },
+        "layers": [{
+            "source": {
+                "configuration": "{\"url\": \"https://{a-c}.tiles.mapbox.com/v3/mapbox.blue-marble-topo-jan/{z}/{x}/{y}.png\"}",
+                "name": "XYZ"
+            },
+            "type": "Tile"
+        }],
+        "widget": "openLayersMap",
+        "zoom": 2
+    }
+
+h4 Default OSM layer and some overlays
+pre.code.
+    {
+        "center": {
+            "x": "12.5",
+            "y": "41.9"
+        },
+        "overlayGroups": [{
+            "name": "circles",
+            "overlays": [{
+                "cssClass": "my-overlay",
+                "cssClassSelected": "selected",
+                "name": "ov1",
+                "position": {
+                    "x": "12",
+                    "y": "40"
+                }
+            }, {
+                "cssClass": "my-overlay",
+                "cssClassSelected": "selected",
+                "name": "ov2",
+                "position": {
+                    "x": "9",
+                    "y": "37"
+                }
+            }]
+        }],
+        "specificEvents": [{
+            "event": "clickOnOverlay",
+            "paramName": "circleSelected",
+            "section": "circles"
+        }],
+        "widget": "openLayersMap",
+        "zoom": 2
+    }
+
+h4 Parametric ImageWMS layer with controls
+p.
+    This example uses Parameter Subscription to a time value generated by the Slider Widget.
+
+pre.code.
+    {
+        "center": {
+            "x": "11.123251",
+            "y": "46.044685"
+        },
+        "controls": [{
+            "control": "ZoomSlider"
+        }],
+        "layers": [{
+            "source": {
+                "name": "OSM"
+            },
+            "type": "Tile"
+        }, {
+            "source": {
+                "configuration": "{\"url\": \"http://my.geoserver.com/wms\", \"params\": {\"FORMAT\": \"image/png\", \"LAYERS\": \"my:layer\", \"TIME\": \"\#{sliderVal}\"}}",
+                "name": "ImageWMS"
+            },
+            "type": "Image"
+        }],
+        "parameterSubscription": ["sliderVal"],
+        "widget": "openLayersMap",
+        "zoom": 11
+    }

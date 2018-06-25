@@ -188,6 +188,19 @@ pre.code.
         Cyclotron.customFunction(dataSet);
     }
 
+h4 Parametric Data Sources
+p.
+    Parameters section describes the use of Parameters in Widgets and Data Sources. Note that if a Data Source depends on another one, then 
+    it needs to subscribe to any Parameters used by the Data Source it depends on, in order to keep data synchronized.
+
+p
+    | This is the case for a Data Source (let us name it A) that executes another one (B) or that retrieves its data.  
+    | If B is parametric and subscribes to Parameter 
+    em foo
+    | , then in both cases A will never know that B was re-executed upon Parameter change. If A on the other hand subscribes to 
+    em foo 
+    | even without using it directly, then A itself will refresh B upon Parameter change. In simple words, when A depends on parametric B then A itself becomes parametric.
+
 h4 Data Sources
 
 p Select the individual Data Source names in the menu to see documentation specific to each Data Source type.

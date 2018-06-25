@@ -104,6 +104,37 @@ p Changes to the Cyclotron.parameters object will be reflected immediately in th
     em  Cyclotron.parameters 
     | object, regardless of whether they were explicitly specified in the Parameters configuration.
 
+h4 Subscription to Parameters
+
+p Widgets and Data Sources can subscribe to Parameters and reload when those are changed. Each Widget or Data Source has a section 
+    em Subscription to Parameters. 
+    | If the Widget or Data Source subscribes to a Parameter, whenever that is updated they are updated consequently. To use Parameters in the Widget or Data Source configuration,
+    | the placeholder syntax 
+    em  \#{param_name} 
+    | can be used. For example:
+
+pre.code.
+    "parameters": [{
+        "name": "currentStation",
+        "defaultValue": "7",
+        "showInUrl": false
+    }],
+    "dataSources": [{
+        "name": "datasource_1",
+        "type": "json",
+        "parameterSubscription": ["currentStation"],
+        "url": "https://localhost:8080/dss/services/db/\#{currentStation}"
+    }]
+
+p In the example, when the value of Parameter 
+    em currentStation 
+    | will change, the Data Source will be re-executed automatically with the updated URL, therefore a change event handler for this is not needed.
+
+p.
+    Note that if Parameters used in this way do not have an initial value, Widgets and Data Sources that use them will not be able 
+    to load. Therefore if a component uses a Parameter whose value is set by a Widget that is loaded later, 
+    remember to give the Parameter an initial (default) value if you want the component to load.
+
 h4 Properties
 
 property-table(properties='config.dashboard.properties.parameters.properties')

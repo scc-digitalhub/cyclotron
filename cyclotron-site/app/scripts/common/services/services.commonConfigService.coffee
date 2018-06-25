@@ -509,7 +509,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 genericEvents:
                                     label: 'Generic Events'
                                     singleLabel: 'param-event'
-                                    description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and events that can trigger their change within widgets. Note that adding a Name to this widget is mandatory for this property to work.'
+                                    description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and events that can trigger their change within widgets. Note that adding a Name to the widget is mandatory for this property to work.'
                                     type: 'propertyset[]'
                                     inlineJs: true
                                     defaultHidden: true
@@ -532,7 +532,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 parameterSubscription:
                                     label: 'Subscription To Parameters'
                                     singleLabel: 'param'
-                                    description: ''
+                                    description: 'Specifies a list of parameters the widget subscribes to, i.e., that the widget uses and that can cause its reload upon change. See section Parameters for more details.'
                                     type: 'string[]'
                                     inlineJs: true
                                     defaultHidden: true
@@ -673,7 +673,7 @@ cyclotronServices.factory 'commonConfigService', ->
                         parameterSubscription:
                             label: 'Subscription To Parameters'
                             singleLabel: 'param'
-                            description: ''
+                            description: 'Specifies a list of parameters the data source subscribes to, i.e., that can cause the re-execution of the data source upon change. See section Parameters for more details.'
                             type: 'string[]'
                             inlineJs: true
                             defaultHidden: true
@@ -3112,11 +3112,12 @@ cyclotronServices.factory 'commonConfigService', ->
                         
             gchart:
                 name: 'gchart'
+                label: 'Google Charts'
                 icon: 'fa-rocket'
                 properties:
                     dataSource:
                         label: 'Data Source'
-                        description: 'The name of the Data Source providing data for this Widget. The dataset it provides must be in a table-like format, i.e., an array of objects whose keys are the names of the columns. E.g.: [{"Col_A": val1, "Col_B": val2}, {"Col_A": val3, "Col_B": val4}]'
+                        description: 'The name of the Data Source providing table-like data for this Widget.'
                         placeholder: 'Data Source name'
                         type: 'string'
                         required: true
@@ -3141,7 +3142,7 @@ cyclotronServices.factory 'commonConfigService', ->
                         order: 11
                     options:
                         label: 'Options'
-                        description: 'JSON object with configuration options for the chart. Please refer to the Google Charts API documentation of the selected chart type (https://developers.google.com/chart/interactive/docs/gallery) to see the list of available options.'
+                        description: 'JSON object with configuration options for the chart.'
                         type: 'json'
                         inlineJs: true
                         required: false
@@ -3159,12 +3160,12 @@ cyclotronServices.factory 'commonConfigService', ->
                                 description: 'Indicates the name of the data source field to use for this column.'
                                 type: 'string'
                                 inlineJs: true
+                                required: true
                                 order: 1
                             type:
                                 label: 'Type'
                                 description: 'Type of the column values. If omitted, "string" will be assigned.'
                                 type: 'string'
-                                required: true
                                 options:
                                     string:
                                         value: 'string'
@@ -3183,6 +3184,7 @@ cyclotronServices.factory 'commonConfigService', ->
                     formatters:
                         label: 'Formatters'
                         singleLabel: 'formatter'
+                        description: 'Optional JavaScript functions that will be applied to all the values of the specified datasource columns.'
                         type: 'propertyset[]'
                         properties:
                             columnName:
@@ -3193,7 +3195,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 order: 1
                             formatter:
                                 label: 'Formatter'
-                                description: 'Optional JavaScript function that will be applied to all the values of a datasource column. It must take a single value as argument and return the new value.'
+                                description: 'The function must take a single value as argument and return the new value.'
                                 type: 'editor'
                                 editorMode: 'javascript'
                                 required: false
@@ -3729,6 +3731,362 @@ cyclotronServices.factory 'commonConfigService', ->
                         placeholder: 'Column name'
                         order: 16
 
+            openLayersMap:
+                name: 'openLayersMap'
+                label: 'OpenLayers Map'
+                properties:
+                    dataSource:
+                        label: 'Data Source'
+                        description: 'The name of the Data Source providing data for the overlays.'
+                        placeholder: 'Data Source name'
+                        type: 'string'
+                        required: false
+                        options: datasourceOptions
+                        order: 10
+                    center:
+                        label: 'Center'
+                        description: 'X and Y coordinates to center the map on'
+                        type: 'propertyset'
+                        required: true
+                        properties:
+                            x:
+                                label: 'X'
+                                type: 'string'
+                                required: true
+                                order: 1
+                            y:
+                                label: 'Y'
+                                type: 'string'
+                                required: true
+                                order: 2
+                        order: 11
+                    zoom:
+                        label: 'Zoom'
+                        description: 'Zoom level (0 is zoomed out)'
+                        type: 'integer'
+                        required: true
+                        order: 12
+                    layers:
+                        label: 'Layers'
+                        singleLabel: 'layer'
+                        description: 'An array of layers that will be added to the map. Default is a single OpenStreetMap (OSM) layer.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        properties:
+                            type:
+                                label: 'Type'
+                                description: 'The type of layer that will be added to the map. Specifying a source is mandatory except for VectorTile layers. Heatmap layer also requires Weight to be specified. If no type nor source are specified, Tile and OSM are used.'
+                                type: 'string'
+                                required: false
+                                default: 'Tile'
+                                options:
+                                    image:
+                                        value: 'Image'
+                                    tile:
+                                        value: 'Tile'
+                                    heatmap:
+                                        value: 'Heatmap'
+                                    vectortile:
+                                        value: 'VectorTile'
+                                order: 1
+                            source:
+                                label: 'Source'
+                                description: 'Source for the layer. Please refer to the help page if you do not know which one you need. Note that depending on the layer type (Image, Tile, Heatmap or VectorTile) only a subset of these sources is accepted.'
+                                type: 'propertyset'
+                                properties:
+                                    name:
+                                        label: 'Name'
+                                        type: 'string'
+                                        required: false
+                                        default: 'OSM'
+                                        options:
+                                            BingMaps:
+                                                value: 'BingMaps'
+                                            CartoDB:
+                                                value: 'CartoDB'
+                                            Cluster:
+                                                value: 'Cluster'
+                                            ImageArcGISRest:
+                                                value: 'ImageArcGISRest'
+                                            ImageCanvas:
+                                                value: 'ImageCanvas'
+                                            ImageMapGuide:
+                                                value: 'ImageMapGuide'
+                                            ImageStatic:
+                                                value: 'ImageStatic'
+                                            ImageWMS:
+                                                value: 'ImageWMS'
+                                            OSM:
+                                                value: 'OSM'
+                                            Raster:
+                                                value: 'Raster'
+                                            Stamen:
+                                                value: 'Stamen'
+                                            TileArcGISRest:
+                                                value: 'TileArcGISRest'
+                                            TileDebug:
+                                                value: 'TileDebug'
+                                            TileJSON:
+                                                value: 'TileJSON'
+                                            TileUTFGrid:
+                                                value: 'TileUTFGrid'
+                                            TileWMS:
+                                                value: 'TileWMS'
+                                            Vector:
+                                                value: 'Vector'
+                                            VectorTile:
+                                                value: 'VectorTile'
+                                            WMTS:
+                                                value: 'WMTS'
+                                            XYZ:
+                                                value: 'XYZ'
+                                            Zoomify:
+                                                value: 'Zoomify'
+                                        order: 1
+                                    configuration:
+                                        label: 'Configuration'
+                                        description: 'Configuration object. Please refer to the widget help page to know how to configure each source.'
+                                        type: 'editor'
+                                        editorMode: 'javascript'
+                                        required: false
+                                        order: 2
+                                order: 2
+                            weight:
+                                label: 'Weight (for heatmap)'
+                                description: ''
+                                type: 'string'
+                                required: false
+                                order: 3
+                        order: 13
+                    overlayGroups:
+                        label: 'Overlay Groups'
+                        singleLabel: 'group'
+                        description: 'Groups of overlays that will be added to the map, i.e., elements that will be displayed over the map and attached to a given position. Each group of overlays can have one overlay selected at a time.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        properties:
+                            name:
+                                label: 'Name'
+                                type: 'string'
+                                required: true
+                                order: 1
+                            initiallySelected:
+                                label: 'Overlay Initially Selected'
+                                description: 'Name of the overlay that will be assigned the CSS class on selection when the page is loaded. If not provided, all overlays will have the regular CSS class until one is clicked. Note that to use this field you must provide names for the overlays.'
+                                type: 'string'
+                                required: false
+                                order: 2
+                            overlays:
+                                label: 'Overlays'
+                                singleLabel: 'overlay'
+                                description: ''
+                                type: 'propertyset[]'
+                                inlineJs: true
+                                required: true
+                                properties:
+                                    name:
+                                        label: 'Name'
+                                        description: 'Unique identifier for the overlay'
+                                        type: 'string'
+                                        required: false
+                                        order: 1
+                                    cssClass:
+                                        label: 'CSS Class'
+                                        description: 'CSS class name (defined beforehand in the Styles section of the dashboard) for the overlay'
+                                        type: 'string'
+                                        required: true
+                                        order: 2
+                                    cssClassSelected:
+                                        label: 'CSS Class On Selection'
+                                        description: 'Optional CSS class name (defined beforehand in the Styles section of the dashboard) for the selected overlay'
+                                        type: 'string'
+                                        required: false
+                                        order: 3
+                                    position:
+                                        label: 'Position'
+                                        description: 'X and Y coordinates of the location where the overlay will be attached'
+                                        type: 'propertyset'
+                                        properties:
+                                            x:
+                                                label: 'X'
+                                                type: 'string'
+                                                required: false
+                                                order: 1
+                                            y:
+                                                label: 'Y'
+                                                type: 'string'
+                                                required: false
+                                                order: 2
+                                        order: 4
+                                    positioning:
+                                        label: 'Positioning'
+                                        description: 'Where the overlay is placed with respect to Position. Default is top-left.'
+                                        type: 'string'
+                                        required: false
+                                        default: 'top-left'
+                                        options:
+                                            bottomLeft:
+                                                value: 'bottom-left'
+                                            bottomCenter:
+                                                value: 'bottom-center'
+                                            bottomRight:
+                                                value: 'bottom-right'
+                                            centerLeft:
+                                                value: 'center-left'
+                                            centerCenter:
+                                                value: 'center-center'
+                                            centerRight:
+                                                value: 'center-right'
+                                            topLeft:
+                                                value: 'top-left'
+                                            topCenter:
+                                                value: 'top-center'
+                                            topRight:
+                                                value: 'top-right'
+                                        order: 5
+                                    template:
+                                        label: 'Template'
+                                        description: 'HTML template for overlay content.'
+                                        type: 'editor'
+                                        editorMode: 'html'
+                                        required: false
+                                        default: ''
+                                        order: 6
+                                order: 3
+                        order: 15
+                    controls:
+                        label: 'Controls'
+                        singleLabel: 'control'
+                        description: 'An array of controls that will be added to the map.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        defaultHidden: true
+                        default: []
+                        properties:
+                            control:
+                                label: 'Control'
+                                type: 'string'
+                                required: false
+                                options:
+                                    Attribution:
+                                        value: 'Attribution'
+                                    MousePosition:
+                                        value: 'MousePosition'
+                                    OverviewMap:
+                                        value: 'OverviewMap'
+                                    ScaleLine:
+                                        value: 'ScaleLine'
+                                    Zoom:
+                                        value: 'Zoom'
+                                    ZoomSlider:
+                                        value: 'ZoomSlider'
+                                    ZoomToExtent:
+                                        value: 'ZoomToExtent'
+                                order: 1
+                        order: 16
+                    dataSourceMapping:
+                        label: 'DataSource Mapping'
+                        description: 'Overlay properties must be mapped to datasource fields. The datasource is required to have at least fields for group ID, CSS class and the list of overlays.'
+                        type: 'propertyset'
+                        defaultHidden: true
+                        properties:
+                            identifierField:
+                                label: 'Identifier Field'
+                                description: 'Datasource field with a unique identifier for the overlay group. If it is not specified and the datasource provides more that one object (i.e. overlay group), each group will be assigned a random ID.'
+                                type: 'string'
+                                required: false
+                                order: 1
+                            initiallySelectedField:
+                                label: 'Overlay Initially Selected Field'
+                                description: 'Optional datasource field with the ID of the overlay that will be assigned the CSS class on selection when the page is loaded. If not provided, all overlays will have the regular CSS class until one is clicked.'
+                                type: 'string'
+                                required: false
+                                order: 2
+                            overlayListField:
+                                label: 'Overlay List Field'
+                                description: 'Datasource field containing the list of overlays for the group'
+                                type: 'string'
+                                required: true
+                                order: 3
+                            cssClassField:
+                                label: 'CSS Class Field'
+                                description: 'Datasource field with the style for each overlay in the group as name of a CSS class defined in the Styles section of the editor.'
+                                type: 'string'
+                                required: true
+                                order: 4
+                            cssClassOnSelectionField:
+                                label: 'CSS Class On Selection Field'
+                                description: 'Optional datasource field with the CSS class for each overlay after it has been clicked. It must be the name of a CSS class defined in the Styles section of the editor.'
+                                type: 'string'
+                                required: false
+                                order: 5
+                            overlayIdField:
+                                label: 'Overlay Identifier Field'
+                                description: 'Datasource field with a unique identifier for each overlay in the group list. If it is missing, a random ID will be generated.'
+                                type: 'string'
+                                required: false
+                                order: 6
+                            positionField:
+                                label: 'Position Field'
+                                description: 'Datasource field with an array of coordinates (i.e. [x_coord, y_coord]) for each overlay in the group list. Alternatively, single fields for X and Y can be specified.'
+                                type: 'string'
+                                required: false
+                                order: 7
+                            xField:
+                                label: 'X Coordinate Field'
+                                description: 'Datasource field with X coordinate for each overlay in the group list.'
+                                type: 'string'
+                                required: false
+                                order: 8
+                            yField:
+                                label: 'Y Coordinate Field'
+                                description: 'Datasource field with Y coordinate for each overlay in the group list.'
+                                type: 'string'
+                                required: false
+                                order: 9
+                            positioningField:
+                                label: 'Positioning Field'
+                                description: 'Datasource field with the positioning (e.g. "center-center") of each overlay.'
+                                type: 'string'
+                                required: false
+                                order: 10
+                            templateField:
+                                label: 'Template Field'
+                                description: 'Datasource field with the HTML template for the content of each overlay.'
+                                type: 'string'
+                                required: false
+                                order: 11
+                        order: 14
+                    specificEvents:
+                        label: 'Specific Events'
+                        singleLabel: 'param-event'
+                        description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and widget events that can trigger their change.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        defaultHidden: true
+                        default: []
+                        properties:
+                            paramName:
+                                label: 'Parameter Name'
+                                type: 'string'
+                                required: true
+                                order: 1
+                            event:
+                                label: 'Event'
+                                type: 'string'
+                                required: true
+                                options:
+                                    clickOnOverlay:
+                                        value: 'clickOnOverlay'
+                                order: 2
+                            section:
+                                label: 'Section'
+                                description: 'Name of the overlay group that triggers the event. If the event is triggered by the map itself, you can leave this option empty. Some widgets (e.g. slider) have one section only, therefore Section option is not required, while others may have some sections that trigger the same kind of event (e.g. in OpenLayers maps, all overlay groups can trigger clickOnOverlay event).'
+                                type: 'string'
+                                required: false
+                                order: 3
+                        order: 17
+
             qrcode: 
                 name: 'qrcode'
                 label: 'QRcode'
@@ -3801,6 +4159,185 @@ cyclotronServices.factory 'commonConfigService', ->
                         order: 17
                 sample:
                     text: 'hello'
+
+            slider:
+                name: 'slider'
+                label: 'Slider'
+                icon: 'fa-bar-chart-o'
+                properties:
+                    minValue:
+                        label: 'Minimum date-time'
+                        description: 'Starting value of the slider'
+                        type: 'string'
+                        placeholder: 'YYYY-MM-DD HH:mm'
+                        required: true
+                        order: 10
+                    maxValue:
+                        label: 'Maximum date-time'
+                        description: 'Ending value of the slider'
+                        type: 'string'
+                        placeholder: 'YYYY-MM-DD HH:mm'
+                        required: true
+                        order: 11
+                    momentFormat:
+                        label: 'Date-time Format'
+                        description: 'Any valid moment() format. Default is YYYY-MM-DD HH:mm.'
+                        type: 'string'
+                        default: 'YYYY-MM-DD HH:mm'
+                        required: false
+                        order: 12
+                    step:
+                        label: 'Step'
+                        description: 'Number of time units (e.g. days) between slider values (default is 1)'
+                        type: 'integer'
+                        required: false
+                        default: 1
+                        order: 13
+                    direction:
+                        label: 'Direction'
+                        description: 'Left-to-right or right-to-left. Default is left-to-right.'
+                        type: 'string'
+                        required: false
+                        defaultHidden: true
+                        default: 'ltr'
+                        options:
+                            ltr:
+                                value: 'ltr'
+                            rtl:
+                                value: 'rtl'
+                        order: 14
+                    orientation:
+                        label: 'Orientation'
+                        description: 'Horizontal or vertical. Default is horizontal.'
+                        type: 'string'
+                        required: false
+                        defaultHidden: true
+                        default: 'horizontal'
+                        options:
+                            horizontal:
+                                value: 'horizontal'
+                            vertical:
+                                value: 'vertical'
+                        order: 15
+                    player:
+                        label: 'Player'
+                        description: 'Play/pause button for automatic sliding'
+                        type: 'propertyset'
+                        properties:
+                            showPlayer:
+                                label: 'Show Player'
+                                description: 'Show player. Default is false.'
+                                type: 'boolean'
+                                required: false
+                                default: false
+                                order: 1
+                            interval:
+                                label: 'Interval'
+                                description: 'Seconds between each sliding. Default is 1.'
+                                type: 'integer'
+                                required: false
+                                default: 1
+                                order: 2
+                        order: 16
+                    timeUnit:
+                        label: 'Time Unit'
+                        description: 'Each slider value corresponds to a minute, hour, day or month. Default is days.'
+                        type: 'string'
+                        required: false
+                        defaultHidden: true
+                        default: 'days'
+                        options:
+                            minutes:
+                                value: 'minutes'
+                            hours:
+                                value: 'hours'
+                            days:
+                                value: 'days'
+                            months:
+                                value: 'months'
+                        order: 17
+                    pips:
+                        label: 'Pips'
+                        description: 'Scale/points shown near the slider'
+                        type: 'propertyset'
+                        properties:
+                            mode:
+                                label: 'Mode'
+                                description: 'Determines where to place pips.'
+                                type: 'string'
+                                required: false
+                                default: 'steps'
+                                options:
+                                    range:
+                                        value: 'range'
+                                    steps:
+                                        value: 'steps'
+                                    positions:
+                                        value: 'positions'
+                                    count:
+                                        value: 'count'
+                                    values:
+                                        value: 'values'
+                                order: 1
+                            values:
+                                label: 'Values'
+                                description: 'Additional options for Positions, Count and Values mode. For Count mode provide an integer. For Positions and Values mode provide comma-separated integers.'
+                                type: 'string'
+                                required: false
+                                order: 2
+                            stepped:
+                                label: 'Stepped'
+                                description: 'Match pips with slider values (default is false)'
+                                required: false
+                                default: false
+                                type: 'boolean'
+                                order: 3
+                            density:
+                                label: 'Density'
+                                description: 'Number of pips in one percent of the slider range (default is 1)'
+                                type: 'integer'
+                                required: false
+                                default: 1
+                                order: 4
+                            format:
+                                label: 'Format'
+                                description: 'Show pip values in the same format as slider format (default is true)'
+                                type: 'boolean'
+                                required: false
+                                default: true
+                                order: 5
+                        order: 18
+                    tooltips:
+                        label: 'Tooltips'
+                        description: 'Show tooltips (default is false)'
+                        type: 'boolean'
+                        required: false
+                        defaultHidden: true
+                        default: false
+                        order: 19
+                    specificEvents:
+                        label: 'Specific Events'
+                        singleLabel: 'param-event'
+                        description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and widget events that can trigger their change.'
+                        type: 'propertyset[]'
+                        inlineJs: true
+                        defaultHidden: true
+                        default: []
+                        properties:
+                            paramName:
+                                label: 'Parameter Name'
+                                type: 'string'
+                                required: true
+                                order: 1
+                            event:
+                                label: 'Event'
+                                type: 'string'
+                                required: true
+                                options:
+                                    dateTimeChange:
+                                        value: 'dateTimeChange'
+                                order: 2
+                        order: 20
 
             stoplight:
                 name: 'stoplight'
@@ -4360,539 +4897,6 @@ cyclotronServices.factory 'commonConfigService', ->
                         required: false
                         defaultHidden: true
                         order: 18
-
-            slider:
-                name: 'slider'
-                label: 'Slider'
-                icon: 'fa-bar-chart-o'
-                properties:
-                    minValue:
-                        label: 'Minimum date-time'
-                        description: 'Starting value of the slider'
-                        type: 'string'
-                        placeholder: 'YYYY-MM-DD HH:mm'
-                        required: true
-                        order: 10
-                    maxValue:
-                        label: 'Maximum date-time'
-                        description: 'Ending value of the slider'
-                        type: 'string'
-                        placeholder: 'YYYY-MM-DD HH:mm'
-                        required: true
-                        order: 11
-                    momentFormat:
-                        label: 'Date-time Format'
-                        description: 'Any valid moment() format. Default is YYYY-MM-DD HH:mm.'
-                        type: 'string'
-                        default: 'YYYY-MM-DD HH:mm'
-                        required: false
-                        order: 12
-                    step:
-                        label: 'Step'
-                        description: 'Number of time units (e.g. days) between slider values (default is 1)'
-                        type: 'integer'
-                        required: false
-                        default: 1
-                        order: 13
-                    direction:
-                        label: 'Direction'
-                        description: 'Left-to-right or right-to-left'
-                        type: 'string'
-                        required: false
-                        defaultHidden: true
-                        default: 'ltr'
-                        options:
-                            ltr:
-                                value: 'ltr'
-                            rtl:
-                                value: 'rtl'
-                        order: 14
-                    orientation:
-                        label: 'Orientation'
-                        description: 'Horizontal or vertical'
-                        type: 'string'
-                        required: false
-                        defaultHidden: true
-                        default: 'horizontal'
-                        options:
-                            horizontal:
-                                value: 'horizontal'
-                            vertical:
-                                value: 'vertical'
-                        order: 15
-                    player:
-                        label: 'Player'
-                        description: 'Play/pause button for automatic sliding'
-                        type: 'propertyset'
-                        properties:
-                            showPlayer:
-                                label: 'Show Player'
-                                type: 'boolean'
-                                required: false
-                                default: false
-                                order: 1
-                            interval:
-                                label: 'Interval'
-                                description: 'Seconds between each sliding'
-                                type: 'integer'
-                                required: false
-                                default: 1
-                                order: 2
-                        order: 16
-                    timeUnit:
-                        label: 'Time Unit'
-                        description: 'Each slider value corresponds to a minute, hour, day or month. Default is days.'
-                        type: 'string'
-                        required: false
-                        defaultHidden: true
-                        default: 'days'
-                        options:
-                            minutes:
-                                value: 'minutes'
-                            hours:
-                                value: 'hours'
-                            days:
-                                value: 'days'
-                            months:
-                                value: 'months'
-                        order: 17
-                    pips:
-                        label: 'Pips'
-                        description: 'Scale/points shown near the slider'
-                        type: 'propertyset'
-                        properties:
-                            mode:
-                                label: 'Mode'
-                                description: 'Range mode places a pip for every point specified in the range. Steps mode places a pip for every step. Positions mode places pips at percentage-based positions (percentages can be specified in Values option). Count mode generates a fixed number of pips (specified in Values option). Values mode is the same as Positions mode but with values instead of percentages.'
-                                type: 'string'
-                                required: false
-                                default: 'steps'
-                                options:
-                                    range:
-                                        value: 'range'
-                                    steps:
-                                        value: 'steps'
-                                    positions:
-                                        value: 'positions'
-                                    count:
-                                        value: 'count'
-                                    values:
-                                        value: 'values'
-                                order: 1
-                            values:
-                                label: 'Values'
-                                description: 'Additional options for Positions, Count and Values mode. For count mode provide an intereg. For Positions and Values mode provide comma-separated integers.'
-                                type: 'string'
-                                required: false
-                                order: 2
-                            stepped:
-                                label: 'Stepped'
-                                description: 'Match pips with slider values (default is false)'
-                                required: false
-                                default: false
-                                type: 'boolean'
-                                order: 3
-                            density:
-                                label: 'Density'
-                                description: 'Number of pips in one percent of the slider range'
-                                type: 'integer'
-                                required: false
-                                default: 1
-                                order: 4
-                            format:
-                                label: 'Format'
-                                description: 'Show pip values in the same format as slider format (default is true)'
-                                type: 'boolean'
-                                required: false
-                                default: true
-                                order: 5
-                        order: 18
-                    tooltips:
-                        label: 'Tooltips'
-                        description: 'Show tooltips'
-                        type: 'boolean'
-                        required: false
-                        defaultHidden: true
-                        default: false
-                        order: 19
-                    specificEvents:
-                        label: 'Specific Events'
-                        singleLabel: 'param-event'
-                        description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and widget events that can trigger their change.'
-                        type: 'propertyset[]'
-                        inlineJs: true
-                        defaultHidden: true
-                        default: []
-                        properties:
-                            paramName:
-                                label: 'Parameter Name'
-                                type: 'string'
-                                required: true
-                                order: 1
-                            event:
-                                label: 'Event'
-                                type: 'string'
-                                required: true
-                                options:
-                                    dateTimeChange:
-                                        value: 'dateTimeChange'
-                                order: 2
-                        order: 20
-            
-            openLayersMap:
-                name: 'openLayersMap'
-                label: 'OpenLayers Map'
-                properties:
-                    dataSource:
-                        label: 'Data Source'
-                        description: 'The name of the Data Source providing data for the overlays.'
-                        placeholder: 'Data Source name'
-                        type: 'string'
-                        required: false
-                        options: datasourceOptions
-                        order: 10
-                    center:
-                        label: 'Center'
-                        description: 'X and Y coordinates to center the map on'
-                        type: 'propertyset'
-                        properties:
-                            x:
-                                label: 'X'
-                                type: 'string'
-                                required: true
-                                order: 1
-                            y:
-                                label: 'Y'
-                                type: 'string'
-                                required: true
-                                order: 2
-                        order: 11
-                    zoom:
-                        label: 'Zoom'
-                        description: 'Zoom level (0 is zoomed out)'
-                        type: 'integer'
-                        required: true
-                        order: 12
-                    layers:
-                        label: 'Layers'
-                        singleLabel: 'layer'
-                        description: 'An array of layers that will be added to the map. Default is a single OpenStreetMap (OSM) layer.'
-                        type: 'propertyset[]'
-                        inlineJs: true
-                        properties:
-                            type:
-                                label: 'Type'
-                                description: 'The type of layer that will be added to the map. Specifying a source is mandatory except for VectorTile layers. Heatmap layer also requires Weight to be specified. If no type nor source are specified, Tile and OSM are used.'
-                                type: 'string'
-                                required: false
-                                default: 'Tile'
-                                options:
-                                    image:
-                                        value: 'Image'
-                                    tile:
-                                        value: 'Tile'
-                                    heatmap:
-                                        value: 'Heatmap'
-                                    vectortile:
-                                        value: 'VectorTile'
-                                order: 1
-                            source:
-                                label: 'Source'
-                                description: 'Source for the layer. Please refer to the help page if you do not know which one you need. Note that depending on the layer type (Image, Tile, Heatmap or VectorTile) only a subset of these sources is accepted.'
-                                type: 'propertyset'
-                                properties:
-                                    name:
-                                        label: 'Name'
-                                        type: 'string'
-                                        required: false
-                                        default: 'OSM'
-                                        options:
-                                            BingMaps:
-                                                value: 'BingMaps'
-                                            CartoDB:
-                                                value: 'CartoDB'
-                                            Cluster:
-                                                value: 'Cluster'
-                                            ImageArcGISRest:
-                                                value: 'ImageArcGISRest'
-                                            ImageCanvas:
-                                                value: 'ImageCanvas'
-                                            ImageMapGuide:
-                                                value: 'ImageMapGuide'
-                                            ImageStatic:
-                                                value: 'ImageStatic'
-                                            ImageWMS:
-                                                value: 'ImageWMS'
-                                            OSM:
-                                                value: 'OSM'
-                                            Raster:
-                                                value: 'Raster'
-                                            Stamen:
-                                                value: 'Stamen'
-                                            TileArcGISRest:
-                                                value: 'TileArcGISRest'
-                                            TileDebug:
-                                                value: 'TileDebug'
-                                            TileJSON:
-                                                value: 'TileJSON'
-                                            TileUTFGrid:
-                                                value: 'TileUTFGrid'
-                                            TileWMS:
-                                                value: 'TileWMS'
-                                            Vector:
-                                                value: 'Vector'
-                                            VectorTile:
-                                                value: 'VectorTile'
-                                            WMTS:
-                                                value: 'WMTS'
-                                            XYZ:
-                                                value: 'XYZ'
-                                            Zoomify:
-                                                value: 'Zoomify'
-                                        order: 1
-                                    configuration:
-                                        label: 'Configuration'
-                                        description: 'Configuration object. Please refer to the widget help page to know how to configure each source.'
-                                        type: 'editor'
-                                        editorMode: 'javascript'
-                                        required: false
-                                        order: 2
-                                order: 2
-                            weight:
-                                label: 'Weight (for heatmap)'
-                                description: ''
-                                type: 'string'
-                                required: false
-                                order: 3
-                        order: 13
-                    dataSourceMapping:
-                        label: 'DataSource Mapping'
-                        description: 'Overlay properties must be mapped to datasource fields. The datasource is required to have at least fields for group ID, CSS class and the list of overlays.'
-                        type: 'propertyset'
-                        defaultHidden: true
-                        properties:
-                            identifierField:
-                                label: 'Identifier Field'
-                                description: 'Datasource field with a unique identifier for the overlay group. If it is not specified and the datasource provides more that one object (i.e. overlay group), each group will be assigned a random ID.'
-                                type: 'string'
-                                required: false
-                                order: 1
-                            cssClassField:
-                                label: 'CSS Class Field'
-                                description: 'Datasource field with the style for each overlay in the group as name of a CSS class defined in the Styles section of the editor.'
-                                type: 'string'
-                                required: true
-                                order: 2
-                            cssClassOnSelectionField:
-                                label: 'CSS Class On Selection Field'
-                                description: 'Optional datasource field with the CSS class for each overlay after is has been clicked. It must be the name of a CSS class defined in the Styles section of the editor.'
-                                type: 'string'
-                                required: false
-                                order: 3
-                            initiallySelectedField:
-                                label: 'Overlay Initially Selected Field'
-                                description: 'Optional datasource field with the ID of the overlay that will be assigned the CSS class on selection when the page is loaded. If not provided, all overlays will have the regular CSS class until one is clicked.'
-                                type: 'string'
-                                required: false
-                                order: 4
-                            overlayListField:
-                                label: 'Overlay List Field'
-                                description: 'Datasource field containing the list of overlays for the group'
-                                type: 'string'
-                                required: true
-                                order: 5
-                            overlayIdField:
-                                label: 'Overlay Identifier Field'
-                                description: 'Datasource field with a unique identifier for each overlay in the group list. If it is missing, a random ID will be generated.'
-                                type: 'string'
-                                required: false
-                                order: 6
-                            positionField:
-                                label: 'Position Field'
-                                description: 'Datasource field with an array of coordinates (i.e. [x_coord, y_coord]) for each overlay in the group list. Alternatively, single fields for X and Y can be specified.'
-                                type: 'string'
-                                required: false
-                                order: 7
-                            xField:
-                                label: 'X Coordinate Field'
-                                description: 'Datasource field with X coordinate for each overlay in the group list.'
-                                type: 'string'
-                                required: false
-                                order: 8
-                            yField:
-                                label: 'Y Coordinate Field'
-                                description: 'Datasource field with Y coordinate for each overlay in the group list.'
-                                type: 'string'
-                                required: false
-                                order: 9
-                            positioningField:
-                                label: 'Positioning Field'
-                                description: 'Datasource field with the positioning (e.g. "center-center") of each overlay.'
-                                type: 'string'
-                                required: false
-                                order: 10
-                            templateField:
-                                label: 'Template Field'
-                                description: 'Datasource field with the HTML template for the content of each overlay.'
-                                type: 'string'
-                                required: false
-                                order: 11
-                        order: 14
-                    overlayGroups:
-                        label: 'Overlay Groups'
-                        singleLabel: 'group'
-                        description: 'Groups of overlays that will be added to the map, i.e., elements that will be displayed over the map and attached to a given position. Each group of overlays has a CSS class applied to all its members and can have one overlay selected at a time.'
-                        type: 'propertyset[]'
-                        inlineJs: true
-                        properties:
-                            name:
-                                label: 'Name'
-                                type: 'string'
-                                required: true
-                                order: 1
-                            initiallySelected:
-                                label: 'Overlay Initially Selected'
-                                description: 'Name of the overlay that will be assigned the CSS class on selection when the page is loaded. If not provided, all overlays will have the regular CSS class until one is clicked. Note that to use this field you must provide names for the overlays.'
-                                type: 'string'
-                                required: false
-                                order: 2
-                            overlays:
-                                label: 'Overlays'
-                                singleLabel: 'overlay'
-                                description: ''
-                                type: 'propertyset[]'
-                                inlineJs: true
-                                required: false
-                                properties:
-                                    name:
-                                        label: 'Name'
-                                        description: 'Unique identifier for the overlay'
-                                        type: 'string'
-                                        required: false
-                                        order: 1
-                                    cssClass:
-                                        label: 'CSS Class'
-                                        description: 'CSS class name (defined beforehand in the Styles section of the dashboard) for the overlay'
-                                        type: 'string'
-                                        required: true
-                                        order: 2
-                                    cssClassSelected:
-                                        label: 'CSS Class On Selection'
-                                        description: 'Optional CSS class name (defined beforehand in the Styles section of the dashboard) for the selected overlay'
-                                        type: 'string'
-                                        required: false
-                                        order: 3
-                                    position:
-                                        label: 'Position'
-                                        description: 'X and Y coordinates of the location where the overlay will be attached'
-                                        type: 'propertyset'
-                                        properties:
-                                            x:
-                                                label: 'X'
-                                                type: 'string'
-                                                required: false
-                                                order: 1
-                                            y:
-                                                label: 'Y'
-                                                type: 'string'
-                                                required: false
-                                                order: 2
-                                        order: 4
-                                    positioning:
-                                        label: 'Positioning'
-                                        description: 'Where the overlay is placed with respect to Position. Default is top-left.'
-                                        type: 'string'
-                                        required: false
-                                        default: 'top-left'
-                                        options:
-                                            bottomLeft:
-                                                value: 'bottom-left'
-                                            bottomCenter:
-                                                value: 'bottom-center'
-                                            bottomRight:
-                                                value: 'bottom-right'
-                                            centerLeft:
-                                                value: 'center-left'
-                                            centerCenter:
-                                                value: 'center-center'
-                                            centerRight:
-                                                value: 'center-right'
-                                            topLeft:
-                                                value: 'top-left'
-                                            topCenter:
-                                                value: 'top-center'
-                                            topRight:
-                                                value: 'top-right'
-                                        order: 5
-                                    template:
-                                        label: 'Template'
-                                        description: 'HTML template for overlay content.'
-                                        type: 'editor'
-                                        editorMode: 'html'
-                                        required: false
-                                        default: ''
-                                        order: 6
-                                order: 3
-                        order: 15
-                    controls:
-                        label: 'Controls'
-                        singleLabel: 'control'
-                        description: 'An array of controls that will be added to the map.'
-                        type: 'propertyset[]'
-                        inlineJs: true
-                        defaultHidden: true
-                        default: []
-                        properties:
-                            control:
-                                label: 'Control'
-                                type: 'string'
-                                required: false
-                                options:
-                                    Attribution:
-                                        value: 'Attribution'
-                                    MousePosition:
-                                        value: 'MousePosition'
-                                    OverviewMap:
-                                        value: 'OverviewMap'
-                                    ScaleLine:
-                                        value: 'ScaleLine'
-                                    Zoom:
-                                        value: 'Zoom'
-                                    ZoomSlider:
-                                        value: 'ZoomSlider'
-                                    ZoomExtent:
-                                        value: 'ZoomExtent'
-                                order: 1
-                        order: 16
-                    specificEvents:
-                        label: 'Specific Events'
-                        singleLabel: 'param-event'
-                        description: 'Array of parameters (defined beforehand in the Parameters section of the dashboard) and widget events that can trigger their change.'
-                        type: 'propertyset[]'
-                        inlineJs: true
-                        defaultHidden: true
-                        default: []
-                        properties:
-                            paramName:
-                                label: 'Parameter Name'
-                                type: 'string'
-                                required: true
-                                order: 1
-                            event:
-                                label: 'Event'
-                                type: 'string'
-                                required: true
-                                options:
-                                    clickOnOverlay:
-                                        value: 'clickOnOverlay'
-                                order: 2
-                            section:
-                                label: 'Section'
-                                description: 'Name of the overlay group that triggers the event. If the event is triggered by the map itself, you can leave this option empty. Some widgets (e.g. slider) have one section only, therefore Section option is not required, while others may have some sections that trigger the same kind of event (e.g. in OpenLayers maps, all overlay groups can trigger clickOnOverlay event).'
-                                type: 'string'
-                                required: false
-                                order: 3
-                        order: 17
     }
 
     # Copy Theme options to inherited locations
