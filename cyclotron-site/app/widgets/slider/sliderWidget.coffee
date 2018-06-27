@@ -93,6 +93,7 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, parameterPropagation
         if firstLoad
             parameterPropagationService.checkSpecificParams $scope
             parameterPropagationService.checkParameterSubscription $scope
+            parameterPropagationService.checkGenericParams $scope
             firstLoad = false
         widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
         checkConfiguration(widgedWithoutPlaceholders)

@@ -1330,6 +1330,113 @@ cyclotronServices.factory 'commonConfigService', ->
                                     placeholder: 'Number of Seconds'
                                     order: 11
                         
+                        odata:
+                            value: 'odata'
+                            label: 'OData'
+                            icon: 'fa-cloud-download'
+                            properties:
+                                url:
+                                    label: 'URL'
+                                    description: 'Specifies the OData Service URL.'
+                                    placeholder: 'Service URL'
+                                    type: 'url'
+                                    inlineJs: true
+                                    inlineEncryption: true
+                                    required: true
+                                    order: 10
+                                queryParameters:
+                                    label: 'Query Parameters'
+                                    description: 'Optional query parameters which are added to the URL. If there are already query parameters in the URL, these will be appended. The keys and values are both URL-encoded.'
+                                    type: 'hash'
+                                    required: false
+                                    inlineJsKey: true
+                                    inlineJsValue: true
+                                    inlineEncryption: true
+                                    defaultHidden: true
+                                    order: 11
+                                refresh: 
+                                    label: 'Auto-Refresh'
+                                    description: 'Optional; specifies the number of seconds after which the Data Source reloads'
+                                    type: 'integer'
+                                    required: false
+                                    placeholder: 'Number of Seconds'
+                                    order: 12
+                                preProcessor:
+                                    label: 'Pre-Processor'
+                                    description: 'Specifies an optional JavaScript function that can inspect and modify the Data Source properties before it is executed. This method will be called before the Data Source is executed, and passed the Data Source object as an argument. This object can be modified, or a new/modified object returned. If this value is not an JavaScript function, it will be ignored.'
+                                    placeholder: 'JavaScript Function'
+                                    type: 'editor'
+                                    editorMode: 'javascript'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 13
+                                postProcessor:
+                                    label: 'Post-Processor'
+                                    description: 'Specifies an optional JavaScript function that can inspect and modify the result before it is sent to the Widgets. If this value is not an JavaScript function, it will be ignored.'
+                                    placeholder: 'JavaScript Function'
+                                    type: 'editor'
+                                    editorMode: 'javascript'
+                                    required: false
+                                    order: 14
+                                responseAdapter:
+                                    label: 'Response Adapter'
+                                    description: 'Determines how the Elasticsearch response will be converted to Cyclotron\'s data format.  Defaults to "auto".'
+                                    type: 'string'
+                                    default: 'raw'
+                                    inlineJs: true
+                                    options:
+                                        'Primitive Property':
+                                            value: 'primitive_prop'
+                                        'Single Entity':
+                                            value: 'single_entity'
+                                        'Entity Set':
+                                            value: 'entity_set'
+                                        'Raw':
+                                            value: 'raw'
+                                    required: false
+                                    order: 15
+                                proxy:
+                                    label: 'Proxy Server'
+                                    description: 'Specifies which Proxy server to route the requests through. If omitted, the default proxy sever will be used.'
+                                    type: 'url'
+                                    inlineJs: true
+                                    required: false
+                                    defaultHidden: true
+                                    order: 16
+                                options:
+                                    label: 'Options'
+                                    description: 'Optional request parameters that are passed to the library making the request.'
+                                    type: 'hash'
+                                    required: false
+                                    inlineJsValue: true
+                                    inlineEncryption: true
+                                    defaultHidden: true
+                                    order: 17
+                                awsCredentials:
+                                    label: 'AWS Credentials'
+                                    description: 'Optional AWS IAM signing credentials for making authenticated requests.  If set, the request will be signed before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 18
+                                    properties:
+                                        accessKeyId:
+                                            label: 'Access Key Id'
+                                            description: 'AWS access key id'
+                                            type: 'string'
+                                            placeholder: 'Access Key Id'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        secretAccessKey:
+                                            label: 'Secret Access Key'
+                                            description: 'AWS sercet access key'
+                                            type: 'string'
+                                            placeholder: 'Secret Access Key'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                        
                         splunk: 
                             value: 'splunk'
                             label: 'Splunk'

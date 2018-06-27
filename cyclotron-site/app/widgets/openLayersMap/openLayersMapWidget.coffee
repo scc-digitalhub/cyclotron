@@ -34,125 +34,100 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                 'ImageArcGISRest':
                     srcClass: ol.source.ImageArcGISRest
                     configRequired: false
-                    config:
-                        url: ''
+                    config: ['attributions', 'crossOrigin', 'hidpi', 'imageLoadFunction', 'logo', 'params', 'projection', 'ratio', 'resolutions', 'url']
                 'ImageCanvas':
                     srcClass: ol.source.ImageCanvas
                     configRequired: true
-                    config:
-                        canvasFunction: ->
+                    config: ['attributions', 'canvasFunction', 'logo', 'projection', 'ratio', 'resolutions', 'state']
                 'ImageMapGuide':
                     srcClass: ol.source.ImageMapGuide
                     configRequired: false
-                    config:
-                        url: ''
+                    config: ['url', 'displayDpi', 'metersPerUnit', 'hidpi', 'useOverlay', 'projection', 'ratio', 'resolutions', 'imageLoadFunction', 'params']
                 'ImageStatic':
                     srcClass: ol.source.ImageStatic
                     configRequired: true
-                    config:
-                        url: ''
-                        imageExtent: undefined
+                    config: ['attributions', 'crossOrigin', 'imageExtent', 'imageLoadFunction', 'logo', 'projection', 'imageSize', 'url']
                 'ImageWMS':
                     srcClass: ol.source.ImageWMS
                     configRequired: true
-                    config:
-                        url: ''
-                        params: {}
+                    config: ['attributions', 'crossOrigin', 'hidpi', 'serverType', 'imageLoadFunction', 'logo', 'params', 'projection', 'ratio', 'resolutions', 'url']
                 'Raster':
                     srcClass: ol.source.Raster
                     configRequired: true
-                    config:
-                        sources: []
+                    config: ['sources', 'operation', 'lib', 'threads', 'operationType']
         'Tile':
             olClass: ol.layer.Tile
             sources:
                 'BingMaps':
                     srcClass: ol.source.BingMaps
                     configRequired: true
-                    config:
-                        key: ''
-                        imagerySet: ''
+                    config: ['cacheSize', 'hidpi', 'culture', 'key', 'imagerySet', 'maxZoom', 'reprojectionErrorThreshold', 'tileLoadFunction', 'wrapX', 'transition']
                 'CartoDB':
                     srcClass: ol.source.CartoDB
                     configRequired: true
-                    config:
-                        account: ''
+                    config: ['attributions', 'cacheSize', 'crossOrigin', 'logo', 'projection', 'maxZoom', 'minZoom', 'wrapX', 'config', 'map', 'account']
                 'OSM':
                     srcClass: ol.source.OSM
                     configRequired: false
-                    config:
-                        url: ''
+                    config: ['attributions', 'cacheSize', 'crossOrigin', 'maxZoom', 'opaque', 'reprojectionErrorThreshold', 'tileLoadFunction', 'url', 'wrapX']
                 'Stamen':
                     srcClass: ol.source.Stamen
                     configRequired: true
-                    config:
-                        layer: ''
+                    config: ['cacheSize', 'layer', 'minZoom', 'maxZoom', 'opaque', 'reprojectionErrorThreshold', 'tileLoadFunction', 'url', 'wrapX']
                 'TileArcGISRest':
                     srcClass: ol.source.TileArcGISRest
                     configRequired: false
-                    config:
-                        url: ''
+                    config: ['attributions', 'cacheSize', 'crossOrigin', 'params', 'logo', 'tileGrid', 'projection', 'reprojectionErrorThreshold', 'tileLoadFunction', 'url', 'wrapX', 'transition', 'urls']
                 'TileDebug':
                     srcClass: ol.source.TileDebug
                     configRequired: true
-                    config:
-                        projection: undefined
+                    config: ['projection', 'tileGrid', 'wrapX']
                 'TileJSON':
                     srcClass: ol.source.TileJSON
                     configRequired: true
-                    config:
-                        url: ''
+                    config: ['attributions', 'cacheSize', 'crossOrigin', 'jsonp', 'reprojectionErrorThreshold', 'tileJSON', 'tileLoadFunction', 'url', 'wrapX', 'transition']
                 'TileUTFGrid':
                     srcClass: ol.source.TileUTFGrid
                     configRequired: true
-                    config:
-                        url: ''
+                    config: ['jsonp', 'preemptive', 'tileJSON', 'url']
                 'TileWMS':
                     srcClass: ol.source.TileWMS
                     configRequired: true
-                    config:
-                        params: {}
+                    config: ['attributions', 'cacheSize', 'params', 'crossOrigin', 'gutter', 'hidpi', 'logo', 'tileClass', 'tileGrid', 'projection', 'reprojectionErrorThreshold', 'serverType', 'tileLoadFunction', 'url', 'wrapX', 'transition', 'urls']
                 'WMTS':
                     srcClass: ol.source.WMTS
                     configRequired: true
-                    config:
-                        tileGrid: undefined
-                        layer: ''
-                        style: ''
-                        matrixSet: ''
+                    config: ['attributions', 'cacheSize', 'crossOrigin', 'logo', 'tileGrid', 'projection', 
+                        'reprojectionErrorThreshold', 'requestEncoding', 'layer', 'url', 'wrapX', 'transition', 'urls', 
+                        'style', 'tileClass', 'tilePixelRatio', 'version', 'format', 'matrixSet', 'dimensions', 'tileLoadFunction']
                 'XYZ':
                     srcClass: ol.source.XYZ
                     configRequired: false
-                    config:
-                        url: ''
+                    config: ['attributions', 'cacheSize', 'crossOrigin', 'logo', 'opaque', 'projection', 'reprojectionErrorThreshold', 
+                        'maxZoom', 'minZoom', 'tileGrid', 'tileLoadFunction', 'tilePixelRatio', 'tileSize', 'tileUrlFunction', 'url', 'urls', 'wrapX', 'transition']
                 'Zoomify':
                     srcClass: ol.source.Zoomify
                     configRequired: true
-                    config:
-                        url: ''
-                        size: undefined
+                    config: ['attributions', 'cacheSize', 'crossOrigin', 'logo', 'projection', 'reprojectionErrorThreshold', 
+                        'url', 'tierSizeCalculation', 'size', 'extent', 'transition', 'tileSize']
         'Heatmap':
             olClass: ol.layer.Heatmap
             sources:
                 'Cluster':
                     srcClass: ol.source.Cluster
                     configRequired: true
-                    config:
-                        source: undefined
+                    config: ['attributions', 'distance', 'extent', 'geometryFunction', 'format', 'logo', 'projection', 'source', 'wrapX']
                 'Vector':
                     srcClass: ol.source.Vector
                     configRequired: false
-                    config:
-                        url: ''
-                        format: undefined
+                    config: ['attributions', 'features', 'format', 'loader', 'logo', 'overlaps', 'strategy', 'url', 'useSpatialIndex', 'wrapX']
         'VectorTile':
             olClass: ol.layer.VectorTile
             sources:
                 'VectorTile':
                     srcClass: ol.source.VectorTile
                     configRequired: false
-                    config:
-                        url: ''
+                    config: ['attributions', 'cacheSize', 'format', 'logo', 'overlaps', 'projection', 'state', 'tileClass', 'tileGrid', 'tileLoadFunction', 'tileUrlFunction', 'url', 'urls', 'wrapX', 'transition']
     
     checkLayerProperties = (widget) ->
         if not widget.layers? or
@@ -173,7 +148,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
                 sourcesKeys =  if layerType? then _.keys($scope.layerOptions[layerType].sources) else null
                 
                 configKeys = if layerType? and layerSource? and layerSource.name?
-                then _.keys($scope.layerOptions[layerType].sources[layerSource.name].config)
+                then $scope.layerOptions[layerType].sources[layerSource.name].config
                 else null
 
                 #allow VectorTile to skip source tests since source is not required
@@ -272,7 +247,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
         'ScaleLine': ol.control.ScaleLine
         'Zoom': ol.control.Zoom
         'ZoomSlider': ol.control.ZoomSlider
-        'ZoomExtent': ol.control.ZoomExtent
+        'ZoomToExtent': ol.control.ZoomToExtent
 
     checkControlProperties = (widget) ->
         if widget.controls? and not mapConfig.controls?
@@ -405,7 +380,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
         #substitute any placeholder with parameter values, then check the configuration
         if firstLoad
             #when using a datasource, the call to checkSpecificParams is done after the overlay groups
-            #have been parsed and theis names, i.e. sections of the map, are already known
+            #have been parsed and their names, i.e. sections of the map, are already known
             if not $scope.dataSource? then parameterPropagationService.checkSpecificParams $scope
             parameterPropagationService.checkParameterSubscription $scope
             parameterPropagationService.checkGenericParams $scope
