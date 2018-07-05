@@ -14,16 +14,24 @@
 # language governing permissions and limitations under the License. 
 ###
 
-cyclotronApp.controller 'ImageWidget', ($scope, $interval) ->
+cyclotronApp.controller 'ImageWidget', ($scope, $interval, parameterPropagationService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkParameterSubscription $scope
+    parameterPropagationService.checkGenericParams $scope
+
+    #substitute any parameter placeholders in the configuration
+    widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     
-    $scope.duration = $scope.widget.duration * 1000
+    $scope.duration = widgetWithoutPlaceholders.duration * 1000
 
     $scope.urlIndex = -1
 
     $scope.loadCurrentImage = ->
-        $scope.currentImage = _.compile $scope.widget.images?[$scope.urlIndex]
+        $scope.currentImage = _.compile widgetWithoutPlaceholders.images?[$scope.urlIndex]
         if $scope.currentImage.url? and $scope.currentImage.url.indexOf('http') != 0
             $scope.currentImage.url = 'http://' + $scope.currentImage.url
 
@@ -34,7 +42,7 @@ cyclotronApp.controller 'ImageWidget', ($scope, $interval) ->
 
     $scope.rotate = ->
         $scope.urlIndex = $scope.urlIndex + 1
-        if $scope.urlIndex >= $scope.widget.images.length
+        if $scope.urlIndex >= widgetWithoutPlaceholders.images.length
             $scope.urlIndex = 0
 
         $scope.loadCurrentImage()
@@ -42,9 +50,14 @@ cyclotronApp.controller 'ImageWidget', ($scope, $interval) ->
     $scope.rotate()
 
     # Configure rotation
-    if $scope.duration > 0 and $scope.widget.images.length > 1
+    if $scope.duration > 0 and widgetWithoutPlaceholders.images.length > 1
         $scope.rotateInterval = $interval $scope.rotate, $scope.duration
-        
+    
+    $scope.loadWidget = ->
+        #update configuration with new parameter values
+        widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+        $scope.loadCurrentImage()
+
     #
     # Cleanup
     #

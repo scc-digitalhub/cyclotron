@@ -17,16 +17,28 @@
 #
 # Iframe Widget
 #
-cyclotronApp.controller 'IframeWidget', ($scope) ->
+cyclotronApp.controller 'IframeWidget', ($scope, parameterPropagationService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkParameterSubscription $scope
+    parameterPropagationService.checkGenericParams $scope
+
+    #substitute any parameter placeholders in the configuration
+    widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     
     $scope.getUrl = ->
         return '' if _.isEmpty($scope.widget.url)
 
-        url = $scope.widget.url
+        url = widgetWithoutPlaceholders.url
 
         if url.indexOf('http') != 0
             url = 'http://' + url
 
         return $scope.$sce.trustAsResourceUrl(url)
+
+    $scope.loadWidget = ->
+        #update configuration with new parameter values
+        widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope

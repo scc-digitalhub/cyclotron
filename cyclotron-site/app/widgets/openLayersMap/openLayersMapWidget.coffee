@@ -386,13 +386,13 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
             parameterPropagationService.checkGenericParams $scope
             firstLoad = false
         
-        widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+        widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
 
-        checkViewProperties(widgedWithoutPlaceholders)
-        checkLayerProperties(widgedWithoutPlaceholders)
-        checkControlProperties(widgedWithoutPlaceholders) #done only once because it cannot be parametric
+        checkViewProperties(widgetWithoutPlaceholders)
+        checkLayerProperties(widgetWithoutPlaceholders)
+        checkControlProperties(widgetWithoutPlaceholders) #done only once because it cannot be parametric
         if not $scope.dataSource?
-            checkOverlayProperties(widgedWithoutPlaceholders)
+            checkOverlayProperties(widgetWithoutPlaceholders)
 
         $scope.mapConfig = mapConfig
     
