@@ -28,7 +28,7 @@
 #
 # Title is optional, but can be used to give the same style title as other widgets.
 
-cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataService) ->
+cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataService, parameterPropagationService) ->
     #check parameters
     $scope.randomId = '' + Math.floor(Math.random()*1000)
     parameterPropagationService.checkGenericParams $scope

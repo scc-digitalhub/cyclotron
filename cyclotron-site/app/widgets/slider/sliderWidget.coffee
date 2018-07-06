@@ -2,7 +2,7 @@
 # Widget for noUiSlider
 #
 
-cyclotronApp.controller 'SliderWidget', ($scope, $interval, parameterPropagationService) ->
+cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterPropagationService) ->
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     $scope.randomId = '' + Math.floor(Math.random()*1000)
@@ -94,7 +94,13 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, parameterPropagation
             parameterPropagationService.checkSpecificParams $scope
             parameterPropagationService.checkParameterSubscription $scope
             parameterPropagationService.checkGenericParams $scope
+
+            if $scope.genericEventHandlers?.widgetSelection?
+                handler = $scope.genericEventHandlers.widgetSelection.handler
+                jqueryElem = $($element).closest('.dashboard-widget')
+                handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
             firstLoad = false
+        
         widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
         checkConfiguration(widgedWithoutPlaceholders)
         $scope.widgetContext.loading = false
