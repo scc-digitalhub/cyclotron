@@ -17,42 +17,62 @@
 #
 # Header Widget
 #
-cyclotronApp.controller 'HeaderWidget', ($scope, $sce, configService) ->
+cyclotronApp.controller 'HeaderWidget', ($scope, $sce, configService, parameterPropagationService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkParameterSubscription $scope
+    parameterPropagationService.checkGenericParams $scope
+
+    #update configuration with new parameter values
+    widgetWithoutPlaceholders = null
+
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
+
+    $scope.loadWidget = ->
+        #update configuration with new parameter values
+        widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
     
-    $scope.headerTitle = _.compile $scope.widget.headerTitle
+        $scope.headerTitle = _.compile widgetWithoutPlaceholders.headerTitle
 
-    # Load user-specified format if defined
-    if $scope.headerTitle.showTitle == true 
-        $scope.showTitle = true
-        $scope.title = _.jsExec($scope.widget.title) || _.jsExec($scope.dashboard.displayName) || $scope.dashboard.name
+        # Load user-specified format if defined
+        if $scope.headerTitle.showTitle == true 
+            $scope.showTitle = true
+            $scope.title = _.jsExec(widgetWithoutPlaceholders.title) || _.jsExec($scope.dashboard.displayName) || $scope.dashboard.name
 
-        $scope.pageNameSeparator ?= ''
+            $scope.pageNameSeparator ?= ''
 
-    if $scope.widget.customHtml?
-        $scope.showCustomHtml = true
+        if widgetWithoutPlaceholders.customHtml?
+            $scope.showCustomHtml = true
 
-        $scope.customHtml = ->
-            $sce.trustAsHtml _.jsExec($scope.widget.customHtml)
+            $scope.customHtml = ->
+                $sce.trustAsHtml _.jsExec(widgetWithoutPlaceholders.customHtml)
 
-    $scope.showParameters = $scope.widget.parameters?.showParameters == true
+        $scope.showParameters = widgetWithoutPlaceholders.parameters?.showParameters == true
 
-    # If Parameters are show in the Widget...
-    if $scope.showParameters
-        $scope.showUpdateButton = $scope.widget.parameters.showUpdateButton
-        $scope.updateButtonLabel = $scope.widget.parameters.updateButtonLabel || 'Update'
+        # If Parameters are show in the Widget...
+        if $scope.showParameters
+            $scope.showUpdateButton = widgetWithoutPlaceholders.parameters.showUpdateButton
+            $scope.updateButtonLabel = widgetWithoutPlaceholders.parameters.updateButtonLabel || 'Update'
 
-        $scope.parameters = _.filter $scope.dashboard.parameters, { editInHeader: true }
+            $scope.parameters = _.filter $scope.dashboard.parameters, { editInHeader: true }
 
-        # Filter further using the Widget's parametersIncluded property
-        if _.isArray($scope.widget.parameters.parametersIncluded) and $scope.widget.parameters.parametersIncluded.length > 0
-            $scope.parameters = _.filter $scope.parameters, (param) ->
-                _.contains $scope.widget.parameters.parametersIncluded, param.name
+            # Filter further using the Widget's parametersIncluded property
+            if _.isArray(widgetWithoutPlaceholders.parameters.parametersIncluded) and widgetWithoutPlaceholders.parameters.parametersIncluded.length > 0
+                $scope.parameters = _.filter $scope.parameters, (param) ->
+                    _.contains widgetWithoutPlaceholders.parameters.parametersIncluded, param.name
 
-        updateEventHandler = _.jsEval $scope.widget.parameters.updateEvent
-        if !_.isFunction(updateEventHandler) then updateEventHandler = null
+            updateEventHandler = _.jsEval widgetWithoutPlaceholders.parameters.updateEvent
+            if !_.isFunction(updateEventHandler) then updateEventHandler = null
 
-        $scope.updateButtonClick = ->
-            updateEventHandler() unless _.isNull updateEventHandler
-            
+            $scope.updateButtonClick = ->
+                updateEventHandler() unless _.isNull updateEventHandler
+                parameterPropagationService.parameterBroadcaster 'header', null, null, null, $scope.parameters
+    
+    $scope.loadWidget()
+    ###
+    Since header widget updates parameters, although non-automatically, that might be used by parametric elements,
+    broadcast parameter change in updateButtonClick() (for all $scope.parameters) and in directive's updateParameter().
+
+    TODO: add option "notify widgets of parameter changes" in the configuration and broadcast only if true
+    ###
