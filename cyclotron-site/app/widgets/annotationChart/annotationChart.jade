@@ -1,4 +1,4 @@
-.annotation-chart-widget(ng-controller='AnnotationChartWidget')
+.annotation-chart-widget(ng-controller='AnnotationChartWidget', id='{{ randomId }}')
     h1.title(ng-if='::widget.title') {{ widgetTitle() }}
 
     .annotation-editor(ng-if='selectedPoint')

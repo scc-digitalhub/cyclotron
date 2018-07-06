@@ -9,7 +9,7 @@
             .fa.fa-exclamation-triangle
             span  {{ widgetContext.nodata }}
 
-        .results(ng-if='sortedRows && !noDataOrError()')
+        .results(ng-if='sortedRows && !noDataOrError()', id='{{ randomId }}')
             table(table-fixed-header='widget.freezeHeaders')
                 thead(ng-if='widget.omitHeaders != true')
                     tr(ng-if='columnGroups.length > 0', table-row)

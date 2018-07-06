@@ -31,7 +31,15 @@
 # since some columns may have no data.
 #
 
-cyclotronApp.controller 'ChartWidget', ($scope, dashboardService, dataService) ->
+cyclotronApp.controller 'ChartWidget', ($scope, $element, dashboardService, dataService, parameterPropagationService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     getChart = ->
         defaults =
