@@ -28,7 +28,15 @@
 #
 # Title is optional, but can be used to give the same style title as other widgets.
 
-cyclotronApp.controller 'HtmlWidget', ($scope, dashboardService, dataService) ->
+cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     $scope.htmlStrings = []
 

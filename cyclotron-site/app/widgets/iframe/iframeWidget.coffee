@@ -17,11 +17,16 @@
 #
 # Iframe Widget
 #
-cyclotronApp.controller 'IframeWidget', ($scope, parameterPropagationService) ->
+cyclotronApp.controller 'IframeWidget', ($scope, $element, parameterPropagationService) ->
     #check parameters
     $scope.randomId = '' + Math.floor(Math.random()*1000)
     parameterPropagationService.checkParameterSubscription $scope
     parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     #substitute any parameter placeholders in the configuration
     widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
