@@ -29,7 +29,7 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
 
             data = eventData.data[dsDefinition.resultSet].data
             data = $scope.filterAndSortWidgetData(data)
-
+            
             if $scope.widget.chartType?
                 columns = []
                 rows = []

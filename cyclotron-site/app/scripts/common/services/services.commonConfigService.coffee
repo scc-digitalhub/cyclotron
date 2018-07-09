@@ -3240,12 +3240,35 @@ cyclotronServices.factory 'commonConfigService', ->
                                 value: 'AreaChart'
                             BarChart:
                                 value: 'BarChart'
+                            BubbleChart:
+                                value: 'BubbleChart'
+                            CandlestickChart:
+                                value: 'CandlestickChart'
                             ColumnChart:
                                 value: 'ColumnChart'
+                            ComboChart:
+                                value: 'ComboChart'
+                            GeoChart:
+                                value: 'GeoChart'
+                            Histogram:
+                                value: 'Histogram'
                             LineChart:
                                 value: 'LineChart'
                             PieChart:
                                 value: 'PieChart'
+                            ScatterChart:
+                                value: 'ScatterChart'
+                            SteppedAreaChart:
+                                value: 'SteppedAreaChart'
+                            Table:
+                                value: 'Table'
+                            Timeline:
+                                value: 'Timeline'
+                            Gauge:
+                                value: 'Gauge'
+                            TreeMap:
+                                value: 'TreeMap'
+                            
                         order: 11
                     options:
                         label: 'Options'

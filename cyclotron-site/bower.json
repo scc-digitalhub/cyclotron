@@ -63,11 +63,12 @@
     "uri.js": "1.15.1",
     "nouislider": "^11.1.0",
     "ol": "https://github.com/openlayers/openlayers/releases/download/v4.6.5/v4.6.5-dist.zip",
-    "ng-google-charts": "*"
+    "google-chart": "https://github.com/GoogleWebComponents/google-chart.git#~1.0.4"
   },
   "resolutions": {
     "d3": "3.5.6",
-    "angular": "~1.5.11"
+    "angular": "~1.5.11",
+    "webcomponentsjs": "^v1.1.0"
   },
   "overrides": {
     "ace-builds": {
