@@ -17,7 +17,15 @@
 #
 # Annotation Chart Widget
 #
-cyclotronApp.controller 'AnnotationChartWidget', ($scope, configService, cyclotronDataService, dashboardService, dataService, logService) ->
+cyclotronApp.controller 'AnnotationChartWidget', ($scope, $element, parameterPropagationService, configService, cyclotronDataService, dashboardService, dataService, logService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     $scope.annotations = 
         data: []

@@ -14,7 +14,7 @@
 # language governing permissions and limitations under the License. 
 ###
 
-cyclotronDirectives.directive 'headerParameter', ($window, dashboardService, dataService, logService) ->
+cyclotronDirectives.directive 'headerParameter', ($window, dashboardService, dataService, logService, parameterPropagationService) ->
     {
         restrict: 'CA'
         scope: 
@@ -72,6 +72,7 @@ cyclotronDirectives.directive 'headerParameter', ($window, dashboardService, dat
                     $window.Cyclotron.parameters[$scope.parameterDefinition.name] = $scope.parameter.value
                     originalValue = $scope.parameter.value
                     logService.debug 'Header Widget:', 'Updated Parameter [' + $scope.parameterDefinition.name + ']:', $scope.parameter.value
+                    parameterPropagationService.parameterBroadcaster 'header', null, null, null, [$scope.parameterDefinition]
 
             # Initialize DataSource (optional)
             dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.parameterDefinition.editing

@@ -10,4 +10,4 @@
             .fa.fa-exclamation-triangle
             span  {{ widgetContext.nodata }}
 
-        div(ng-if='!noDataOrError()', html-repeater='htmlStrings')
+        div(ng-if='!noDataOrError()', html-repeater='htmlStrings', id='{{ randomId }}')

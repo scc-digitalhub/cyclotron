@@ -1,6 +1,7 @@
 //- iframe Widget
 .iframe-widget(ng-controller='IframeWidget')
     iframe(ng-src='{{ getUrl() }}',
+        id='{{ randomId }}',
         frameborder='0', 
         marginheight='0', 
         marginwidth='0', 

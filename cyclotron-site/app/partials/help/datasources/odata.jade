@@ -1,0 +1,58 @@
+h3 OData Data Source
+
+p The Odata Data Source loads data via HTTP GET requests to Odata services. It is a more specialized alternative to the JSON Data Source.
+
+P Please note that it may be necessary to set the optional 
+    em proxy 
+    | property in the Data Source in order to access web sites or services in other domains.  
+    | This property lists other Cyclotron servers which may have the required connectivity. 
+    | By default, this Data Source uses the current Cyclotron environment to proxy the request.
+
+property-table(properties='config.dashboard.properties.dataSources.options.odata.properties')
+
+h4 URL
+
+p The URL property specifies the OData service URI for the request. Query parameters can either be part of the URL or added via the Query Parameters property,
+    | however the alternative is not valid for system query options (i.e. those prefixed with the dollar sign $), which must be written in the URL.
+
+h4 Response Adapter
+
+p The 
+    em responseAdapter 
+    | property is used to correctly read the result returned by OData. By default its value is 
+    em raw
+    | , which means that no adaptation occurs and the result is returned as it is, for further elaboration in the 
+    em post-processor 
+    | or in case the response contains a single raw value (e.g. produced by $count or $value query options).
+
+p If an Entity Set is requested to OData, then the 
+    em entity set 
+    | response adapter may be used to retrieve the array of objects returned by OData (i.e. the 
+    em "value" 
+    property of the JSON response in OData V4).
+
+p If a Single Entity is requested, then the 
+    em single entity 
+    | adapter may be used to remove OData metadata from the result and retrieve the single object.
+
+p If a Primitive Property is requested, then the 
+    em primitive property 
+    | adapter may be used to retrieve from the result the raw value of the property.
+
+h4 Pre-Processor
+
+p The OData Data Source supports an optional pre-processor function that will be called before
+    | the Data Source executes. For more details, see the main Data Sources page.
+
+h4 Post-Processor
+
+p The OData Data Source supports an optional post-processor function that will be called after
+    | data is loaded. For more details, see the main Data Sources page.
+
+p The data that is sent to the Post-Processor will depend on the setting of the 
+    em  responseAdapter
+    |  property. This property controls how the Elasticsearch response is converted into Cyclotron's tabular data format. The Post-Processor receives the output of whichever 
+    em  responseAdapter
+    |  has been selected.  In order to manually inspect the entire response, set 
+    em  responseAdapter
+    |  to "raw".

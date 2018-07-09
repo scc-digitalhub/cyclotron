@@ -1,7 +1,7 @@
 #
 # Widget for OpenLayers map
 #
-cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationService, dashboardService, dataService) ->
+cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropagationService, dashboardService, dataService) ->
     $scope.randomId = '' + Math.floor(Math.random()*1000)
     $scope.widgetId = $scope.widget.widget + $scope.randomId
     mapConfig = {} #map configuration, .layersToAdd, .groups, .overlays, .controls
@@ -384,15 +384,20 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, parameterPropagationServ
             if not $scope.dataSource? then parameterPropagationService.checkSpecificParams $scope
             parameterPropagationService.checkParameterSubscription $scope
             parameterPropagationService.checkGenericParams $scope
+
+            if $scope.genericEventHandlers?.widgetSelection?
+                handler = $scope.genericEventHandlers.widgetSelection.handler
+                jqueryElem = $($element).closest('.dashboard-widget')
+                handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
             firstLoad = false
         
-        widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+        widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
 
-        checkViewProperties(widgedWithoutPlaceholders)
-        checkLayerProperties(widgedWithoutPlaceholders)
-        checkControlProperties(widgedWithoutPlaceholders) #done only once because it cannot be parametric
+        checkViewProperties(widgetWithoutPlaceholders)
+        checkLayerProperties(widgetWithoutPlaceholders)
+        checkControlProperties(widgetWithoutPlaceholders) #done only once because it cannot be parametric
         if not $scope.dataSource?
-            checkOverlayProperties(widgedWithoutPlaceholders)
+            checkOverlayProperties(widgetWithoutPlaceholders)
 
         $scope.mapConfig = mapConfig
     

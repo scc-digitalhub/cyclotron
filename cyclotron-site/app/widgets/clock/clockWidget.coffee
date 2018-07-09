@@ -17,7 +17,16 @@
 #
 # Clock Widget
 #
-cyclotronApp.controller 'ClockWidget', ($scope, $interval, configService) ->
+cyclotronApp.controller 'ClockWidget', ($scope, $interval, $element, parameterPropagationService, configService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
+    
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     

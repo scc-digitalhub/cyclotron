@@ -1,4 +1,4 @@
-div.clock-widget(ng-controller='ClockWidget')
+div.clock-widget(ng-controller='ClockWidget', id='{{ randomId }}')
 	h1.title(ng-if='::widget.title') {{ widgetTitle() }}
 	.widget-body
 		.widget-error(ng-if='widgetContext.dataSourceError')

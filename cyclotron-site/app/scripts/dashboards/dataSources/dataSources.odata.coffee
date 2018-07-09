@@ -9,7 +9,7 @@
 #
 # Properties:
 #
-cyclotronDataSources.factory 'odataDataSource', ($q, $http, configService, dataSourceFactory) ->
+cyclotronDataSources.factory 'odataDataSource', ($q, $http, configService, dataSourceFactory, logService) ->
 
     getProxyRequest = (options) ->
         url = new URI(_.jsExec options.url)
@@ -27,6 +27,8 @@ cyclotronDataSources.factory 'odataDataSource', ($q, $http, configService, dataS
             url: url.toString()
             method: 'GET'
             json: true
+            headers:
+                'Accept': 'application/json, text/plain'
 
         if options.options?
             compiledOptions = _.compile(options.options, {})
@@ -42,7 +44,6 @@ cyclotronDataSources.factory 'odataDataSource', ($q, $http, configService, dataS
     
     processResponse = (response, responseAdapter, reject) ->
         # Convert the result based on the selected adapter
-        console.log 'response adapter is', responseAdapter
         switch responseAdapter
             when 'raw'
                 return response
@@ -74,17 +75,21 @@ cyclotronDataSources.factory 'odataDataSource', ($q, $http, configService, dataS
         # Successful Result
         successCallback = (result) ->
             console.log 'data before any processing', _.cloneDeep(result.body)
-            responseAdapter = _.jsExec options.responseAdapter
-            data = processResponse result.body, responseAdapter, q.reject
-            console.log 'data after processing', data
-            if _.isNull data
-                logService.debug 'OData result is null.'
-                data = []
+            if result.body.error?
+                logService.error result.body.error.message
+                q.reject result.body.error.message
+            else
+                responseAdapter = _.jsExec options.responseAdapter
+                data = processResponse result.body, responseAdapter, q.reject
+                console.log 'data after processing', data
+                if _.isNull data
+                    logService.debug 'OData result is null.'
+                    data = []
 
-            q.resolve
-                '0':
-                    data: data
-                    columns: null
+                q.resolve
+                    '0':
+                        data: data
+                        columns: null
 
         # Generate proxy URLs
         proxyUri = new URI(_.jsExec(options.proxy) || configService.restServiceUrl)

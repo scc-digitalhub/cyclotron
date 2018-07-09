@@ -118,22 +118,34 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                     _dsSubscriptions[param].push dsOptions.name
 
     #broadcast parameter change
-    parameterBroadcaster = (widget, event, value, section) ->
-        return unless widget? and event? and value?
-        if not section? then section = widget
-        paramName = _widgetEvents[widget][section][event]
-        changed = _setParameterValue paramName, value
+    parameterBroadcaster = (widget, event, value, section, paramDefinitions) ->
+        return unless (widget? and event? and value?) or (widget == 'header' and paramDefinitions?)
+        if widget == 'header'
+            _.each paramDefinitions, (param) ->
+                #notify widgets
+                console.log 'broadcasting', param.name
+                logService.debug 'Broadcasting: '+param.name+':update'
+                $rootScope.$broadcast('parameter:'+param.name+':update', {})
 
-        if changed
-            #notify widget
-            console.log 'broadcasting', paramName
-            logService.debug 'Broadcasting: '+paramName+':update'
-            $rootScope.$broadcast('parameter:'+paramName+':update', {})
+                #re-execute datasources
+                if _dsSubscriptions[param.name]?
+                    for ds in _dsSubscriptions[param.name]
+                        $window.Cyclotron.dataSources[ds].execute(true)
+        else
+            if not section? then section = widget
+            paramName = _widgetEvents[widget][section][event]
+            changed = _setParameterValue paramName, value
 
-            #re-execute datasources
-            if _dsSubscriptions[paramName]?
-                for ds in _dsSubscriptions[paramName]
-                    $window.Cyclotron.dataSources[ds].execute(true)
+            if changed
+                #notify widgets
+                console.log 'broadcasting', paramName
+                logService.debug 'Broadcasting: '+paramName+':update'
+                $rootScope.$broadcast('parameter:'+paramName+':update', {})
+
+                #re-execute datasources
+                if _dsSubscriptions[paramName]?
+                    for ds in _dsSubscriptions[paramName]
+                        $window.Cyclotron.dataSources[ds].execute(true)
     
     _traverseObject = (obj, keys, operation) ->
         for key in keys

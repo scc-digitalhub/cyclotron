@@ -1344,43 +1344,9 @@ cyclotronServices.factory 'commonConfigService', ->
                                     inlineEncryption: true
                                     required: true
                                     order: 10
-                                queryParameters:
-                                    label: 'Query Parameters'
-                                    description: 'Optional query parameters which are added to the URL. If there are already query parameters in the URL, these will be appended. The keys and values are both URL-encoded.'
-                                    type: 'hash'
-                                    required: false
-                                    inlineJsKey: true
-                                    inlineJsValue: true
-                                    inlineEncryption: true
-                                    defaultHidden: true
-                                    order: 11
-                                refresh: 
-                                    label: 'Auto-Refresh'
-                                    description: 'Optional; specifies the number of seconds after which the Data Source reloads'
-                                    type: 'integer'
-                                    required: false
-                                    placeholder: 'Number of Seconds'
-                                    order: 12
-                                preProcessor:
-                                    label: 'Pre-Processor'
-                                    description: 'Specifies an optional JavaScript function that can inspect and modify the Data Source properties before it is executed. This method will be called before the Data Source is executed, and passed the Data Source object as an argument. This object can be modified, or a new/modified object returned. If this value is not an JavaScript function, it will be ignored.'
-                                    placeholder: 'JavaScript Function'
-                                    type: 'editor'
-                                    editorMode: 'javascript'
-                                    required: false
-                                    defaultHidden: true
-                                    order: 13
-                                postProcessor:
-                                    label: 'Post-Processor'
-                                    description: 'Specifies an optional JavaScript function that can inspect and modify the result before it is sent to the Widgets. If this value is not an JavaScript function, it will be ignored.'
-                                    placeholder: 'JavaScript Function'
-                                    type: 'editor'
-                                    editorMode: 'javascript'
-                                    required: false
-                                    order: 14
                                 responseAdapter:
                                     label: 'Response Adapter'
-                                    description: 'Determines how the Elasticsearch response will be converted to Cyclotron\'s data format.  Defaults to "auto".'
+                                    description: 'Determines how the response will be converted to Cyclotron\'s data format. Defaults to "raw", i.e. the result is returned as is. Use "Entity Set" to read a list of objects. Use "Single Entity" to read a single object. Use "Primitive Property" to have a single value.'
                                     type: 'string'
                                     default: 'raw'
                                     inlineJs: true
@@ -1393,6 +1359,40 @@ cyclotronServices.factory 'commonConfigService', ->
                                             value: 'entity_set'
                                         'Raw':
                                             value: 'raw'
+                                    required: false
+                                    order: 11
+                                queryParameters:
+                                    label: 'Query Parameters'
+                                    description: 'Optional query parameters which are added to the URL. If there are already query parameters in the URL, these will be appended. The keys and values are both URL-encoded.'
+                                    type: 'hash'
+                                    required: false
+                                    inlineJsKey: true
+                                    inlineJsValue: true
+                                    inlineEncryption: true
+                                    defaultHidden: true
+                                    order: 12
+                                refresh: 
+                                    label: 'Auto-Refresh'
+                                    description: 'Optional; specifies the number of seconds after which the Data Source reloads'
+                                    type: 'integer'
+                                    required: false
+                                    placeholder: 'Number of Seconds'
+                                    order: 13
+                                preProcessor:
+                                    label: 'Pre-Processor'
+                                    description: 'Specifies an optional JavaScript function that can inspect and modify the Data Source properties before it is executed. This method will be called before the Data Source is executed, and passed the Data Source object as an argument. This object can be modified, or a new/modified object returned. If this value is not a JavaScript function, it will be ignored.'
+                                    placeholder: 'JavaScript Function'
+                                    type: 'editor'
+                                    editorMode: 'javascript'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 14
+                                postProcessor:
+                                    label: 'Post-Processor'
+                                    description: 'Specifies an optional JavaScript function that can inspect and modify the result before it is sent to the Widgets. If this value is not a JavaScript function, it will be ignored.'
+                                    placeholder: 'JavaScript Function'
+                                    type: 'editor'
+                                    editorMode: 'javascript'
                                     required: false
                                     order: 15
                                 proxy:
