@@ -14,7 +14,16 @@
 # language governing permissions and limitations under the License. 
 ###
 
-cyclotronApp.controller 'YoutubeWidget', ($scope, logService) ->
+cyclotronApp.controller 'YoutubeWidget', ($scope, $element, parameterPropagationService, logService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
+    
     # Override the widget feature of exporting data, since there is no data
     $scope.widgetContext.allowExport = false
     

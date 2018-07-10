@@ -17,7 +17,15 @@
 #
 # Treemap Widget
 #
-cyclotronApp.controller 'TreemapWidget', ($scope, dashboardService, dataService) ->
+cyclotronApp.controller 'TreemapWidget', ($scope, $element, dashboardService, dataService, parameterPropagationService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     $scope.legendHeight = $scope.widget.legendHeight || 30
 

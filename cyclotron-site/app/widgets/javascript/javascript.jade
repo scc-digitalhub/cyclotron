@@ -1,4 +1,4 @@
-div.javascript-widget(ng-controller='JavascriptWidget')
+div.javascript-widget(ng-controller='JavascriptWidget', id='{{ randomId }}')
     h1.title(ng-if='::widget.title') {{ widgetTitle() }}
 
     .widget-loading(spinjs, ng-if='isLoading()')

@@ -14,7 +14,15 @@
 # language governing permissions and limitations under the License. 
 ###
 
-cyclotronApp.controller 'QRCodeWidget', ($scope, $location, dashboardService, dataService) ->
+cyclotronApp.controller 'QRCodeWidget', ($scope, $location, $element, dashboardService, dataService, parameterPropagationService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     # Compiles the QR code options
     $scope.compileCode = (row) ->

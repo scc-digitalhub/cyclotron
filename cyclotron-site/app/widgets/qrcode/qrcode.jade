@@ -1,4 +1,4 @@
-.qrcode-widget(ng-controller='QRCodeWidget')
+.qrcode-widget(ng-controller='QRCodeWidget', id='{{ randomId }}')
     
     .widget-loading(spinjs, ng-if='isLoading()')
     .widget-error(ng-if='widgetContext.dataSourceError == true && !isLoading()')

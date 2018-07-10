@@ -1,4 +1,4 @@
-.tableau-widget(ng-controller='TableauWidget')
+.tableau-widget(ng-controller='TableauWidget', id='{{ randomId }}')
     script(src='http://public.tableau.com/javascripts/api/viz_v1.js')
     .tableauPlaceholder(style='height: {{ actualHeight }}, width: {{ actualWidth }}')
         object.tableauViz(height='{{ actualHeight }}', width='{{ actualWidth }}', style='display:none;')

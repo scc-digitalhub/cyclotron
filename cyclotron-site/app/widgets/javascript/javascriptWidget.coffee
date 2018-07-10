@@ -28,7 +28,15 @@
 # Optionally, headers can be provided by the callback as well
 #
 
-cyclotronApp.controller 'JavascriptWidget', ($scope, dashboardService, dataService) ->
+cyclotronApp.controller 'JavascriptWidget', ($scope, $element, dashboardService, dataService, parameterPropagationService) ->
+    #check parameters
+    $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkGenericParams $scope
+
+    if $scope.genericEventHandlers?.widgetSelection?
+        handler = $scope.genericEventHandlers.widgetSelection.handler
+        jqueryElem = $($element).closest('.dashboard-widget')
+        handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     $scope.jsObject = _.executeFunctionByName($scope.widget.functionName, window, $scope.widget)
 
