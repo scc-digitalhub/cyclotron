@@ -28,7 +28,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
             
             createOverlays = ->
                 $timeout ->
-                    console.log 'adding overlays to', attrs.id
                     for overlay in scope.mapConfig.overlays
                         overlayElem = document.getElementById overlay.id
 
@@ -88,13 +87,11 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         _.each scope.mapConfig.controls, (control) ->
                             map.addControl(new scope.controlOptions[control]())
 
-                    console.log 'map created'
                 else
                     map.updateSize()
 
             #if layer source has changed (i.e. because it is parametric), update it on the map
             updateLayers = (newConfig) ->
-                console.log 'updating layers'
                 _.each newConfig.layersToAdd, (layer, index) ->
                     if layer.source?.configuration? and not
                             _.isEqual(layer.source.configuration, currentMapConfig.layersToAdd[index].source.configuration)
@@ -106,7 +103,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
 
             #if overlay content has changed (i.e. because it is parametric), update it on the map
             updateOverlays = (newConfig) ->
-                console.log 'updating overlays'
                 if map.getOverlays().getLength() == 0
                     #map has no overlay yet (i.e. overlays are provided by a datasource which has just finished executing)
                     createOverlays()
@@ -129,7 +125,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
             
             scope.$watch('mapConfig', (mapConfig, oldMapConfig) ->
                 return unless mapConfig
-                console.log 'mapConfig changed', attrs.id
                 if map?
                     #check each property to find what is different and update the map accordingly
                     for key in _.keys(mapConfig)
@@ -140,7 +135,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                                 when 'layersToAdd' then updateLayers(mapConfig)
                                 when 'overlays' then updateOverlays(mapConfig)
                 else
-                    console.log 'creating map'
                     currentMapConfig = _.cloneDeep mapConfig
                     createMap()
             , true)
@@ -151,7 +145,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
 
             # Cleanup
             scope.$on '$destroy', ->
-                console.log 'destroy was called'
                 $(window).off 'resize', resizeFunction
                 map.setTarget(null)
                 map = null

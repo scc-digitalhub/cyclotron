@@ -74,14 +74,12 @@ cyclotronDataSources.factory 'odataDataSource', ($q, $http, configService, dataS
 
         # Successful Result
         successCallback = (result) ->
-            console.log 'data before any processing', _.cloneDeep(result.body)
             if result.body.error?
                 logService.error result.body.error.message
                 q.reject result.body.error.message
             else
                 responseAdapter = _.jsExec options.responseAdapter
                 data = processResponse result.body, responseAdapter, q.reject
-                console.log 'data after processing', data
                 if _.isNull data
                     logService.debug 'OData result is null.'
                     data = []

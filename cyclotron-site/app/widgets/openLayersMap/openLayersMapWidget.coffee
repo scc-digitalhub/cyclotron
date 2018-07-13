@@ -299,7 +299,6 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
             isUpdate = eventData.isUpdate
 
             if data?
-                console.log 'isUpdate:', isUpdate, 'data:', $scope.ovData?
                 if !isUpdate or !$scope.ovData?
                     $scope.ovData = _.cloneDeep data
                     _.each $scope.ovData, (row, index) -> row.__index = index
@@ -339,7 +338,6 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                             parameterPropagationService.checkSpecificParams $scope, group.name
                 else
                     oldData = _.cloneDeep $scope.ovData
-                    console.log 'check old data', oldData
                     $scope.ovData = _.cloneDeep data
                     _.each $scope.ovData, (row, index) -> row.__index = index
 
@@ -347,8 +345,6 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                         group.name = oldData[i].name
                         group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
                         delete group[$scope.mapping.overlayListField]
-                    
-                    console.log 'about to update overlays'
 
                     updateOverlays $scope.ovData
 
@@ -375,8 +371,6 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
         $scope.widgetContext.allowExport = false
 
     $scope.loadWidget = ->
-        console.log '(re)loading widget', $scope.randomId
-        
         #substitute any placeholder with parameter values, then check the configuration
         if firstLoad
             #when using a datasource, the call to checkSpecificParams is done after the overlay groups
