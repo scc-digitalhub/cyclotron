@@ -1,6 +1,10 @@
 .gchart-widget(ng-controller='GchartWidget')
     h1.title(ng-if='::widget.title') {{ widgetTitle() }}
     .widget-body
-        .widget-error(ng-if='widgetContext.dataSourceError == true')
-        div(ng-if='!widgetContext.dataSourceError && !widgetContext.loading',
+        .widget-loading(spinjs, ng-if='isLoading()')
+        .widget-error(ng-if='widgetContext.dataSourceError == true && !isLoading()')
+        .widget-nodata(ng-if='widgetContext.nodata && !isLoading()')
+            .fa.fa-exclamation-triangle
+            span  {{ widgetContext.nodata }}
+        div(ng-if='!noDataOrError() && myChartObject.data',
             id='{{ randomId }}', google-chart, chart='myChartObject')

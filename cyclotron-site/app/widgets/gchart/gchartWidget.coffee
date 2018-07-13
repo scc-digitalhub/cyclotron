@@ -29,6 +29,8 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
 
             data = eventData.data[dsDefinition.resultSet].data
             data = $scope.filterAndSortWidgetData(data)
+
+            if _.isEmpty(data) then $scope.widgetContext.nodata = 'No data to display'
             
             if $scope.widget.chartType?
                 columns = []
