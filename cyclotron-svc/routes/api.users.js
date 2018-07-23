@@ -164,3 +164,47 @@ exports.logout = function (req, res) {
         res.status(500).send(err);
     });
 };
+
+/* Login via OAuth2 */
+exports.aacLogin = function (req, res) {
+    console.log('aaclogin');
+
+    passport.authenticate('provider', function (err, user, info) {
+        console.log('check authentication', err, user, info)
+
+        if (err) {
+            console.log(err);
+            return res.status(500).send('Authentication error: ' + err);
+        }
+        if (!user) {
+            console.log('no user');
+            return res.status(401).send('Authentication failure.');
+        }
+
+        createSession(user, req.ip).then(function (session) {
+            session.user.admin = _.includes(config.admins, session.user.distinguishedName);
+
+            req.login(user, { session: false }, function (err) {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send(err);
+                } else {
+                    res.send(session);
+                }
+            });
+
+            auth.removeExpiredSessions();
+        })
+        .catch(function (err) {
+            console.log(err);
+            res.status(500).send(err);
+        });
+    })(req, res);
+
+    console.log('after authenticate');
+};
+
+exports.aacLoginCallback = function (req, res) {
+    console.log('aac login callback');
+    passport.authenticate('provider', { noRedirect: true })(req, res);
+};

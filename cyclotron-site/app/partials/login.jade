@@ -11,6 +11,8 @@
 
             //- Hidden input for ng-submit to work
             input(type='submit', style='position: absolute; left: -9999px')
+        
+        button.btn.btn-primary(ng-click='aacLogin()') Login with AAC
 
         p.modal-error.bg-danger(ng-if='loginError')
             i.fa.fa-exclamation

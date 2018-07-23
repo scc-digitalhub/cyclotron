@@ -106,6 +106,23 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
             deferred.reject(error)
 
         return deferred.promise
+    
+    exports.aacLogin = ->
+        console.log 'requesting aac login'
+        
+        get = $http.get(configService.restServiceUrl + '/auth/provider')
+        deferred = $q.defer()
+        
+        get.success (session) ->
+            #TODO set session and current user
+            deferred.resolve(session)
+        
+        get.error (error) ->
+            exports.setLoggedOut()
+            deferred.reject(error)
+        
+        return deferred.promise
+        
 
     exports.loadExistingSession = (hideAlerts = false) ->
         return currentSession if currentSession?

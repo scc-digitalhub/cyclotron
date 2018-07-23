@@ -49,3 +49,14 @@ cyclotronApp.controller 'LoginController', ($scope, $uibModalInstance, $localFor
 
     $scope.cancel = ->
         $uibModalInstance.dismiss('cancel')
+    
+    $scope.aacLogin = ->
+        $scope.loginError = false
+        loginPromise = userService.aacLogin()
+
+        loginPromise.then (session) ->
+            $uibModalInstance.close(session)
+
+        loginPromise.catch (error) ->
+            console.log 'error error!!', error
+            $scope.loginError = true

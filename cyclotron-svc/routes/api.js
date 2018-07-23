@@ -108,6 +108,8 @@ exports.bindRoutes = function (app) {
     app.post('/users/validate', users.validate);
     app.all('/users/validate', notAllowed);
     app.all('/users/logout', users.logout);
+    app.get('/auth/provider', users.aacLogin)
+    app.get('/auth/provider/callback', users.aacLoginCallback)
 
     app.get('/ldap/search', ldap.search);
 
