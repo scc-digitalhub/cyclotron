@@ -4368,6 +4368,13 @@ cyclotronServices.factory 'commonConfigService', ->
                                 required: false
                                 default: 1
                                 order: 2
+                            startOnPageReady:
+                                label: 'Start On Page Ready'
+                                description: 'Start the player automatically when the page is loaded'
+                                type: 'boolean'
+                                required: false
+                                default: false
+                                order: 3
                         order: 16
                     timeUnit:
                         label: 'Time Unit'

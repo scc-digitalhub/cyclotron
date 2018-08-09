@@ -35,3 +35,5 @@ node_modules
 .DS_Store
 
 *.diff
+cyclotron-svc/package-lock.json
+.vscode/settings.json
