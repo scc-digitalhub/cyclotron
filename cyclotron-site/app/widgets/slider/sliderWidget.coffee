@@ -108,7 +108,6 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterP
     $scope.loadWidget()
 
     angular.element ->
-        console.log '----------seems like DOM has finished loading'
         if $scope.widget.player?.startOnPageReady
             #start player automatically
             $scope.playPause()
