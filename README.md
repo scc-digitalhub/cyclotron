@@ -28,10 +28,34 @@ Note that the detailed installation procedure is only summarized here and is bet
 
 ## API Configuration with AAC
 
-Open `cyclotron-svc/config/config.js` and update the properties according to your needs. To use AAC as authentication provider, be sure to set the following properties:
+Open `cyclotron-svc/config/config.js` and update the properties according to your needs (remember to configure the same properties in the website config file, e.g. the API server URL. To use AAC as authentication provider, be sure to set the following properties with the correct AAC URLs:
 
     enableAuth: true
     authProvider: 'AAC'
+    oauth: {
+        userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me'
+        userRolesEndpoint: 'http://localhost:8080/aac/userroles/me'
+        scopes: 'profile.basicprofile.me,user.roles.me'
+        tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access'
+        tokenInfoEndpoint: 'http://localhost:8080/aac/resources/token'
+        tokenRolesEndpoint: 'http://localhost:8080/aac/userroles/token'
+        apikeyCheckEndpoint: 'http://localhost:8080/aac/apikeycheck'
+        parentSpace: 'components/cyclotron'
+    }
+
+Do the same with `cyclotron-svc/config/config.js`. Be sure to set the following properties under `authentication`:
+
+    enable: true
+    authProvider: 'aac'
+    authorizationURL: 'http://localhost:8080/aac/eauth/authorize'
+    clientID: ''
+    callbackDomain: 'http://localhost:8088'
+    scopes: 'profile.basicprofile.me user.roles.me'
+    userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me'
+    tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access'
+
+
+
 
 
 
