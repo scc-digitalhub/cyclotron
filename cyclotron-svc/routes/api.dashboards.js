@@ -72,7 +72,7 @@ exports.getNames = function(req, res) {
         });
 };
 
-var searchDashboards = function (res, filters, searchItems) {
+var searchDashboards = function (req, res, filters, searchItems) {
     Dashboards
         .find(filters)
         .select('-dashboard')
@@ -97,6 +97,13 @@ var searchDashboards = function (res, filters, searchItems) {
             }
 
             var filteredResults = _.filter(obj, function(dashboard) {
+                if (!_.isEmpty(dashboard.viewers)){
+                    if (auth.isUnauthenticated(req)){
+                        return false
+                    } else if (!auth.hasViewPermission(dashboard, req))
+                        return false;
+                }
+
                 return _.every(searchItems, function(searchItem) {
                     if (searchRegexes[searchItem].test(dashboard.name))
                         return true;
@@ -123,7 +130,15 @@ exports.get = function (req, res) {
             .find({ deleted: false })
             .select('-dashboard')
             .populate('createdBy lastUpdatedBy', 'name')
-            .exec(_.wrap(res, api.getCallback));    
+            .exec(function(err, results){
+                var filteredResults = _.filter(results, function(dashboard){
+                    if(_.isEmpty(dashboard.viewers))
+                        return true
+                    else
+                        return auth.hasViewPermission(dashboard, req);
+                });
+                res.send(filteredResults);
+            });
     }
     else {
         var dashboardFilter = { deleted: false }
@@ -170,10 +185,10 @@ exports.get = function (req, res) {
                 _.each(resolved, function (r) {
                     dashboardFilter = _.merge(dashboardFilter, r);
                 });
-                searchDashboards(res, dashboardFilter, searchItems);
+                searchDashboards(req, res, dashboardFilter, searchItems);
             })
         } else {
-            searchDashboards(res, dashboardFilter, searchItems);
+            searchDashboards(req, res, dashboardFilter, searchItems);
         }
     }
 };
@@ -212,6 +227,132 @@ exports.getSingle = function (req, res) {
         });
 };
 
+var checkEditors = function(editors, creator){
+    return new Promise(function(resolve, reject){
+        if(!editors){
+            /* Limit edit permissions to creator */
+            var editor = {
+                category: 'User',
+                displayName: creator.name || creator.givenName,
+                mail: creator.email,
+                dn: creator.distinguishedName
+            }
+
+            resolve([editor]);
+
+        } else if (editors.length == 1 && editors[0].dn == creator.distinguishedName) {
+            /* Skip tests if the only editor listed is the creator */
+            if (!(editors[0].category)){
+                reject('Editors must have a category property')
+            } else {
+                resolve(editors);
+            }
+
+        } else {
+            var allowedGroups = _.filter(creator.memberOf, function(group){
+                return _.includes(group, '_editors');
+            });
+
+            /* Find the users allowed to edit */
+            Users.find({
+                memberOf: {$in: allowedGroups}
+            })
+            .lean()
+            .exec(function(err, users){
+                if(err) {
+                    reject(err);
+                } else {
+                    _.each(editors, function(userOrGroup){
+                        if (!(userOrGroup.category && userOrGroup.dn)){
+                            reject('Editors must have a category and dn property')
+                        } else if (userOrGroup.category == 'Group'){
+                            /* Check that the group name is included in the list of groups allowed to edit */
+                            if(!_.includes(allowedGroups, userOrGroup.dn)){
+                                reject('Editors contain a group not allowed to edit');
+                            }
+                        } else if (userOrGroup.category == 'User'){
+                            /* Check that there are users allowed to edit and that the user is one of them */
+                            if(users == [] || users == null) {
+                                reject('Editors contain a user not allowed to edit');
+                            }
+                            var allowed = users.some(function(user){
+                                return user.distinguishedName == userOrGroup.dn
+                            });
+                            if(!allowed){
+                                reject('Editors contain a user not allowed to edit');
+                            }
+                        } else { reject('Category must be either Group or User') }
+                    });
+                    /* Editors list passed all checks */
+                    resolve(editors);
+                }
+            });
+        }
+    });
+}
+
+var checkViewers = function(viewers, creator){
+    return new Promise(function(resolve, reject){
+        if(!viewers){
+            /* Limit view permissions to creator */
+            var viewer = {
+                category: 'User',
+                displayName: creator.name || creator.givenName,
+                mail: creator.email,
+                dn: creator.distinguishedName
+            }
+
+            resolve([viewer]);
+
+        } else if (viewers.length == 1 && viewers[0].dn == creator.distinguishedName) {
+            /* Skip tests if the only viewer listed is the creator */
+            if (!(viewers[0].category)){
+                reject('Viewers must have a category property')
+            } else {
+                resolve(viewers);
+            }
+
+        } else {
+            var allowedGroups = creator.memberOf;
+
+            /* Find the users allowed to view */
+            Users.find({
+                memberOf: {$in: allowedGroups}
+            })
+            .lean()
+            .exec(function(err, users){
+                if(err) {
+                    reject(err);
+                } else {
+                    _.each(viewers, function(userOrGroup){
+                        if (!(userOrGroup.category && userOrGroup.dn)){
+                            reject('Viewers must have a category and dn property')
+                        } else if (userOrGroup.category == 'Group'){
+                            /* Check that the group name is included in the list of groups allowed to view */
+                            if(!_.includes(allowedGroups, userOrGroup.dn)){
+                                reject('Viewers contain a group not allowed to view');
+                            }
+                        } else if (userOrGroup.category == 'User'){
+                            /* Check that there are users allowed to view and that the user is one of them */
+                            if(users == [] || users == null) {
+                                reject('Viewers contain a user not allowed to view');
+                            }
+                            var allowed = users.some(function(user){
+                                return user.distinguishedName == userOrGroup.dn
+                            });
+                            if(!allowed){
+                                reject('Viewers contain a user not allowed to view');
+                            }
+                        } else { reject('Category must be either Group or User') }
+                    });
+                    /* Viewers list passed all checks */
+                    resolve(viewers);
+                }
+            });
+        }
+    });
+}
+
 exports.putPostSingle = function (req, res) {
 
     if (req.body == null || 
@@ -234,45 +375,57 @@ exports.putPostSingle = function (req, res) {
     dashboard.date = new Date();
     dashboard.deleted = false;
     dashboard.lastUpdatedBy = auth.getUserId(req);
-    if (!dashboard.editors) {
-        dashboard.editors = [];
-    }
-    if (!dashboard.viewers) {
-        dashboard.viewers = [];
-    }
 
-    /* Check if Dashboard exists */
-    Dashboards.findOne({ name: name}, function (err, existingDashboard) {
-        if (err) {
+    checkEditors(dashboard.editors, req.session.user.toObject())
+    .then(function(editors){
+        checkViewers(dashboard.viewers, req.session.user.toObject())
+        .then(function(viewers){
+            //save checked editors and viewers, then proceed with saving dashboard
+            dashboard.editors = editors;
+            dashboard.viewers = viewers;
+
+            /* Check if Dashboard exists */
+            Dashboards.findOne({ name: name}, function (err, existingDashboard) {
+                if (err) {
+                    res.status(500).send(err);
+                } else if (_.isUndefined(existingDashboard) || _.isNull(existingDashboard)) {
+                    /* Exclude all unexpected and automatic properties */
+                    dashboard = _.pick(dashboard, ['name', 'deleted', 'date', 'tags', 'description', 'dashboard', 'lastUpdatedBy', 'editors', 'viewers']);
+                    dashboard.rev = 1;
+                    dashboard.createdBy = auth.getUserId(req);
+
+                    Dashboards.create(dashboard, _.wrap(res, updateCallback));
+                } else {
+                    if (!auth.hasEditPermission(existingDashboard, req)) {
+                        return res.status(403).send('Edit Permission denied for this Dashboard.');
+                    }
+
+                    Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
+                        $set: {
+                            date: dashboard.date,
+                            dashboard: dashboard.dashboard,
+                            tags: dashboard.tags,
+                            description: dashboard.description,
+                            lastUpdatedBy: dashboard.lastUpdatedBy,
+                            deleted: dashboard.deleted,
+                            editors: dashboard.editors,
+                            viewers: dashboard.viewers
+                        },
+                        $inc: { rev: 1 }
+                    })
+                    .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
+                    .exec(_.wrap(res, updateCallback));
+                }
+            });
+        })
+        .catch(function(err){
+            console.log('check on viewers failed', err);
             res.status(500).send(err);
-        } else if (_.isUndefined(existingDashboard) || _.isNull(existingDashboard)) {
-            /* Exclude all unexpected and automatic properties */
-            dashboard = _.pick(dashboard, ['name', 'deleted', 'date', 'tags', 'description', 'dashboard', 'lastUpdatedBy', 'editors', 'viewers']);
-            dashboard.rev = 1;
-            dashboard.createdBy = auth.getUserId(req);
-
-            Dashboards.create(dashboard, _.wrap(res, updateCallback));
-        } else {
-            if (!auth.hasEditPermission(existingDashboard, req)) {
-                return res.status(403).send('Edit Permission denied for this Dashboard.');
-            }
-
-            Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
-                $set: {
-                    date: dashboard.date,
-                    dashboard: dashboard.dashboard,
-                    tags: dashboard.tags,
-                    description: dashboard.description,
-                    lastUpdatedBy: dashboard.lastUpdatedBy,
-                    deleted: dashboard.deleted,
-                    editors: dashboard.editors,
-                    viewers: dashboard.viewers
-                },
-                $inc: { rev: 1 }
-            })
-            .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
-            .exec(_.wrap(res, updateCallback));
-        }
+        });
+    })
+    .catch(function(err){
+        console.log('check on editors failed', err);
+        res.status(500).send(err);
     });
 };
 

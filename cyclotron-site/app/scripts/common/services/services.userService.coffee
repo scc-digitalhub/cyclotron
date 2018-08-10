@@ -14,7 +14,7 @@
 # language governing permissions and limitations under the License. 
 ###
 
-cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $window, configService, logService) ->
+cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $window, $location, configService, logService) ->
 
     loggedIn = false
     currentSession = null
@@ -106,25 +106,9 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
             deferred.reject(error)
 
         return deferred.promise
-    
-    exports.aacLogin = ->
-        console.log 'requesting aac login'
-        
-        get = $http.get(configService.restServiceUrl + '/auth/provider')
-        deferred = $q.defer()
-        
-        get.success (session) ->
-            #TODO set session and current user
-            deferred.resolve(session)
-        
-        get.error (error) ->
-            exports.setLoggedOut()
-            deferred.reject(error)
-        
-        return deferred.promise
-        
 
     exports.loadExistingSession = (hideAlerts = false) ->
+        console.log 'loading existing session', currentSession?, $location.path()
         return currentSession if currentSession?
 
         deferred = $q.defer()
@@ -135,8 +119,10 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         if configService.authentication.enable == true
 
             $localForage.getItem('session').then (existingSession) ->
+                console.log('session stored?', existingSession?)
 
                 if existingSession?
+                    console.log 'trying to validate session'
                     validator = $http.post(configService.restServiceUrl + '/users/validate', { key: existingSession.key })
                     validator.success (session) ->
                         currentSession = session
@@ -178,12 +164,19 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
 
         return deferred.promise
 
-    exports.search = (query) ->
+    exports.search = (query, permissionType) ->
 
         deferred = $q.defer()
 
-        promise = $http.get(configService.restServiceUrl + '/ldap/search', { params: { q: query } })
+        #if authentication via ldap, search on ldap, else search among database users
+        promise = undefined
+        if configService.authentication.authProvider == 'ldap'
+            promise = $http.get(configService.restServiceUrl + '/ldap/search', { params: { q: query } })
+        else
+            promise = $http.get(configService.restServiceUrl + '/users/search', { params: { q: query, session: exports.currentSession()?.key, permission: permissionType } })
+
         promise.success (results) ->
+            console.log 'results', results
             deferred.resolve(results)
         promise.error (error) ->
             logService.error('UserService error: ' + error)
@@ -235,5 +228,67 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         return false unless exports.isLoggedIn()
 
         return _.contains dashboard.likes, currentSession.user._id
+    
+    exports.aacLogin = ->
+        console.log 'requesting aac login'
+
+        authorizationUrl = configService.authentication.authorizationURL
+        clientID = configService.authentication.clientID
+        scope = configService.authentication.scopes
+        redirectUri = configService.authentication.callbackDomain
+
+        requestUrl = authorizationUrl + '?response_type=token&client_id=' + clientID + '&redirect_uri=' + redirectUri + '&scope=' + scope
+
+        $window.location = requestUrl
+    
+    exports.storeAccessToken = () ->
+        console.log 'redirection worked'
+        hash = $location.path().substr(1)
+        params = hash.split('&')
+        tokenProperties = {}
+
+        _.each params, (value) ->
+            keyValuePair = value.split('=')
+            key = keyValuePair[0]
+            val = keyValuePair[1]
+            tokenProperties[key] = val
+
+        deferred = $q.defer()
+
+        get = $http({
+            method: 'GET'
+            url: configService.restServiceUrl + '/users/oauth'
+            headers:
+                'Authorization': 'Bearer ' + tokenProperties.access_token
+        })
+
+        get.success (session) ->
+            console.log 'session successfully created'
+
+            currentSession = session
+            
+            # Store session and username in localstorage
+            $localForage.setItem 'session', session
+            $localForage.setItem 'username', session.user.sAMAccountName
+            $localForage.setItem 'cachedUserId', session.user._id
+            exports.cachedUsername = session.user.sAMAccountName
+            exports.cachedUserId = session.user._id
+
+            loggedIn = true
+
+            $rootScope.$broadcast 'login', { }
+            if $window.Cyclotron?
+                $window.Cyclotron.currentUser = session.user
+            alertify.success('Logged in as <strong>' + session.user.name + '</strong>', 2500)
+                
+            deferred.resolve(session)
+            #finally redirect to home page
+            $location.path('/').replace()
+
+        get.error (error) ->
+            console.log 'error or API sent an error response', error
+            exports.setLoggedOut()
+            deferred.reject(error)
+            $location.path('/').replace()
 
     return exports

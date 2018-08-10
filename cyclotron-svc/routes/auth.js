@@ -24,9 +24,11 @@ var config = require('../config/config'),
     mongoose = require('mongoose'),
     moment = require('moment'),
     uuid = require('node-uuid'),
-    Promise = require('bluebird');
+    Promise = require('bluebird'),
+    request = require('request');
     
 var Sessions = mongoose.model('session');
+var Dashboards = mongoose.model('dashboard2');
 
 var getExpiration = function () {
     return moment().add(24, 'hour').toDate();
@@ -49,21 +51,82 @@ exports.removeExpiredSessions = function () {
     });
 };
 
-/* Creates, saves, and returns a new Session. */
-exports.createNewSession = function (ipAddress, user) {
+/* Creates, saves, and returns a new Session. 
+ * Value is either the session key (for access via credentials), the API key (for apikey sessions) or the access token (for token sessions).
+ */
+exports.createNewSession = function (ipAddress, sessionType, value, expiration, user) {
+    var key = uuid.v4();
     var session = new Sessions({
-        key: uuid.v4(),
+        key: key,
         sAMAccountName: user.sAMAccountName,
         user: user._id,
         ipAddress: ipAddress,
-        expiration: getExpiration()
+        expiration: expiration || getExpiration(),
+        type: sessionType || 'credentials',
+        value: value || key
     });
+    console.log('session to be saved', session);
 
     return session.saveAsync();
 };
 
+/* Find a Session by type and value. */
+exports.findSession = function (type, value) {
+    return new Promise(function(resolve, reject){
+        Sessions.findOne({
+            type: type,
+            value: value
+        })
+        .populate('user')
+        .exec()
+        .then(function (session) {
+            if (session == null) {
+                reject('Session invalid');
+            }
+            resolve(session);
+        });
+    });
+    
+};
+
+/* Find a Dashboard by id. */
+exports.findDashboardById = function (id) {
+    return new Promise(function(resolve, reject){
+        Dashboards.findById(id)
+        .exec()
+        .then(function (dashboard) {
+            if (dashboard == null) {
+                reject('Dashboard ID invalid');
+            }
+            resolve(dashboard);
+        });
+    });
+};
+
 /* Validate and extend Session. */
 exports.validateSession = function (key) {
+    return new Promise(function(resolve, reject) {
+        Sessions.findOne({
+            key: key,
+            expiration: { $gt: Date.now() }
+        })
+        .populate('user')
+        .exec()
+        .then(function (session) {
+            if (session == null) {
+                reject('Session invalid');
+            }
+
+            //for sessions created via login with credentials, extend validity
+            if (session.type == 'credentials') {
+                Sessions.updateOne({ key: key}, { $set: { expiration: getExpiration() }}).exec()
+            }
+            
+            session.user.admin = _.includes(config.admins, session.user.distinguishedName);
+            resolve(session);
+        });
+    });
+    /*
     return new Promise(function (resolve, reject) {
         Sessions.findOneAndUpdate({ 
             key: key, 
@@ -84,6 +147,7 @@ exports.validateSession = function (key) {
             resolve(session);
         });
     });
+    */
 };
 
 /* Returns true if the current user is unauthenticated, else false. */
@@ -92,7 +156,8 @@ exports.isUnauthenticated = function (req) {
         /* Short-circuit if authentication is disabled */
         return false;
     }
-    
+
+    //req.session is set by session middleware if session key param is present
     return _.isUndefined(req.session);
 };
 
@@ -197,4 +262,128 @@ exports.getUserId = function (req) {
     } else {
         return null;
     }
+};
+
+/* Retrieve info associated to OAuth2 token. */
+exports.getTokenInfo = function (bearer) {
+    var options = {
+        url: config.oauth.tokenInfoEndpoint,
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': bearer
+        }
+    };
+
+    return new Promise(function (resolve, reject){
+        request(options, function(error, response, body){
+            if(!error && response.statusCode == 200){
+                var info = JSON.parse(response.body);
+                resolve(info);
+            } else {
+                console.log(error);
+                reject('error retrieving token info');
+            }
+        });
+    });
+};
+
+/* Retrieve info associated to OAuth2 token. */
+exports.checkApiKey = function (key) {
+    var options = {
+        url: config.oauth.apikeyCheckEndpoint + '?apiKey=' + key,
+        headers: {
+            'Accept': 'application/json'
+        }
+    };
+
+    return new Promise(function (resolve, reject){
+        request(options, function(error, response, body){
+            if(!error && response.statusCode == 200){
+                var info = JSON.parse(response.body);
+                resolve(info);
+            } else {
+                console.log(error);
+                reject('error validating apikey');
+            }
+        });
+    });
+};
+
+/* Retrieve user profile from provider. */
+exports.getUserProfile = function (bearer) {
+    var options = {
+        url: config.oauth.userProfileEndpoint,
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': bearer
+        }
+    };
+
+    return new Promise(function (resolve, reject){
+        request(options, function(error, response, body){
+            if(!error && response.statusCode == 200){
+                var profile = JSON.parse(response.body);
+                resolve({
+                    sAMAccountName: profile.username,
+                    displayName: profile.name + ' ' + profile.surname,
+                    distinguishedName: profile.username,
+                    mail: profile.username
+                });
+            } else {
+                console.log(error);
+                reject('error retrieving user profile');
+            }
+        });
+    });
+};
+
+/* Retrieve user roles from provider. */
+exports.getUserRoles = function (bearer, client = false) {
+    var url = null;
+    if (client) {
+        url = config.oauth.tokenRolesEndpoint
+        if(!_.endsWith(url, '/')) { url += '/'; }
+        url += bearer.split(' ')[1]
+    } else {
+        url = config.oauth.userRolesEndpoint;
+    }
+    
+    var options = {
+        url: url,
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': bearer
+        }
+    };
+
+    return new Promise(function (resolve, reject){
+        request(options, function(error, response, body){
+            if(!error && response.statusCode == 200){
+                resolve(JSON.parse(response.body));
+            } else {
+                console.log(error);
+                reject('error retrieving user roles');
+            }
+        });
+    });
+};
+
+/* Receives an array of AAC roles and converts them to groups */
+exports.setUserMembership = function (roles) {
+    //[{context":"components","space":"cyclotron","role":"ROLE_PROVIDER","authority":"components/cyclotron:ROLE_PROVIDER"}]
+    var groups = [];
+    var rolesFiltered = _.filter(roles, function(role){
+        return role.authority.startsWith(config.oauth.parentSpace);
+    });
+
+    _.each(rolesFiltered, function(role){
+        var group = role.authority.slice(config.oauth.parentSpace.length).split(':')[0];
+        if(group.length > 0){
+            //role is either 'writer', 'reader' or 'ROLE_PROVIDER', writers and providers are treated as equal
+            if(role.role == 'reader'){ group += '_viewers'; } else { group += '_editors'; }
+            if(group.startsWith('/')){ groups.push(group.slice(1)) } else { groups.push(group) }
+        }
+    });
+
+    return groups;
 };

@@ -86,7 +86,9 @@ var sessionSchema = mongoose.Schema({
     sAMAccountName : {type: String, required: true},
     user           : {type: mongoose.Schema.Types.ObjectId, required: true, ref: 'user'},
     ipAddress      : {type: String, required: true},
-    expiration     : {type: Date, required: true}
+    expiration     : {type: Date, required: true},
+    type           : {type: String, enum: ['credentials', 'apikey', 'token'], required: true},
+    value          : {type: String, required: false}
 });
 
 /* Page Views Analytics Schema: contains records of each Dashboard page view */

@@ -132,7 +132,10 @@ cyclotronServices.factory 'dashboardService', ($http, $resource, $q, analyticsSe
     service.getDashboards = (query) ->
         deferred = $q.defer()
 
-        p = dashboardResource.query({ q: query }).$promise
+        p = dashboardResource.query({
+            q: query
+            session: userService.currentSession()?.key
+        }).$promise
 
         p.then (dashboards) ->
             deferred.resolve dashboards

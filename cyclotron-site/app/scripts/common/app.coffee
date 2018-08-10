@@ -60,7 +60,9 @@ cyclotronDirectives = angular.module 'cyclotronApp.directives', []
 cyclotronDataSources = angular.module 'cyclotronApp.dataSources', ['ngResource']
 cyclotronServices = angular.module 'cyclotronApp.services', ['ngResource']
 
-cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $controllerProvider, $compileProvider, $provide, uiSelectConfig) ->
+cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $controllerProvider, $compileProvider, $provide, $httpProvider, uiSelectConfig) ->
+    # Add http interceptor
+    $httpProvider.interceptors.push('authInterceptorService');
 
     # Improve performance
     $compileProvider.debugInfoEnabled false
@@ -128,6 +130,11 @@ cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $con
 
     loadExistingSessionWithoutAlerts = ['userService', (userService) ->
         userService.loadExistingSession(true)
+    ]
+
+    # Store access token
+    storeAccessToken = ['userService', (userService) ->
+        userService.storeAccessToken()
     ]
 
     #
@@ -287,6 +294,13 @@ cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $con
             resolve:
                 session: loadExistingSession
                 deps: lazyLoad ['/js/app.mgmt.js'], ['/css/app.mgmt.css']
+        })
+        .state('authCallback', {
+            url: '/access_token=:accessToken'
+            data:
+                title: 'Cyclotron'
+            resolve:
+                token: storeAccessToken
         })
         .state('dashboard', {
             url: '/{dashboard:.+}'
