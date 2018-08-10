@@ -92,15 +92,19 @@ In Cyclotron you can restrict access to a dashboard by specifiying a set of **vi
 When a user logs in via AAC, Cyclotron reads their roles from AAC and assigns them certain groups depending on such roles. Precisely, Cyclotron checks whether the user has roles `ROLE_PROVIDER`, `reader` or `writer` in some spaces. Here are some examples of roles:
 
 * user A is provider of space T1 and reader of space T2:
+```
     {context":"components/cyclotron","space":"T1","role":"ROLE_PROVIDER","authority":"components/cyclotron/T1:ROLE_PROVIDER"}
+    
     {context":"components/cyclotron","space":"T2","role":"reader","authority":"components/cyclotron/T2:reader"}
-
+```
 * user B is reader of space T1:
+```
     {context":"components/cyclotron","space":"T1","role":"reader","authority":"components/cyclotron/T1:reader"}
-
+```
 * user C is writer of space T1:
+```
     {context":"components/cyclotron","space":"T1","role":"writer","authority":"components/cyclotron/T1:writer"}
-
+```
 When these users log in to Cyclotron via AAC they are assigned the following property:
 
 * user A: `memberOf: ['T1_viewers', 'T1_editors', 'T2_viewers']`
@@ -108,6 +112,7 @@ When these users log in to Cyclotron via AAC they are assigned the following pro
 * user C: `memberOf: ['T1_viewers', 'T1_editors']`
 
 **Note 1**: providers and writers are equally considered editors by Cyclotron, i.e., user A as provider of T1 is member of T1_editors group.
+
 **Note 2**: editors can also view, i.e., users A and C being members of T1_editors are also members of T1_viewers; but viewers cannot edit, i.e., groups *<group_name>\_viewers* cannot be assigned as editors of a dashboard.
 
 ### Restricting Access to Dashboards in JSON
