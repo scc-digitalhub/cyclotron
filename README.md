@@ -83,5 +83,76 @@ Now you can (re)start Cyclotron API and website
 
 ## Using Cyclotron API
 
-TODO
+### AAC Roles and Cyclotron Permissions
+
+**NOTE**: read Data Model section on AAC page to understand the concepts of *role* and *space*.
+
+In Cyclotron you can restrict access to a dashboard by specifiying a set of **viewers** and **editors**. These can be either users or *groups*. If you use AAC as authentication provider, then groups correspond to AAC *spaces*. By default, owners of a space in AAC have the role `ROLE_PROVIDER`. In the AAC console, in the tab User Roles, owners (providers) of a space can add other users to it and assign them roles.
+
+When a user logs in via AAC, Cyclotron reads their roles from AAC and assigns them certain groups depending on such roles. Precisely, Cyclotron checks whether the user has roles `ROLE_PROVIDER`, `reader` or `writer` in some spaces. Here are some examples of roles:
+
+* user A is provider of space T1 and reader of space T2:
+    {context":"components/cyclotron","space":"T1","role":"ROLE_PROVIDER","authority":"components/cyclotron/T1:ROLE_PROVIDER"}
+    {context":"components/cyclotron","space":"T2","role":"reader","authority":"components/cyclotron/T2:reader"}
+
+* user B is reader of space T1:
+    {context":"components/cyclotron","space":"T1","role":"reader","authority":"components/cyclotron/T1:reader"}
+
+* user C is writer of space T1:
+    {context":"components/cyclotron","space":"T1","role":"writer","authority":"components/cyclotron/T1:writer"}
+
+When these users log in to Cyclotron via AAC they are assigned the following property:
+
+* user A: `memberOf: ['T1_viewers', 'T1_editors', 'T2_viewers']`
+* user B: `memberOf: ['T1_viewers']`
+* user C: `memberOf: ['T1_viewers', 'T1_editors']`
+
+**Note 1**: providers and writers are equally considered editors by Cyclotron, i.e., user A as provider of T1 is member of T1_editors group.
+**Note 2**: editors can also view, i.e., users A and C being members of T1_editors are also members of T1_viewers; but viewers cannot edit, i.e., groups *<group_name>\_viewers* cannot be assigned as editors of a dashboard.
+
+### Restricting Access to Dashboards in JSON
+
+If you create a dashboard as a JSON document (either by POSTing it on the API or via JSON document editor on the website), this is its skeleton:
+
+    {
+        "tags": [],
+        "name": "foo",
+        "dashboard": {
+            "name": "foo",
+            "pages": [],
+            "sidebar": {
+                "showDashboardSidebar": true
+            }
+        },
+        "editors": [],
+        "viewers": []
+    }
+
+NOTE: if a dashboard has no editors or viewers specified, by default the permissions are restricted to the dashboard creator only.
+
+Resuming the example above, suppose user A wants to restrict access to its dashboard:
+* dashboard editors list: can contain only group T1_editors or its members (e.g. user C)
+* dashboard viewers list: can contain groups T1_editors, T1_viewers and T2_viewers or their members (e.g. users B and C)
+
+Each editor or viewer specified in the lists must have three mandatory properties: `category` (either "User" or "Group"), `displayName` (used for readability purpose) and `dn` (unique name that identifies the user or group; corresponds to `distinguishedName` property in Cyclotron API User model).
+
+Example: user A restricts edit permissions to themselves and gives view permissions to the whole group T2 (if only T2_editors or only T2_viewers is added, the other one is added automatically):
+
+    "editors": [{
+        "category": "User",
+        "displayName": "John Doe",
+        "dn": "A"
+    }],
+    "viewers": [{
+        "category": "Group",
+        "displayName": "T2",
+        "dn": "T2_viewers"
+    },{
+        "category": "Group",
+        "displayName": "T2",
+        "dn": "T2_editors"
+    }]
+
+If authentication is enabled, only dashboards that have no restriction on viewers can be viewed anonymously.
+
 
