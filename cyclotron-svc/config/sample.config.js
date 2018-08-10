@@ -53,6 +53,9 @@ module.exports = {
     /* Enable or disable authentication */
     enableAuth: false,
 
+    /* Authentication provider. Possible values: 'ldap', 'aac'. */
+    authProvider: 'aac',
+
     /* LDAP configuration, if authentication is enabled
      * Compatible with Active Directory as well.
      */
@@ -74,6 +77,20 @@ module.exports = {
         searchCategories: [
             /* name: '', dn: '' */
         ]
+    },
+
+    /* AAC provider configuration, if authentication is enabled.
+     * Scopes must be comma-separated.
+     */
+    oauth: {
+        userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me',
+        userRolesEndpoint: 'http://localhost:8080/aac/userroles/me',
+        scopes: 'profile.basicprofile.me,user.roles.me',
+        tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access',
+        tokenInfoEndpoint: 'http://localhost:8080/aac/resources/token',
+        tokenRolesEndpoint: 'http://localhost:8080/aac/userroles/token',
+        apikeyCheckEndpoint: 'http://localhost:8080/aac/apikeycheck',
+        parentSpace: 'components/cyclotron'
     },
 
     /* List of LDAP distinguished names for Admin users

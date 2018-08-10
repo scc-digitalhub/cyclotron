@@ -58,8 +58,19 @@ cyclotronServices.factory 'configService', (commonConfigService) ->
             # Should match the cyclotron-svc configuration
             enable: false
 
+            # Value for authProvider can be either 'aac' or 'ldap'
+            authProvider: 'aac'
+
             # Message displayed when logging in.  Set to null/blank to disable
             loginMessage: 'Please login using your LDAP username and password.'
+
+            # AAC endpoints
+            authorizationURL: 'http://localhost:8080/aac/eauth/authorize'
+            clientID: ''
+            callbackDomain: 'http://localhost:8088'
+            scopes: 'profile.basicprofile.me user.roles.me'
+            userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me'
+            tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access'
 
         # Analytics settings
         analytics:
