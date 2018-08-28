@@ -85,8 +85,6 @@ Now you can (re)start Cyclotron API and website with authentication enabled. Mos
 
 ## Using Cyclotron API
 
-TODO
-
 ### AAC Roles and Cyclotron Permissions
 
 **NOTE**: read Data Model section on AAC page to understand the concepts of *role* and *space*.
