@@ -42,7 +42,7 @@ Now Cyclotron is running with its default settings and authentication is disable
 Open `cyclotron-svc/config/config.js` and update the properties according to your needs (remember to configure the same properties in the website config file, e.g. the API server URL. To use AAC as authentication provider, be sure to set the following properties with the correct AAC URLs:
 
     enableAuth: true
-    authProvider: 'AAC'
+    authProvider: 'aac'
     oauth: {
         userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me'
         userRolesEndpoint: 'http://localhost:8080/aac/userroles/me'
