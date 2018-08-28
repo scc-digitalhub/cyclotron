@@ -10,9 +10,11 @@ Extension of [Expedia's Cyclotron](https://github.com/ExpediaInceCommercePlatfor
 
 * Parameter-based interaction between dashboard components
 
+* New authentication methods (see below)
+
 ## Requirements
 
-* AAC ([installation instructions](https://github.com/smartcommunitylab/AAC) )
+* AAC ([installation instructions](https://github.com/smartcommunitylab/AAC))
 * Node.js
 * MongoDB (2.6+) ([installation instructions](http://docs.mongodb.org/manual/installation/))
 
