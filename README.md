@@ -4,7 +4,7 @@ Extension of [Expedia's Cyclotron](https://github.com/ExpediaInceCommercePlatfor
 
 ## New Features
 
-* Widgets: Time Slider ([based on noUiSlider](https://refreshless.com/nouislider/)), OpenLayers Map (based on [OpenLayers](https://openlayers.org/)), Google Charts (based on [Google Charts](https://developers.google.com/chart/))
+* Widgets: Time Slider (based on [noUiSlider](https://refreshless.com/nouislider/)), OpenLayers Map (based on [OpenLayers](https://openlayers.org/)), Google Charts (based on [Google Charts](https://developers.google.com/chart/))
 
 * Data Sources: OData (based on [OData](https://www.odata.org/))
 
