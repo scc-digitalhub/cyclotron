@@ -85,6 +85,36 @@ Now you can (re)start Cyclotron API and website with authentication enabled. Mos
 
 ## Using Cyclotron API
 
+### Ways to Authenticate on Cyclotron
+
+On the **web app**, login can be performed:
+
+* via LDAP by providing username and password
+* via AAC using OAuth2 protocol, i.e., being redirected on AAC for authentication
+
+On the **API**, requests can be authenticated:
+
+* via session key
+* via `Authentication` HTTP header
+* via API key
+
+Session key is the internal mechanism used by Cyclotron web app to authenticate its requests to the API.
+
+Authentication header must provide a valid token issued by AAC. It is used by the web app if login is performed via AAC and can be used to request API services directly:
+```
+GET /dashboards/mydashboard HTTP/1.1 
+Host: localhost:8077 
+Accept: application/json 
+Authorization: Bearer 025a90d4-d4dd-4d90-8354-779415c0c6d8
+```
+
+API key is issued by AAC and can be passed as query parameter in the URL:
+```
+http://localhost:8077/dashboards/mydashboard?apikey=dee7889d-ef09-474a-b69a-74b2ace47c50
+```
+
+TODO use of apikey in the web app
+
 ### AAC Roles and Cyclotron Permissions
 
 **NOTE**: read Data Model section on AAC page to understand the concepts of *role* and *space*.
