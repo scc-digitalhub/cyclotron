@@ -37,7 +37,7 @@ Note that the detailed installation procedure is only summarized here and is bet
 
 Now Cyclotron is running with its default settings and authentication is disabled. Proceed to configure authentication via AAC.
 
-## API Configuration with AAC
+## Authentication Configuration with AAC
 
 Open `cyclotron-svc/config/config.js` and update the properties according to your needs (remember to configure the same properties in the website config file, e.g. the API server URL. To use AAC as authentication provider, be sure to set the following properties with the correct AAC URLs:
 
