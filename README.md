@@ -67,7 +67,7 @@ Do the same with `cyclotron-site/_public/js/conf/configService.js`. Be sure to s
 
 ## Client Application Configuration on AAC
 
-Log in to AAC with a provider user and click "New App" to create a client application. In the Settings tab:
+Log in to AAC as a provider user and click "New App" to create a client application. In the Settings tab:
 
 * add Cyclotron website as redirect URL: `http://localhost:8088/,http://localhost:8088` (change the domain if it runs on a different host and port)
 * check all the Grant Types and at least `internal` as identity provider (this must be approved on the Admin account under tab Admin -> IdP Approvals)
