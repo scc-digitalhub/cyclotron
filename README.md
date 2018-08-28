@@ -77,13 +77,15 @@ In the API Access tab:
 * under Basic Profile Service, check `profile.basicprofile.me` to give access to user profiles to the client app
 * under Role Management Service, check `user.roles.me` to give access to user roles
 
-In the Overview tab, copy `clientId` property, then go back to `cyclotron-svc/config/config.js` and add it in the `authentication` section.
+In the Overview tab, copy `clientId` property, then go back to `cyclotron-site/_public/js/conf/configService.js` and add it in the `authentication` section.
 
-Now you can (re)start Cyclotron API and website
+Now you can (re)start Cyclotron API and website with authentication enabled. Most services will now be protected and will require login and specific privileges.
 
 **NOTE**: if you need to change the API port you can do it in the configuration file, but changing Cyclotron website port can only be done in `cyclotron-site/gulpfile.coffee`, inside the Gulp task named `webserver` (line 281): update `port` and `open` properties as needed.
 
 ## Using Cyclotron API
+
+TODO
 
 ### AAC Roles and Cyclotron Permissions
 
