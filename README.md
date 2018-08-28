@@ -4,9 +4,9 @@ Extension of [Expedia's Cyclotron](https://github.com/ExpediaInceCommercePlatfor
 
 ## New Features
 
-* Widgets: Time Slider (based on noUiSlider), OpenLayers Map (based on OpenLayers), Google Charts (based on Google Charts)
+* Widgets: Time Slider ([based on noUiSlider](https://refreshless.com/nouislider/)), OpenLayers Map (based on [OpenLayers](https://openlayers.org/)), Google Charts (based on [Google Charts](https://developers.google.com/chart/))
 
-* Data Sources: OData
+* Data Sources: OData (based on [OData](https://www.odata.org/))
 
 * Parameter-based interaction between dashboard components
 
