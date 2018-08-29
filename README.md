@@ -162,7 +162,7 @@ If you create a dashboard as a JSON document (either by POSTing it on the API or
         "viewers": []
     }
 
-NOTE: if a dashboard has no editors or viewers specified, by default the permissions are restricted to the dashboard creator only.
+NOTE: if a dashboard has no editors or viewers specified, by default the permissions are restricted to the dashboard creator only, who is allowed to change this behaviour later on.
 
 Resuming the example above, suppose user A wants to restrict access to its dashboard:
 * dashboard editors list: can contain only group **T1_editors** or its members (e.g. user C)
