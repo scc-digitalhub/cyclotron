@@ -165,12 +165,12 @@ If you create a dashboard as a JSON document (either by POSTing it on the API or
 NOTE: if a dashboard has no editors or viewers specified, by default the permissions are restricted to the dashboard creator only.
 
 Resuming the example above, suppose user A wants to restrict access to its dashboard:
-* dashboard editors list: can contain only group T1_editors or its members (e.g. user C)
-* dashboard viewers list: can contain groups T1_editors, T1_viewers and T2_viewers or their members (e.g. users B and C)
+* dashboard editors list: can contain only group **T1_editors** or its members (e.g. user C)
+* dashboard viewers list: can contain groups **T1_viewers** (*not* T1_editors as it is already a subset of T1_viewers, since editors are automatically also viewers) and **T2_viewers** or their members (e.g. users B and C)
 
 Each editor or viewer specified in the lists must have three mandatory properties: `category` (either "User" or "Group"), `displayName` (used for readability purpose) and `dn` (unique name that identifies the user or group; corresponds to `distinguishedName` property in Cyclotron API User model).
 
-Example: user A restricts edit permissions to themselves and gives view permissions to the whole group T2 (if only T2_editors or only T2_viewers is added, the other one is added automatically):
+Example 1. User A restricts edit permissions to themselves and gives view permissions to group T2:
 
     "editors": [{
         "category": "User",
@@ -181,11 +181,22 @@ Example: user A restricts edit permissions to themselves and gives view permissi
         "category": "Group",
         "displayName": "T2",
         "dn": "T2_viewers"
-    },{
+    }]
+
+Example 2. User A restricts both edit and view permissions to group T2, i.e., every T2 member can view but only editor members can edit:
+
+    "editors": [{
         "category": "Group",
         "displayName": "T2",
         "dn": "T2_editors"
+    }],
+    "viewers": [{
+        "category": "Group",
+        "displayName": "T2",
+        "dn": "T2_viewers"
     }]
+
+In short: use *<group_name>\_editors* syntax for editors and *<group_name>\_viewers* syntax for viewers.
 
 If authentication is enabled, only dashboards that have no restriction on viewers can be viewed anonymously.
 
