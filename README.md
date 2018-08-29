@@ -83,9 +83,7 @@ Now you can (re)start Cyclotron API and website with authentication enabled. Mos
 
 **NOTE**: if you need to change the API port you can do it in the configuration file, but changing Cyclotron website port can only be done in `cyclotron-site/gulpfile.coffee`, inside the Gulp task named `webserver` (line 281): update `port` and `open` properties as needed.
 
-## Using Cyclotron API
-
-### Ways to Authenticate on Cyclotron
+## Authentication Methods on Cyclotron
 
 On the **web app**, login can be performed:
 
@@ -108,12 +106,12 @@ Accept: application/json
 Authorization: Bearer 025a90d4-d4dd-4d90-8354-779415c0c6d8
 ```
 
-API key is issued by AAC and can be passed as query parameter in the URL:
+API key is issued by AAC and can be passed as query parameter in the URL to request API services:
 ```
 http://localhost:8077/dashboards/mydashboard?apikey=dee7889d-ef09-474a-b69a-74b2ace47c50
 ```
 
-TODO use of apikey in the web app
+## Using Cyclotron API
 
 ### AAC Roles and Cyclotron Permissions
 
@@ -190,5 +188,7 @@ Example: user A restricts edit permissions to themselves and gives view permissi
     }]
 
 If authentication is enabled, only dashboards that have no restriction on viewers can be viewed anonymously.
+
+## Deployment
 
 
