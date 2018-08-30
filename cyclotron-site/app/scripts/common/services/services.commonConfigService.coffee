@@ -2179,7 +2179,7 @@ cyclotronServices.factory 'commonConfigService', ->
                     darkmetro:
                         options:
                             dbackgroundColor: '#202020'
-
+###
             chart:
                 name: 'chart'
                 label: 'Chart'
@@ -3216,7 +3216,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                     [1, '#333']
                                 ]
                             trackBorderColor: '#666'
-                        
+###
             gchart:
                 name: 'gchart'
                 label: 'Google Charts'
