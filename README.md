@@ -200,6 +200,16 @@ In short: use *<group_name>\_editors* syntax for editors and *<group_name>\_view
 
 If authentication is enabled, only dashboards that have no restriction on viewers can be viewed anonymously.
 
+### Testing
+
+If you want to test the authorization mechanism (e.g. on Postman), you can use the following URLs, setting the `Authorization` header with an appropriate token:
+
+* to create a dashboard, POST on `http://localhost:8077/dashboards`
+
+* to update a dashboard, PUT on `http://localhost:8077/dashboards/{dashboard_name}`
+
+* to retrieve a dashboard, GET on `http://localhost:8077/dashboards/{dashboard_name}`
+
 ## Deployment
 
 
