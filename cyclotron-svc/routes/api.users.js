@@ -169,7 +169,6 @@ exports.logout = function (req, res) {
 };
 
 exports.oauthLogin = function (req, res) {
-    console.log('is already done:', req.session, req.user);
     if(req.header('Authorization')){
         try {
             var session = req.session;
@@ -180,7 +179,6 @@ exports.oauthLogin = function (req, res) {
                     console.log(err);
                     res.status(500).send(err);
                 } else {
-                    console.log('sending session as response');
                     res.send(session);
                 }
             });
@@ -212,17 +210,16 @@ exports.search = function (req, res) {
         }
 
         var groups = _.filter(session.user.memberOf, function(group){
-            var allowed = true;
-            //exclude viewers-only if searching for editors
-            if(permissionFilter == '_editors' && !_.includes(group, permissionFilter)) { allowed = false};
-            return allowed;
+            return _.includes(group, permissionFilter);
         });
+        
         //TODO if user is not member of any group, can he give permissions?
         var allowedGroups = _.filter(groups, function(group){
             //exclude groups that do not contain the query string
             return _.includes(group, nameFilter);
         });
         
+        //find users that are member of at least one group the current user is member of, and whose name matches q
         Users.find({
             memberOf: {$in: groups},
             $or: [ { sAMAccountName: { $regex: nameFilter} }, { displayName: { $regex: nameFilter} } ]
@@ -230,6 +227,7 @@ exports.search = function (req, res) {
         .lean()
         .exec()
         .then(function(results){
+            console.log('user results:', results);
             if(results == []){
                 console.log('No users found that match the search string and are members of the allowed groups');
             }

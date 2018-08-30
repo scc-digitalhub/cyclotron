@@ -33,7 +33,7 @@ exports.sessionLoader = function(req, res, next) {
     }
 
     /* If ?session= provided, attempt to load it into req.session and req.user */
-    console.log('validating session middleware', req.query.session);
+    console.log('Authentication middleware. Session:', req.query.session, 'Apikey:', req.query.apikey, 'Header:', req.header('Authorization'));
     if (req.query.session != undefined) {
         auth.validateSession(req.query.session)
         .then(function (session) {
@@ -61,7 +61,7 @@ exports.sessionLoader = function(req, res, next) {
                 .catch(function(err){
                     if(info.applicationToken){
                         /* Handle client credentials flow */
-                        console.log('Client session not found, proceed to creating it');
+                        console.log('Session not found, proceed to creating it');
                         auth.getUserRoles(bearer, true).then(function(roles){
                             //create fake user, and assign roles
                             var user = {
@@ -112,7 +112,7 @@ exports.sessionLoader = function(req, res, next) {
                 next();
             })
             .catch(function(err){
-                console.log('creating apikey session');
+                console.log('Apikey session not found, proceed to creating it');
                 var user = {
                     sAMAccountName: keyInfo.username,
                     displayName: keyInfo.username,

@@ -242,8 +242,8 @@ var checkEditors = function(editors, creator){
 
         } else if (editors.length == 1 && editors[0].dn == creator.distinguishedName) {
             /* Skip tests if the only editor listed is the creator */
-            if (!(editors[0].category)){
-                reject('Editors must have a category property')
+            if (!(editors[0].category && editors[0].displayName)){
+                reject('Editors must have a category and a displayName property');
             } else {
                 resolve(editors);
             }
@@ -263,12 +263,12 @@ var checkEditors = function(editors, creator){
                     reject(err);
                 } else {
                     _.each(editors, function(userOrGroup){
-                        if (!(userOrGroup.category && userOrGroup.dn)){
-                            reject('Editors must have a category and dn property')
+                        if (!(userOrGroup.category && userOrGroup.dn && userOrGroup.displayName)){
+                            reject('Editors must have a category, a displayName and dn property');
                         } else if (userOrGroup.category == 'Group'){
                             /* Check that the group name is included in the list of groups allowed to edit */
                             if(!_.includes(allowedGroups, userOrGroup.dn)){
-                                reject('Editors contain a group not allowed to edit');
+                                reject('Editors contain a group not allowed to edit. Only ' + allowedGroups + ' can be added.');
                             }
                         } else if (userOrGroup.category == 'User'){
                             /* Check that there are users allowed to edit and that the user is one of them */
@@ -306,14 +306,16 @@ var checkViewers = function(viewers, creator){
 
         } else if (viewers.length == 1 && viewers[0].dn == creator.distinguishedName) {
             /* Skip tests if the only viewer listed is the creator */
-            if (!(viewers[0].category)){
-                reject('Viewers must have a category property')
+            if (!(viewers[0].category && viewers[0].displayName)){
+                reject('Viewers must have a category and a displayName property');
             } else {
                 resolve(viewers);
             }
 
         } else {
-            var allowedGroups = creator.memberOf;
+            var allowedGroups = _.filter(creator.memberOf, function(group){
+                return _.includes(group, '_viewers');
+            });
 
             /* Find the users allowed to view */
             Users.find({
@@ -325,12 +327,12 @@ var checkViewers = function(viewers, creator){
                     reject(err);
                 } else {
                     _.each(viewers, function(userOrGroup){
-                        if (!(userOrGroup.category && userOrGroup.dn)){
-                            reject('Viewers must have a category and dn property')
+                        if (!(userOrGroup.category && userOrGroup.dn && userOrGroup.displayName)){
+                            reject('Viewers must have a category, a displayName and dn property');
                         } else if (userOrGroup.category == 'Group'){
                             /* Check that the group name is included in the list of groups allowed to view */
                             if(!_.includes(allowedGroups, userOrGroup.dn)){
-                                reject('Viewers contain a group not allowed to view');
+                                reject('Viewers contain a group not allowed to view. Only ' + allowedGroups + ' can be added.');
                             }
                         } else if (userOrGroup.category == 'User'){
                             /* Check that there are users allowed to view and that the user is one of them */
@@ -376,30 +378,50 @@ exports.putPostSingle = function (req, res) {
     dashboard.deleted = false;
     dashboard.lastUpdatedBy = auth.getUserId(req);
 
-    checkEditors(dashboard.editors, req.session.user.toObject())
-    .then(function(editors){
-        checkViewers(dashboard.viewers, req.session.user.toObject())
-        .then(function(viewers){
-            //save checked editors and viewers, then proceed with saving dashboard
-            dashboard.editors = editors;
-            dashboard.viewers = viewers;
+    Dashboards.findOne({ name: name}, function (err, existingDashboard) {
+        if (err) {
+            res.status(500).send(err);
+        } else if (_.isUndefined(existingDashboard) || _.isNull(existingDashboard)) {
+            /* Exclude all unexpected and automatic properties */
+            dashboard = _.pick(dashboard, ['name', 'deleted', 'date', 'tags', 'description', 'dashboard', 'lastUpdatedBy', 'editors', 'viewers']);
+            dashboard.rev = 1;
+            dashboard.createdBy = auth.getUserId(req);
 
-            /* Check if Dashboard exists */
-            Dashboards.findOne({ name: name}, function (err, existingDashboard) {
-                if (err) {
-                    res.status(500).send(err);
-                } else if (_.isUndefined(existingDashboard) || _.isNull(existingDashboard)) {
-                    /* Exclude all unexpected and automatic properties */
-                    dashboard = _.pick(dashboard, ['name', 'deleted', 'date', 'tags', 'description', 'dashboard', 'lastUpdatedBy', 'editors', 'viewers']);
-                    dashboard.rev = 1;
-                    dashboard.createdBy = auth.getUserId(req);
+            /* Check that editors and viewers are valid */
+            checkEditors(dashboard.editors, req.session.user.toObject())
+            .then(function(editors){
+                checkViewers(dashboard.viewers, req.session.user.toObject())
+                .then(function(viewers){
+                    dashboard.editors = editors;
+                    dashboard.viewers = viewers;
 
+                    /* Create dashboard */
                     Dashboards.create(dashboard, _.wrap(res, updateCallback));
-                } else {
-                    if (!auth.hasEditPermission(existingDashboard, req)) {
-                        return res.status(403).send('Edit Permission denied for this Dashboard.');
-                    }
+                })
+                .catch(function(err){
+                    console.log(err);
+                    res.status(500).send(err);
+                });
+            })
+            .catch(function(err){
+                console.log(err);
+                res.status(500).send(err);
+            });
+        } else {
+            if (!auth.hasEditPermission(existingDashboard, req)) {
+                return res.status(403).send('Edit Permission denied for this Dashboard.');
+            }
 
+            /* Check that editors and viewers are valid */
+            checkEditors(dashboard.editors, req.session.user.toObject())
+            .then(function(editors){
+                checkViewers(dashboard.viewers, req.session.user.toObject())
+                .then(function(viewers){
+                    dashboard.editors = editors;
+                    dashboard.viewers = viewers;
+
+                    /* Update dashboard */
+                    //NOTE: added {new: true} to return the updated document (not used in the client, may be used by other clients)
                     Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
                         $set: {
                             date: dashboard.date,
@@ -412,20 +434,22 @@ exports.putPostSingle = function (req, res) {
                             viewers: dashboard.viewers
                         },
                         $inc: { rev: 1 }
+                    }, {
+                        new: true
                     })
                     .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
                     .exec(_.wrap(res, updateCallback));
-                }
+                })
+                .catch(function(err){
+                    console.log(err);
+                    res.status(500).send(err);
+                });
+            })
+            .catch(function(err){
+                console.log(err);
+                res.status(500).send(err);
             });
-        })
-        .catch(function(err){
-            console.log('check on viewers failed', err);
-            res.status(500).send(err);
-        });
-    })
-    .catch(function(err){
-        console.log('check on editors failed', err);
-        res.status(500).send(err);
+        }
     });
 };
 

@@ -108,8 +108,9 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         return deferred.promise
 
     exports.loadExistingSession = (hideAlerts = false) ->
-        console.log 'loading existing session', currentSession?, $location.path()
         return currentSession if currentSession?
+
+        #TODO possible check for apikey: $location.search().apikey != undefined
 
         deferred = $q.defer()
         errorHandler = ->
@@ -119,10 +120,8 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         if configService.authentication.enable == true
 
             $localForage.getItem('session').then (existingSession) ->
-                console.log('session stored?', existingSession?)
 
                 if existingSession?
-                    console.log 'trying to validate session'
                     validator = $http.post(configService.restServiceUrl + '/users/validate', { key: existingSession.key })
                     validator.success (session) ->
                         currentSession = session
@@ -176,7 +175,6 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
             promise = $http.get(configService.restServiceUrl + '/users/search', { params: { q: query, session: exports.currentSession()?.key, permission: permissionType } })
 
         promise.success (results) ->
-            console.log 'results', results
             deferred.resolve(results)
         promise.error (error) ->
             logService.error('UserService error: ' + error)
@@ -230,8 +228,6 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         return _.contains dashboard.likes, currentSession.user._id
     
     exports.aacLogin = ->
-        console.log 'requesting aac login'
-
         authorizationUrl = configService.authentication.authorizationURL
         clientID = configService.authentication.clientID
         scope = configService.authentication.scopes
@@ -242,7 +238,6 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         $window.location = requestUrl
     
     exports.storeAccessToken = () ->
-        console.log 'redirection worked'
         hash = $location.path().substr(1)
         params = hash.split('&')
         tokenProperties = {}
@@ -263,8 +258,6 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         })
 
         get.success (session) ->
-            console.log 'session successfully created'
-
             currentSession = session
             
             # Store session and username in localstorage

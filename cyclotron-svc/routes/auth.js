@@ -65,7 +65,6 @@ exports.createNewSession = function (ipAddress, sessionType, value, expiration, 
         type: sessionType || 'credentials',
         value: value || key
     });
-    console.log('session to be saved', session);
 
     return session.saveAsync();
 };
@@ -379,9 +378,13 @@ exports.setUserMembership = function (roles) {
     _.each(rolesFiltered, function(role){
         var group = role.authority.slice(config.oauth.parentSpace.length).split(':')[0];
         if(group.length > 0){
+            var suffix = null;
             //role is either 'writer', 'reader' or 'ROLE_PROVIDER', writers and providers are treated as equal
-            if(role.role == 'reader'){ group += '_viewers'; } else { group += '_editors'; }
-            if(group.startsWith('/')){ groups.push(group.slice(1)) } else { groups.push(group) }
+            if(role.role == 'reader'){ suffix = '_viewers'; } else { suffix = '_editors'; }
+            if(group.startsWith('/')){ group = group.slice(1) }
+            groups.push(group + suffix);
+            //edit permission implies also viewing permission
+            if(suffix == '_editors') { groups.push(group + '_viewers'); }
         }
     });
 

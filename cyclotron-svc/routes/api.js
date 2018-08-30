@@ -93,18 +93,18 @@ exports.bindRoutes = function (app) {
     app.all('/dashboards/:name/revisions/:rev', notAllowed);
     app.get('/dashboards/:name/revisions/:rev/diff/:rev2', revisions.diff); //requires auth if viewers restricted, requires VIEW permission
 
-    app.get('/dashboards/:name/likes', dashboards.getLikes); //TODO it shows user profiles, restrict access?
+    app.get('/dashboards/:name/likes', dashboards.getLikes); //TODO it shows user profiles, disable?
     app.post('/dashboards/:name/likes', requiresAuth, dashboards.likeDashboard);
     app.delete('/dashboards/:name/likes', requiresAuth, dashboards.unlikeDashboard);
     app.all('/dashboards/:name/likes', notAllowed);
 
-    app.get('/dashboardnames', dashboards.getNames); //TODO it shows all dashboard names, restrict access?
+    app.get('/dashboardnames', dashboards.getNames);
     app.all('/dashboardnames', notAllowed);
 
     app.get('/tags', tags.get);
     app.all('/tags', notAllowed);
 
-    app.get('/searchhints', tags.getSearchHints); //TODO it shows all dashboard names, restrict access?
+    app.get('/searchhints', tags.getSearchHints);
     app.all('/searchhints', notAllowed);
 
     app.post('/export/data', exporter.dataAsync); //NOTE receives some data, writes it to a file and returns a download url (/exports/{filekey})
@@ -119,10 +119,10 @@ exports.bindRoutes = function (app) {
 
     app.post('/proxy', proxy.proxy); //NOTE encrypts a request (used for datasources)
 
-    app.get('/users', users.get); //TODO it shows all user profiles, restrict access?
+    app.get('/users', users.get); //TODO it shows all user profiles, restrict access to admin? never used by client
     app.get('/users/search', requiresAuth, users.search);
     app.get('/users/oauth', users.oauthLogin);
-    app.get('/users/:name', users.getSingle); //TODO it shows user profile given a username, restrict access?
+    app.get('/users/:name', users.getSingle); //TODO it shows user profile given a username, restrict access? never used by client
 
     app.post('/users/login', users.login);
     app.all('/users/login', notAllowed);
@@ -173,7 +173,7 @@ exports.bindRoutes = function (app) {
 
         app.get('/analytics/pageviewsbypage', requiresAuth, requiresPermission, analytics.getPageViewsByPage);
 
-        app.get('/analytics/topdashboards', analytics.getTopDashboards); //TODO it shows all dashboard names, restrict access?
+        app.get('/analytics/topdashboards', analytics.getTopDashboards);
 
         app.get('/analytics/delete', analytics.deleteAnalyticsForDashboard); //allowed only if ADMIN
     }
