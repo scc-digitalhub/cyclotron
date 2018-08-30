@@ -5054,7 +5054,7 @@ cyclotronServices.factory 'commonConfigService', ->
     _.defaults tableProperties.rules.properties, _.omit(tableProperties.columns.properties, 'label')
 
     # Copy some chart themes
-    exports.widgets.chart.themes.lightborderless = exports.widgets.chart.themes.light
+    #exports.widgets.chart.themes.lightborderless = exports.widgets.chart.themes.light
 
     # Populate Help tags with properties
     helpDashboards = _.find(exports.help, { name: 'Dashboards' })
