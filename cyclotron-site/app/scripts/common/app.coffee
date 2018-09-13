@@ -336,16 +336,19 @@ cyclotronApp.run ($rootScope, $urlRouter, $location, $state, $stateParams, $uibM
     $rootScope.analyticsEnabled = -> configService.analytics?.enable == true
 
     $rootScope.login = (isModal = false) ->
-        options =
-            templateUrl: '/partials/login.html'
-            controller: 'LoginController'
+        if configService.authentication?.authProvider == 'aac'
+            userService.aacLogin()
+        else
+            options =
+                templateUrl: '/partials/login.html'
+                controller: 'LoginController'
 
-        if isModal
-            options.backdrop = 'static'
-            options.keyboard = false
+            if isModal
+                options.backdrop = 'static'
+                options.keyboard = false
 
-        modalInstance = $uibModal.open options
-        modalInstance.result
+            modalInstance = $uibModal.open options
+            modalInstance.result
 
     $rootScope.logout = userService.logout
 
