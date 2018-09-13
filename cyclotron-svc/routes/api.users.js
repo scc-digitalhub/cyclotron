@@ -174,13 +174,29 @@ exports.oauthLogin = function (req, res) {
             var session = req.session;
             session.user.admin = _.includes(config.admins, session.user.distinguishedName);
 
-            req.login(session.user, { session: false }, function (err) {
-                if (err) {
-                    console.log(err);
-                    res.status(500).send(err);
-                } else {
-                    res.send(session);
-                }
+            // Check that user roles are up to date
+            var bearer = req.header('Authorization');
+            auth.getUserRoles(bearer).then(function(roles){
+                session.user.memberOf = auth.setUserMembership(roles);
+                console.log('user', session.user.memberOf, session.user.sAMAccountName);
+
+                //save roles
+                Users.update({ sAMAccountName: session.user.sAMAccountName}, { $set: { memberOf: session.user.memberOf }}).exec()
+
+                //finish login
+                req.login(session.user, { session: false }, function (err) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500).send(err);
+                    } else {
+                        console.log('sending session with', session.user);
+                        res.send(session);
+                    }
+                });
+            })
+            .catch(function(error) {
+                console.log(error);
+                res.status(500).send(error);
             });
 
             // Cleanup expired sessions
