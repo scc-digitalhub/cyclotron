@@ -63,7 +63,7 @@ Do the same with `cyclotron-site/_public/js/conf/configService.js`. Be sure to s
     callbackDomain: 'http://localhost:8088',
     scopes: 'profile.basicprofile.me user.roles.me',
     userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me',
-    tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access',
+    tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access'
 
 ## Client Application Configuration on AAC
 
