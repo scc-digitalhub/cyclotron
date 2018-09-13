@@ -41,29 +41,29 @@ Now Cyclotron is running with its default settings and authentication is disable
 
 Open `cyclotron-svc/config/config.js` and update the properties according to your needs (remember to configure the same properties in the website config file, e.g. the API server URL. To use AAC as authentication provider, be sure to set the following properties with the correct AAC URLs:
 
-    enableAuth: true
-    authProvider: 'aac'
+    enableAuth: true,
+    authProvider: 'aac',
     oauth: {
-        userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me'
-        userRolesEndpoint: 'http://localhost:8080/aac/userroles/me'
-        scopes: 'profile.basicprofile.me,user.roles.me'
-        tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access'
-        tokenInfoEndpoint: 'http://localhost:8080/aac/resources/token'
-        tokenRolesEndpoint: 'http://localhost:8080/aac/userroles/token'
-        apikeyCheckEndpoint: 'http://localhost:8080/aac/apikeycheck'
+        userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me',
+        userRolesEndpoint: 'http://localhost:8080/aac/userroles/me',
+        scopes: 'profile.basicprofile.me,user.roles.me',
+        tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access',
+        tokenInfoEndpoint: 'http://localhost:8080/aac/resources/token',
+        tokenRolesEndpoint: 'http://localhost:8080/aac/userroles/token',
+        apikeyCheckEndpoint: 'http://localhost:8080/aac/apikeycheck',
         parentSpace: 'components/cyclotron'
     }
 
 Do the same with `cyclotron-site/_public/js/conf/configService.js`. Be sure to set the following properties under `authentication` (you will set the client ID later):
 
-    enable: true
-    authProvider: 'aac'
-    authorizationURL: 'http://localhost:8080/aac/eauth/authorize'
-    clientID: ''
-    callbackDomain: 'http://localhost:8088'
-    scopes: 'profile.basicprofile.me user.roles.me'
-    userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me'
-    tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access'
+    enable: true,
+    authProvider: 'aac',
+    authorizationURL: 'http://localhost:8080/aac/eauth/authorize',
+    clientID: '',
+    callbackDomain: 'http://localhost:8088',
+    scopes: 'profile.basicprofile.me user.roles.me',
+    userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me',
+    tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access',
 
 ## Client Application Configuration on AAC
 
