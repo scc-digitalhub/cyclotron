@@ -23,13 +23,16 @@ var config = require('../config/config'),
     api = require('./api'),
     passport = require('passport'),
     auth = require('./auth'),
-    mongoose = require('mongoose');
+    mongoose = require('mongoose'),
+    request = require('request'),
+    Promise = require('bluebird');
 
 var crypto = require('crypto'); 
     
 var Users = mongoose.model('user');
+    Sessions = mongoose.model('session');
 
-var createSession = function (user, ip) {
+var createSession = exports.createSession = function (user, ip, type = null, value = null, expiration = null) {
     /* Ensure memberOf list is an array */
     var userMemberOf = user.memberOf || []
     if (_.isString(userMemberOf)) {
@@ -69,7 +72,7 @@ var createSession = function (user, ip) {
         new: true,
         upsert: true
     })
-    .then(_.partial(auth.createNewSession, ip))
+    .then(_.partial(auth.createNewSession, ip, type, value, expiration))
     .spread(function (session) {
         return session.populateAsync('user');
     });
@@ -165,46 +168,103 @@ exports.logout = function (req, res) {
     });
 };
 
-/* Login via OAuth2 */
-exports.aacLogin = function (req, res) {
-    console.log('aaclogin');
-
-    passport.authenticate('provider', function (err, user, info) {
-        console.log('check authentication', err, user, info)
-
-        if (err) {
-            console.log(err);
-            return res.status(500).send('Authentication error: ' + err);
-        }
-        if (!user) {
-            console.log('no user');
-            return res.status(401).send('Authentication failure.');
-        }
-
-        createSession(user, req.ip).then(function (session) {
+exports.oauthLogin = function (req, res) {
+    if(req.header('Authorization')){
+        try {
+            var session = req.session;
             session.user.admin = _.includes(config.admins, session.user.distinguishedName);
 
-            req.login(user, { session: false }, function (err) {
-                if (err) {
-                    console.log(err);
-                    res.status(500).send(err);
-                } else {
-                    res.send(session);
-                }
+            // Check that user roles are up to date
+            var bearer = req.header('Authorization');
+            auth.getUserRoles(bearer).then(function(roles){
+                session.user.memberOf = auth.setUserMembership(roles);
+                console.log('user', session.user.memberOf, session.user.sAMAccountName);
+
+                //save roles
+                Users.update({ sAMAccountName: session.user.sAMAccountName}, { $set: { memberOf: session.user.memberOf }}).exec()
+
+                //finish login
+                req.login(session.user, { session: false }, function (err) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500).send(err);
+                    } else {
+                        console.log('sending session with', session.user);
+                        res.send(session);
+                    }
+                });
+            })
+            .catch(function(error) {
+                console.log(error);
+                res.status(500).send(error);
             });
 
+            // Cleanup expired sessions
             auth.removeExpiredSessions();
-        })
-        .catch(function (err) {
-            console.log(err);
-            res.status(500).send(err);
-        });
-    })(req, res);
-
-    console.log('after authenticate');
+        }
+        catch(e) {
+            console.log(e);
+            res.status(500).send(e);
+        }
+    } else {
+        console.log('Authorization header missing from request');
+        res.status(401).send('Authorization header missing from request');
+    }
 };
 
-exports.aacLoginCallback = function (req, res) {
-    console.log('aac login callback');
-    passport.authenticate('provider', { noRedirect: true })(req, res);
+exports.search = function (req, res) {
+    var nameFilter = req.query.q || ''
+    var permissionFilter = '_' + req.query.permission //possible value: editors, viewers
+    var sessionKey = req.query.session || req.session.key
+
+    Sessions.findOne({key: sessionKey})
+    .populate('user')
+    .exec()
+    .then(function (session) {
+        if (session == null) {
+            return res.status(500).send('Invalid session key');
+        }
+
+        var groups = _.filter(session.user.memberOf, function(group){
+            return _.includes(group, permissionFilter);
+        });
+        
+        //TODO if user is not member of any group, can he give permissions?
+        var allowedGroups = _.filter(groups, function(group){
+            //exclude groups that do not contain the query string
+            return _.includes(group, nameFilter);
+        });
+        
+        //find users that are member of at least one group the current user is member of, and whose name matches q
+        Users.find({
+            memberOf: {$in: groups},
+            $or: [ { sAMAccountName: { $regex: nameFilter} }, { displayName: { $regex: nameFilter} } ]
+        })
+        .lean()
+        .exec()
+        .then(function(results){
+            console.log('user results:', results);
+            if(results == []){
+                console.log('No users found that match the search string and are members of the allowed groups');
+            }
+            //categories: Security Group, Group, User, Distribution List
+            _.each(results, function(user){
+                user.category = 'User';
+                user.displayName = user.name || user.givenName;
+                user.mail = user.email;
+                user.dn = user.distinguishedName;
+            });
+            
+            //add groups to result
+            _.each(allowedGroups, function(group){
+                results.push({
+                    category: 'Group',
+                    dn: group,
+                    displayName: group.split('_')[0]
+                })
+            })
+            res.send(results);
+        });
+    });
+
 };

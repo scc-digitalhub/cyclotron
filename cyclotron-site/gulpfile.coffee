@@ -289,11 +289,11 @@ gulp.task 'webserver', ->
     gulp.src '_public'
         .pipe webserver {
             host: '0.0.0.0'
-            port: 8080
+            port: 8088
             https: false
             livereload: false
             fallback: 'index.html'
-            open: 'http://localhost:8080'
+            open: 'http://localhost:8088'
         }
 
 gulp.task 'karma', (done) ->

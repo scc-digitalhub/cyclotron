@@ -62,9 +62,7 @@ if (config.enableAuth == true) {
 
     /* Passport.js LDAP authentication */
     var passport = require('passport'),
-        LdapStrategy = require('passport-ldapauth'),
-        OAuth2Strategy = require('passport-oauth').OAuth2Strategy,
-        request = require('request');
+        LdapStrategy = require('passport-ldapauth');
 
     app.use(passport.initialize());
 
@@ -79,54 +77,6 @@ if (config.enableAuth == true) {
         usernameField: 'username',
         passwordField: 'password'
     }));
-
-    /*
-    OAuth2Strategy.prototype.userProfile = function(accessToken, done){
-        console.log('strategy prototype');
-        var options = {
-            url: config.oauth.userProfileEndpoint,
-            headers: {
-                'User-Agent': 'request',
-                'Authorization': 'Bearer ' + accessToken,
-            }
-        };
-
-        request(options, function(error, response, body){
-            console.log('callback of request to profile', body);
-            if(error || response.statusCode !== 200){
-                console.log('there is an error');
-                return done(error);
-            };
-            var info = JSON.parse(body);
-            return done(null, info.user);
-        });
-    }
-    */
-
-    passport.serializeUser(function(user, done){
-        done(null, user);
-    });
-
-    passport.deserializeUser(function(obj, done){
-        done(null, obj);
-    });
-
-    passport.use('provider', new OAuth2Strategy({
-            authorizationURL: config.oauth.authorizationURL,
-            tokenURL: config.oauth.tokenURL,
-            clientID: config.oauth.clientID,
-            clientSecret: config.oauth.clientSecret,
-            callbackURL: config.oauth.callbackURLServer + '/auth/provider/callback',
-            passReqToCallback: true
-        },
-        function(req, accessToken, refreshToken, profile, done){
-            console.log('verify callback:', accessToken, refreshToken, profile);
-            process.nextTick(function(){
-                req.session.accessToken = accessToken;
-                return done(null, profile);
-            });
-        }
-    ));
 }
 
 /* Optional: Analytics */

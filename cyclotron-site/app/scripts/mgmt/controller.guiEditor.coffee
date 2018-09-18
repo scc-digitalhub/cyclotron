@@ -248,7 +248,7 @@ cyclotronApp.controller 'GuiEditorController', ($scope, $state, $stateParams, $l
         return unless query.length > 2
         currentSearchId = ++$scope.ldapSearch[type].searchCount
 
-        userService.search(query).then (results) ->
+        userService.search(query, type).then (results) ->
             # Ignore results if a more-recent search is already displayed
             return if currentSearchId < $scope.ldapSearch[type].currentId
 

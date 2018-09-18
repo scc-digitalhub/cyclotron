@@ -60,7 +60,9 @@ cyclotronDirectives = angular.module 'cyclotronApp.directives', []
 cyclotronDataSources = angular.module 'cyclotronApp.dataSources', ['ngResource']
 cyclotronServices = angular.module 'cyclotronApp.services', ['ngResource']
 
-cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $controllerProvider, $compileProvider, $provide, uiSelectConfig) ->
+cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $controllerProvider, $compileProvider, $provide, $httpProvider, uiSelectConfig) ->
+    # Add http interceptor
+    $httpProvider.interceptors.push('authInterceptorService');
 
     # Improve performance
     $compileProvider.debugInfoEnabled false
@@ -128,6 +130,11 @@ cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $con
 
     loadExistingSessionWithoutAlerts = ['userService', (userService) ->
         userService.loadExistingSession(true)
+    ]
+
+    # Store access token
+    storeAccessToken = ['userService', (userService) ->
+        userService.storeAccessToken()
     ]
 
     #
@@ -288,6 +295,13 @@ cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $con
                 session: loadExistingSession
                 deps: lazyLoad ['/js/app.mgmt.js'], ['/css/app.mgmt.css']
         })
+        .state('authCallback', {
+            url: '/access_token=:accessToken'
+            data:
+                title: 'Cyclotron'
+            resolve:
+                token: storeAccessToken
+        })
         .state('dashboard', {
             url: '/{dashboard:.+}'
             templateUrl: '/partials/dashboard.html'
@@ -322,16 +336,19 @@ cyclotronApp.run ($rootScope, $urlRouter, $location, $state, $stateParams, $uibM
     $rootScope.analyticsEnabled = -> configService.analytics?.enable == true
 
     $rootScope.login = (isModal = false) ->
-        options =
-            templateUrl: '/partials/login.html'
-            controller: 'LoginController'
+        if configService.authentication?.authProvider == 'aac'
+            userService.aacLogin()
+        else
+            options =
+                templateUrl: '/partials/login.html'
+                controller: 'LoginController'
 
-        if isModal
-            options.backdrop = 'static'
-            options.keyboard = false
+            if isModal
+                options.backdrop = 'static'
+                options.keyboard = false
 
-        modalInstance = $uibModal.open options
-        modalInstance.result
+            modalInstance = $uibModal.open options
+            modalInstance.result
 
     $rootScope.logout = userService.logout
 

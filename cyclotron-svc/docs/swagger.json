@@ -2338,6 +2338,14 @@
                 "user": {
                     "description": "The User logged into this Session.",
                     "$ref": "#/definitions/User"
+                },
+                "type": {
+                    "description": "The type of this Session, either 'session', 'apikey' or 'token'.",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "The value used for verifying session validity, corresponding to either the Session key, the API key or the user token.",
+                    "type": "string"
                 }
             }
         },
