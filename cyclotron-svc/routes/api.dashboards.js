@@ -387,68 +387,100 @@ exports.putPostSingle = function (req, res) {
             dashboard.rev = 1;
             dashboard.createdBy = auth.getUserId(req);
 
-            /* Check that editors and viewers are valid */
-            checkEditors(dashboard.editors, req.session.user.toObject())
-            .then(function(editors){
-                checkViewers(dashboard.viewers, req.session.user.toObject())
-                .then(function(viewers){
-                    dashboard.editors = editors;
-                    dashboard.viewers = viewers;
+            /* Check that editors and viewers are valid if authentication is enabled */
+            if(req.session == null || req.session.user == null){
+                dashboard.editors = [];
+                dashboard.viewers = [];
 
-                    /* Create dashboard */
-                    Dashboards.create(dashboard, _.wrap(res, updateCallback));
+                /* Create dashboard */
+                Dashboards.create(dashboard, _.wrap(res, updateCallback));
+            } else {
+                checkEditors(dashboard.editors, req.session.user.toObject())
+                .then(function(editors){
+                    checkViewers(dashboard.viewers, req.session.user.toObject())
+                    .then(function(viewers){
+                        dashboard.editors = editors;
+                        dashboard.viewers = viewers;
+
+                        /* Create dashboard */
+                        Dashboards.create(dashboard, _.wrap(res, updateCallback));
+                    })
+                    .catch(function(err){
+                        console.log(err);
+                        res.status(500).send(err);
+                    });
                 })
                 .catch(function(err){
                     console.log(err);
                     res.status(500).send(err);
                 });
-            })
-            .catch(function(err){
-                console.log(err);
-                res.status(500).send(err);
-            });
+            }
         } else {
             if (!auth.hasEditPermission(existingDashboard, req)) {
                 return res.status(403).send('Edit Permission denied for this Dashboard.');
             }
 
-            /* Check that editors and viewers are valid */
-            checkEditors(dashboard.editors, req.session.user.toObject())
-            .then(function(editors){
-                checkViewers(dashboard.viewers, req.session.user.toObject())
-                .then(function(viewers){
-                    dashboard.editors = editors;
-                    dashboard.viewers = viewers;
+            /* Check that editors and viewers are valid if authentication is enabled */
+            if(req.session == null || req.session.user == null){
+                dashboard.editors = [];
+                dashboard.viewers = [];
 
-                    /* Update dashboard */
-                    //NOTE: added {new: true} to return the updated document (not used in the client, may be used by other clients)
-                    Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
-                        $set: {
-                            date: dashboard.date,
-                            dashboard: dashboard.dashboard,
-                            tags: dashboard.tags,
-                            description: dashboard.description,
-                            lastUpdatedBy: dashboard.lastUpdatedBy,
-                            deleted: dashboard.deleted,
-                            editors: dashboard.editors,
-                            viewers: dashboard.viewers
-                        },
-                        $inc: { rev: 1 }
-                    }, {
-                        new: true
+                /* Update dashboard */
+                Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
+                    $set: {
+                        date: dashboard.date,
+                        dashboard: dashboard.dashboard,
+                        tags: dashboard.tags,
+                        description: dashboard.description,
+                        lastUpdatedBy: dashboard.lastUpdatedBy,
+                        deleted: dashboard.deleted,
+                        editors: dashboard.editors,
+                        viewers: dashboard.viewers
+                    },
+                    $inc: { rev: 1 }
+                }, {
+                    new: true
+                })
+                .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
+                .exec(_.wrap(res, updateCallback));
+            } else {
+                checkEditors(dashboard.editors, req.session.user.toObject())
+                .then(function(editors){
+                    checkViewers(dashboard.viewers, req.session.user.toObject())
+                    .then(function(viewers){
+                        dashboard.editors = editors;
+                        dashboard.viewers = viewers;
+
+                        /* Update dashboard */
+                        //NOTE: added {new: true} to return the updated document (not used in the client, may be used by other clients)
+                        Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
+                            $set: {
+                                date: dashboard.date,
+                                dashboard: dashboard.dashboard,
+                                tags: dashboard.tags,
+                                description: dashboard.description,
+                                lastUpdatedBy: dashboard.lastUpdatedBy,
+                                deleted: dashboard.deleted,
+                                editors: dashboard.editors,
+                                viewers: dashboard.viewers
+                            },
+                            $inc: { rev: 1 }
+                        }, {
+                            new: true
+                        })
+                        .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
+                        .exec(_.wrap(res, updateCallback));
                     })
-                    .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
-                    .exec(_.wrap(res, updateCallback));
+                    .catch(function(err){
+                        console.log(err);
+                        res.status(500).send(err);
+                    });
                 })
                 .catch(function(err){
                     console.log(err);
                     res.status(500).send(err);
                 });
-            })
-            .catch(function(err){
-                console.log(err);
-                res.status(500).send(err);
-            });
+            }
         }
     });
 };
