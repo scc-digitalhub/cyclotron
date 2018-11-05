@@ -1,0 +1,94 @@
+# SERVER ENDPOINT
+server:
+  host: localhost:8080
+  contextPath: /aac
+
+# APPLICATION EXTERNAL URL
+application:
+  url: http://localhost:8080/aac
+
+# DB CONFIGURATION
+jdbc:
+  dialect: org.hibernate.dialect.MySQLDialect
+  driver: com.mysql.jdbc.Driver
+  url: jdbc:mysql://mysql:3306/aac?autoReconnect=true&amp;useSSL=false
+  user: ac
+  password: ac
+
+# OAUTH2 INTEGRATIONS 
+oauth-providers:
+  providers:
+    - provider: facebook
+      client:
+        clientId: YOUR_FACEBOOK_CLIENT_ID
+        clientSecret: YOUR_FACEBOOK_CLIENT_SECRET
+        accessTokenUri: https://graph.facebook.com/oauth/access_token
+        userAuthorizationUri: https://www.facebook.com/dialog/oauth
+        preEstablishedRedirectUri: ${application.url}/auth/facebook-oauth/callback
+        useCurrentUri: false
+        tokenName: oauth_token
+        authenticationScheme: query
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile    
+    - provider: google
+      client:
+        clientId: YOUR_GOOGLE_CLIENT_ID
+        clientSecret: YOUR_GOOGLE_CLIENT_SECRET
+        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
+        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
+        preEstablishedRedirectUri: ${application.url}/auth/google-oauth/callback
+        useCurrentUri: false
+        clientAuthenticationScheme: form
+        scope:
+            - openid
+            - email
+            - profile
+      resource:        
+        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        preferTokenInfo: true        
+
+# AAC ADMIN USER PASSWORD
+admin:
+  password: admin
+  contexts: apimanager, authorization, components
+  contextSpaces: apimanager/carbon.super  
+
+# EMAIL SERVER FOR NOTIFICATIONS
+mail:
+  username: alert@smartcommunitylab.it
+  password: 1q2w3e4r
+  host: smtp.smartcommunitylab.it
+  port: 465
+  protocol: smtps
+
+# SECURITY PROPERTIES
+security:
+  rememberme: 
+    key: REMEMBER_ME_SECRET_KEY
+  identity: # IDENTITY MAPPING SOURCE FILE
+    source: file:///path/to/identities.txt
+
+# API-MANAGEMENT PROPERTIES
+api:
+  contextSpace: apimanager
+  adminClient:
+    id: API_MGT_CLIENT_ID
+    secret: YOUR_API_MNGMT_CLIENT_SECRET
+  internalUrl: http://localhost:8080/aac  
+  store:
+    endpoint: https://api-manager:9443/api/am/store/v0.11
+  publisher:
+    endpoint: https://api-manager:9443/api/am/publisher/v0.11
+  identity:
+    endpoint: https://api-manager:9443/services/IdentityApplicationManagementService
+    password: admin    
+  usermgmt:
+    endpoint: https://api-manager:9443/services/RemoteUserStoreManagerService
+    password: admin    
+  multitenancy:
+    endpoint: https://api-manager:9443/services/TenantMgtAdminService
+    password: admin      
+    

@@ -1,0 +1,54 @@
+version: '2.3'
+services:
+  mysql:
+    image: mysql:5.7.24
+    ports:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./conf/mysql:/docker-entrypoint-initdb.d
+    command: [--ssl=0]
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+  mongodb:
+    image: mongo:3.6.8-stretch
+    volumes:
+      - /data/db
+    ports:
+      - 27017
+  aac:
+    image: aac
+    volumes:
+      - ./conf/aac/application-local.yml:/home/aac/aac/src/main/resources/application-local.yml
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "http://localhost:8080/aac/login"]
+      interval: 10s
+      timeout: 180s
+      retries: 15
+    depends_on:
+      mysql:
+        condition: service_healthy
+    links:
+      - mysql
+  cyclotron:
+    image: cyclotron
+    links:
+      - mongodb
+    volumes:
+      - ./conf/cyclotron/config.js:/home/node/cyclotron-svc/config/config.js
+      - ./supervisord.conf:/home/node/supervisord.conf
+
+    ports:
+      - "8077:8077"
+      - "777:777"
+      - "80:80"
+      - "8088:8088"
+    depends_on:
+      - mongodb
+
