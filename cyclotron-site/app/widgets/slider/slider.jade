@@ -6,6 +6,6 @@
         span.fa.player(ng-if='!widgetContext.dataSourceError && widget.player && widget.player.showPlayer', ng-class="{ 'fa-play-circle': !playing, 'fa-pause-circle': playing }", ng-click='playPause()')
         .slider(ng-if='!widgetContext.dataSourceError', sliderconfig='sliderconfig',
             ng-model='currentSliderVal', current-date-time='currentDateTime',
-            startdatetime='startdatetime', timeunit='timeunit',
+            two-handles='twoHandles', startdatetime='startdatetime', enddatetime='enddatetime', timeunit='timeunit',
             momentformat='momentFormat', params-generated='paramsGenerated'
             source-of-params='sourceOfParams')

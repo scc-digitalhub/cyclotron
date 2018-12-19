@@ -5,9 +5,11 @@ cyclotronDirectives.directive 'slider', ($window, configService, parameterPropag
         scope:
             sliderconfig: '='
             startdatetime: '='
+            enddatetime: '='
             timeunit: '='
             ngModel: '='
             currentDateTime: '='
+            twoHandles: '='
             momentformat: '='
             paramsGenerated: '='
             sourceOfParams: '='
@@ -19,20 +21,33 @@ cyclotronDirectives.directive 'slider', ($window, configService, parameterPropag
                 try
                     if sliderCreated == false
                         noUiSlider.create sliderElement, scope.sliderconfig
-                        #store current value in the scope
-                        scope.currentDateTime.value = moment(scope.startdatetime).format scope.momentformat
-                        
-                        sliderElement.noUiSlider.on('set', (values, handle) ->
-                            newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format scope.momentformat
-                            if _.isEqual(newDateTime, scope.currentDateTime.value)
-                                #slider has just been created or parameter was set in updateOnPlay()
+
+                        if scope.twoHandles
+                            scope.currentDateTime.value = [moment(scope.startdatetime).format(scope.momentformat), moment(scope.enddatetime).format(scope.momentformat)]
+
+                            sliderElement.noUiSlider.on('set', (values, handle) ->
+                                newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format scope.momentformat
+                                console.log 'new date on handle', handle, newDateTime
+
+                                if not _.isEqual(newDateTime, scope.currentDateTime.value[handle])
+                                    scope.currentDateTime.value[handle] = newDateTime
+                                
+                                if scope.sourceOfParams
+                                    sections = ['first', 'second']
+                                    parameterPropagationService.parameterBroadcaster (scope.$parent.widget.widget + scope.$parent.randomId), 'dateTimeChange', scope.currentDateTime.value[handle], sections[handle]
+                            )
+                        else
+                            #store current value in the scope
+                            scope.currentDateTime.value = moment(scope.startdatetime).format scope.momentformat
+                            
+                            sliderElement.noUiSlider.on('set', (values, handle) ->
+                                newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format scope.momentformat
+                                if not _.isEqual(newDateTime, scope.currentDateTime.value)
+                                    scope.currentDateTime.value = newDateTime
+                                
                                 if scope.sourceOfParams
                                     parameterPropagationService.parameterBroadcaster (scope.$parent.widget.widget + scope.$parent.randomId), 'dateTimeChange', scope.currentDateTime.value
-                            else
-                                scope.currentDateTime.value = newDateTime
-                                if scope.sourceOfParams
-                                    parameterPropagationService.parameterBroadcaster (scope.$parent.widget.widget + scope.$parent.randomId), 'dateTimeChange', scope.currentDateTime.value
-                        )
+                            )
                         sliderCreated = true
                 catch e
                     console.log(e)
@@ -53,7 +68,6 @@ cyclotronDirectives.directive 'slider', ($window, configService, parameterPropag
                 $(window).off 'resize', resizeFunction
                 sliderElement.noUiSlider.destroy()
                 sliderCreated = false
-                delete $window.Cyclotron.parameters['currentDateTime'] #necessary?
             
             return
     }

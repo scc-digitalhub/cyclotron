@@ -15,6 +15,9 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterP
                 _.isEmpty(widget.minValue) or _.isEmpty(widget.maxValue)
             $scope.widgetContext.dataSourceError = true
             $scope.widgetContext.dataSourceErrorMessage = 'Minimum or maximum values are missing'
+        else if widget.twoHandles and widget.player? and widget.player.showPlayer
+            $scope.widgetContext.dataSourceError = true
+            $scope.widgetContext.dataSourceErrorMessage = 'Slider cannot have both two handles and automatic sliding'
         else
             # Read configuration
             $scope.momentFormat = if widget.momentFormat? then widget.momentFormat else 'YYYY-MM-DD HH:mm'
@@ -22,12 +25,32 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterP
             minDateMillis = moment(widget.minValue, $scope.momentFormat).toDate().getTime()
             maxVal = moment(widget.maxValue, $scope.momentFormat).diff minDateMillis, timeUnit
             step = if widget.step? then parseInt(widget.step, 10) else 1
+
             interval = if widget.player? and widget.player.showPlayer
                 if widget.player.interval then parseInt(widget.player.interval, 10) * 1000 else 1000
             else undefined
+
             $scope.playing = false
-            $scope.currentSliderVal = 0
+            $scope.twoHandles = widget.twoHandles
             $scope.currentDateTime = {value: ''}
+
+            $scope.currentSliderVal = if widget.handlePosition? and widget.handlePosition.length > 0
+                evaluatedString = _.jsExec(widget.handlePosition)
+                pos = evaluatedString.split(',', 2)
+                if pos.length == 2 and widget.twoHandles
+                    #set position of the two handles
+                    firstHandle = moment(pos[0], $scope.momentFormat).diff(minDateMillis, timeUnit)
+                    secondHandle = moment(pos[1], $scope.momentFormat).diff(minDateMillis, timeUnit)
+                    [firstHandle, secondHandle]
+                else if pos.length == 1 and not widget.twoHandles
+                    #set position of the single handle
+                    moment(pos[0], $scope.momentFormat).diff(minDateMillis, timeUnit)
+                else
+                    $scope.widgetContext.dataSourceError = true
+                    $scope.widgetContext.dataSourceErrorMessage = 'Initial Handle Position must indicate one date-time for each handle'
+            else if widget.twoHandles
+                [0, maxVal]
+            else 0
             
             # Formatter
             formatter =
@@ -38,14 +61,16 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterP
 
             # Create slider configuration
             $scope.sliderconfig =
-                start: $scope.currentSliderVal
+                start: $scope.currentSliderVal #[handle1start, handle2start,...]
                 range:
                     'min': 0
                     'max': maxVal
                 step: step
                 direction: widget.direction
                 orientation: widget.orientation
-                tooltips: if widget.tooltips then formatter else false
+                tooltips: if widget.tooltips then (if widget.twoHandles then [formatter, formatter] else formatter) else false
+            
+            if widget.twoHandles then $scope.sliderconfig.connect = true #shows connection bar between handles
             
             # Configure slider pips
             if widget.pips?
@@ -65,6 +90,7 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterP
             
             # Put current time on scope
             $scope.startdatetime = minDateMillis
+            $scope.enddatetime = moment(widget.maxValue, $scope.momentFormat).toDate().getTime()
             $scope.timeunit = timeUnit
 
             # Function triggered by play/pause button
