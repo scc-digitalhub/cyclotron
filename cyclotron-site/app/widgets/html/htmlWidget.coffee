@@ -29,8 +29,10 @@
 # Title is optional, but can be used to give the same style title as other widgets.
 
 cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataService, parameterPropagationService) ->
+    firstLoad = true
     #check parameters
     $scope.randomId = '' + Math.floor(Math.random()*1000)
+    parameterPropagationService.checkParameterSubscription $scope
     parameterPropagationService.checkGenericParams $scope
 
     if $scope.genericEventHandlers?.widgetSelection?
@@ -38,19 +40,28 @@ cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataS
         jqueryElem = $($element).closest('.dashboard-widget')
         handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
-    $scope.htmlStrings = []
 
-    if $scope.widget.preHtml?
-        $scope.preHtml = _.jsExec $scope.widget.preHtml
+    #substitute any parameter placeholders in the configuration
+    widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
 
-    if $scope.widget.postHtml?
-        $scope.postHtml = _.jsExec $scope.widget.postHtml
+    prepareHtml = () ->
+        $scope.htmlStrings = []
+
+        if widgetWithoutPlaceholders.preHtml?
+            $scope.preHtml = _.jsExec widgetWithoutPlaceholders.preHtml
+
+        if widgetWithoutPlaceholders.postHtml?
+            $scope.postHtml = _.jsExec widgetWithoutPlaceholders.postHtml
+        
+        console.log 'html prepared'
+    
+    prepareHtml()
 
     $scope.reload = ->
         $scope.dataSource.execute(true)
 
     # Load Data Source
-    dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
+    dsDefinition = dashboardService.getDataSource $scope.dashboard, widgetWithoutPlaceholders
     $scope.dataSource = dataService.get dsDefinition
     
     # Initialize
@@ -77,7 +88,7 @@ cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataS
                 _.each dataCopy, (row, index) -> row.__index = index
 
                 # Compile HTML template with rows
-                $scope.htmlStrings = _.map dataCopy, _.partial(_.compile, $scope.widget.html)
+                $scope.htmlStrings = _.map dataCopy, _.partial(_.compile, widgetWithoutPlaceholders.html)
 
                 if $scope.preHtml?
                     $scope.htmlStrings.unshift $scope.preHtml
@@ -105,8 +116,18 @@ cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataS
         # Override the widget feature of exporting data, since there is no data
         $scope.widgetContext.allowExport = false
 
-        # Check for hardcoded HTML
-        if $scope.widget.html?
-            $scope.htmlStrings.push $scope.preHtml if $scope.preHtml?
-            $scope.htmlStrings.push _.jsExec $scope.widget.html
-            $scope.htmlStrings.push $scope.postHtml if $scope.postHtml?
+        $scope.loadWidget = ->
+            #update configuration with new parameter values
+            if not firstLoad
+                widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+                prepareHtml()
+
+            # Check for hardcoded HTML
+            if widgetWithoutPlaceholders.html?
+                $scope.htmlStrings.push $scope.preHtml if $scope.preHtml?
+                $scope.htmlStrings.push _.jsExec widgetWithoutPlaceholders.html
+                $scope.htmlStrings.push $scope.postHtml if $scope.postHtml?
+            
+            firstLoad = false
+        
+        $scope.loadWidget()

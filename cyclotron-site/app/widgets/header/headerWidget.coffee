@@ -76,8 +76,8 @@ cyclotronApp.controller 'HeaderWidget', ($scope, $sce, $element, configService, 
     
     $scope.loadWidget()
     ###
-    Since header widget updates parameters, although non-automatically, that might be used by parametric elements,
-    broadcast parameter change in updateButtonClick() (for all $scope.parameters) and in directive's updateParameter().
+    Since header widget updates parameters, although non-automatically, which might be used by parametric elements,
+    parameter change is broadcasted in updateButtonClick() (for all $scope.parameters) and in directive's updateParameter().
 
     TODO: add option "notify widgets of parameter changes" in the configuration and broadcast only if true
     ###

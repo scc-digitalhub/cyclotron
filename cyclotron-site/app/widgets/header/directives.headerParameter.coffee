@@ -63,7 +63,20 @@ cyclotronDirectives.directive 'headerParameter', ($window, dashboardService, dat
                     else 
                         $scope.parameter.datetimeOptions.datetimeFormat = 'HH:mm'
 
+                when 'autocomplete'
+                    #$scope.parameter.label = '' #previously used as ngModel
+                    if ($scope.parameterDefinition.editing?.minCharNumber? and parseInt($scope.parameterDefinition.editing.minCharNumber) >= 0)
+                        $scope.minCharNumber = parseInt($scope.parameterDefinition.editing.minCharNumber)
+                    else
+                        $scope.minCharNumber = 1
+
+            $scope.onSelect = ($item, $model, $label) ->
+                $scope.parameter.value = $item #originally $scope.parameter.value = $item.value
+                console.log 'selected value:', $scope.parameter.value
+                $scope.updateParameter()
+
             $scope.selectValue = (value) ->
+                console.log 'value selected:', value, 'model:', $scope.radioModel
                 $scope.parameter.value = value
                 $scope.updateParameter()
 

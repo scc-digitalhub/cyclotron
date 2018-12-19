@@ -1,4 +1,9 @@
 .parameter(ng-switch='parameter.editorType')
+    div(ng-switch-when='autocomplete')
+        label {{ parameter.displayName }}: 
+            input(type='text', ng-model='parameter.value.name', typeahead-on-select='onSelect($item, $model, $label)',
+            uib-typeahead='item.name for item in dataSourceData | filter:{name:$viewValue}', typeahead-min-length='minCharNumber')
+            i.fa.fa-cog.fa-spin(ng-show='loading')
     div(ng-switch-when='dropdown')
         label {{ parameter.displayName }}: 
             select(ng-hide='loading', ng-model='parameter.value', ng-change='updateParameter()', ng-options='item.value as item.name for item in dataSourceData')
@@ -6,6 +11,11 @@
     div.links(ng-switch-when='links')
         label {{ parameter.displayName }}: 
         a.btn.btn-link(ng-hide='loading', ng-repeat='item in dataSourceData', ng-click='selectValue(item.value)', ng-class='{selected: parameter.value == item.value}') {{ item.name }}
+        i.fa.fa-cog.fa-spin(ng-show='loading')
+    div(ng-switch-when='radiobuttons')
+        label {{ parameter.displayName }}: 
+        div.btn-group
+            label.btn.btn-default(ng-repeat='item in dataSourceData', ng-model='parameter.value', uib-btn-radio='item.value', ng-click='updateParameter()') {{ item.name }}
         i.fa.fa-cog.fa-spin(ng-show='loading')
     div(ng-switch-when='checkbox')
         label 
