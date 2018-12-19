@@ -17,7 +17,7 @@
 #
 # Home controller.
 #
-cyclotronApp.controller 'DashboardController', ($scope, $stateParams, $localForage, $location, $timeout, $window, $q, $uibModal, analyticsService, configService, cyclotronDataService, dashboardOverridesService, dashboardService, dataService, downloadService, loadService, logService, parameterService, userService) ->
+cyclotronApp.controller 'DashboardController', ($scope, $stateParams, $localForage, $location, $timeout, $window, $q, $uibModal, analyticsService, configService, cyclotronDataService, dashboardOverridesService, dashboardService, dataService, downloadService, loadService, logService, parameterService, userService, parameterPropagationService) ->
 
     preloadTimer = null
     rotateTimer = null
@@ -56,6 +56,9 @@ cyclotronApp.controller 'DashboardController', ($scope, $stateParams, $localFora
 
             recordEvent: (eventData) ->
                 analyticsService.recordEvent 'custom', eventData
+            
+            updateParameterAndBroadcast: (parameterName, newValue) ->
+                parameterPropagationService.apiBroadcaster parameterName, newValue
 
         parameters: _.clone $location.search()
         data: cyclotronDataService

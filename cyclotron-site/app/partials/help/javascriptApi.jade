@@ -57,6 +57,9 @@ table
     tr
         td Cyclotron.functions.recordEvent(eventData)
         td Records a custom Dashboard event to Cyclotron's analytics database (if enabled). An object of custom key/value pairs can be provided, which are attached to the event. This function can be used to implement custom click tracking, error logging, etc.
+    tr
+        td Cyclotron.functions.updateParameterAndBroadcast(parameterName, newValue)
+        td Updates the value of a parameter and broadcasts the change, so that Widgets or Data Sources subscribed to it are notified. This function can be used when a parameter is not updated automatically by a particular Widget, e.g. inside any JavaScript code.
 
 h4 Built-In Parameters
 

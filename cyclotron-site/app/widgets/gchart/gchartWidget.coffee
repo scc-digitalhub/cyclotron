@@ -7,8 +7,6 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
         jqueryElem = $($element).closest('.dashboard-widget')
         handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
-    options = if $scope.widget.options? then _.jsEval($scope.widget.options) else null
-
     currentChart = null
 
     dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
@@ -31,6 +29,8 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
             data = $scope.filterAndSortWidgetData(data)
 
             if _.isEmpty(data) then $scope.widgetContext.nodata = 'No data to display'
+
+            options = if $scope.widget.options? then _.jsEval(_.jsExec($scope.widget.options)) else null
             
             if $scope.widget.chartType?
                 columns = []
@@ -45,15 +45,15 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
 
                 if $scope.widget.columns? and not _.isEmpty($scope.widget.columns)
                     for col in $scope.widget.columns
-                        if col? and col.type?
+                        if col? and col.type? and col.name?
                             column = {type: col.type}
-                            if col.name? then column.label = col.name
+                            if col.role? then column.p = {role: col.role} else column.label = col.name
                             columns.push column
                         else
                             $scope.widgetContext.dataSourceError = true
                             $scope.widgetContext.dataSourceErrorMessage = 'Columns must have name and type specified'
                 else
-                    #infer column labels from the first row and assign string as type
+                    #infer column labels and types from the first row
                     for key of data[0]
                         if _.isBoolean(data[0][key]) then columns.push {type: 'boolean', label: key}
                         else if data[0][key] == parseInt(data[0][key]) or data[0][key] == parseFloat(data[0][key])

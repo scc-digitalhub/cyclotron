@@ -538,6 +538,13 @@ cyclotronServices.factory 'commonConfigService', ->
                                     defaultHidden: true
                                     default: []
                                     order: 127
+                                container:
+                                    label: 'Container'
+                                    description: 'Name of the Container Widget that should contain this widget'
+                                    type: 'string'
+                                    inlineJs: true
+                                    defaultHidden: true
+                                    order: 128
                             order: 3
                         duration:
                             label: 'Auto-Rotate Duration (seconds)'
@@ -1617,10 +1624,14 @@ cyclotronServices.factory 'commonConfigService', ->
                                             value: 'textbox'
                                         dropdown:
                                             value: 'dropdown'
+                                        autocomplete:
+                                            value: 'autocomplete'
                                         links:
                                             value: 'links'
                                         checkbox:
                                             value: 'checkbox'
+                                        radiobuttons:
+                                            value: 'radiobuttons'
                                         datetime:
                                             value: 'datetime'
                                         date:
@@ -1643,6 +1654,14 @@ cyclotronServices.factory 'commonConfigService', ->
                                     placeholder: 'Format'
                                     defaultHidden: true
                                     order: 5
+                                minCharNumber:
+                                    label: 'Minimal Number of Characters'
+                                    description: 'Minimal number of characters typed before autocomplete activates. Must be greather than or equal to 0. Defaults to 1.'
+                                    type: 'integer'
+                                    required: false
+                                    default: 1
+                                    defaultHidden: true
+                                    order: 6
                     sample:
                         name: ''
                         defaultValue: ''
@@ -3275,14 +3294,14 @@ cyclotronServices.factory 'commonConfigService', ->
                     options:
                         label: 'Options'
                         description: 'JSON object with configuration options for the chart.'
-                        type: 'json'
-                        inlineJs: true
+                        type: 'editor'
+                        editorMode: 'javascript'
                         required: false
                         order: 12
                     columns:
                         label: 'Columns'
                         singleLabel: 'column'
-                        description: 'Array of columns of the table-like dataset. If not provided, the column labels will be inferred from the keys of the first dataset object. Note that this property must be used if some columns contain dates, times or datetimes.'
+                        description: 'Array of columns of the table-like dataset. If not provided, the column labels will be inferred from the keys of the first dataset object. Note that this property must be used if some columns contain dates, times or datetimes or if the column role should differ from "data" (e.g. for annotations; see https://developers.google.com/chart/interactive/docs/roles).'
                         type: 'propertyset[]'
                         inlineJs: true
                         required: false
@@ -3312,6 +3331,16 @@ cyclotronServices.factory 'commonConfigService', ->
                                     timeofday:
                                         value: 'timeofday'
                                 order: 2
+                            role:
+                                label: 'Role'
+                                description: 'Optional role of the column. If omitted, "data" will be assigned. Note that columns with role "annotation" must immediately follow the series column that should be annotated, and columns with role "annotationText" must follow the annotated column.'
+                                type: 'string'
+                                options:
+                                    annotation:
+                                        value: 'annotation'
+                                    annotationText:
+                                        value: 'annotationText'
+                                order: 3
                         order: 13
                     formatters:
                         label: 'Formatters'
@@ -4118,7 +4147,7 @@ cyclotronServices.factory 'commonConfigService', ->
                         order: 16
                     dataSourceMapping:
                         label: 'DataSource Mapping'
-                        description: 'Overlay properties must be mapped to datasource fields. The datasource is required to have at least fields for group ID, CSS class and the list of overlays.'
+                        description: 'Overlay properties must be mapped to datasource fields. The datasource is required to have at least fields for CSS class and the list of overlays.'
                         type: 'propertyset'
                         defaultHidden: true
                         properties:
@@ -4133,6 +4162,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 description: 'Optional datasource field with the ID of the overlay that will be assigned the CSS class on selection when the page is loaded. If not provided, all overlays will have the regular CSS class until one is clicked.'
                                 type: 'string'
                                 required: false
+                                defaultHidden: true
                                 order: 2
                             overlayListField:
                                 label: 'Overlay List Field'
@@ -4151,6 +4181,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 description: 'Optional datasource field with the CSS class for each overlay after it has been clicked. It must be the name of a CSS class defined in the Styles section of the editor.'
                                 type: 'string'
                                 required: false
+                                defaultHidden: true
                                 order: 5
                             overlayIdField:
                                 label: 'Overlay Identifier Field'
@@ -4169,24 +4200,28 @@ cyclotronServices.factory 'commonConfigService', ->
                                 description: 'Datasource field with X coordinate for each overlay in the group list.'
                                 type: 'string'
                                 required: false
+                                defaultHidden: true
                                 order: 8
                             yField:
                                 label: 'Y Coordinate Field'
                                 description: 'Datasource field with Y coordinate for each overlay in the group list.'
                                 type: 'string'
                                 required: false
+                                defaultHidden: true
                                 order: 9
                             positioningField:
                                 label: 'Positioning Field'
                                 description: 'Datasource field with the positioning (e.g. "center-center") of each overlay.'
                                 type: 'string'
                                 required: false
+                                defaultHidden: true
                                 order: 10
                             templateField:
                                 label: 'Template Field'
                                 description: 'Datasource field with the HTML template for the content of each overlay.'
                                 type: 'string'
                                 required: false
+                                defaultHidden: true
                                 order: 11
                         order: 14
                     specificEvents:
@@ -4210,10 +4245,12 @@ cyclotronServices.factory 'commonConfigService', ->
                                 options:
                                     clickOnOverlay:
                                         value: 'clickOnOverlay'
+                                    clickOnWMSLayer:
+                                        value: 'clickOnWMSLayer'
                                 order: 2
                             section:
                                 label: 'Section'
-                                description: 'Name of the overlay group that triggers the event. If the event is triggered by the map itself, you can leave this option empty. Some widgets (e.g. slider) have one section only, therefore Section option is not required, while others may have some sections that trigger the same kind of event (e.g. in OpenLayers maps, all overlay groups can trigger clickOnOverlay event).'
+                                description: 'Name of the overlay group that triggers the event, for the event "clickOnOverlay". For other events, you can leave this option empty. Some widgets (e.g. slider) have one section only, i.e. the whole widget triggers the event, while others may have some sections that trigger the same kind of event (e.g. in OpenLayers maps, any overlay group can trigger clickOnOverlay event).'
                                 type: 'string'
                                 required: false
                                 order: 3
@@ -4454,6 +4491,21 @@ cyclotronServices.factory 'commonConfigService', ->
                         defaultHidden: true
                         default: false
                         order: 19
+                    twoHandles:
+                        label: 'Show Two Handles'
+                        description: 'Show two handles instead of one (default is false). In this case automatic sliding cannot be used. The handles will be placed at the first and last steps unless you specify a different position with Initial Handle Position.'
+                        type: 'boolean'
+                        required: false
+                        defaultHidden: true
+                        default: false
+                        order: 20
+                    handlePosition:
+                        label: 'Initial Handle Position'
+                        description: 'Initial position of the handle, as a date-time in the same format used for Minimum and Maximum date-time. If the slider has two handles, enter two comma-separated date-times. Inline JavaScript can also be used, e.g. "${Cyclotron.parameters.handlePos}". By default the handle(s) will be positioned at the first (and last) value.'
+                        type: 'string'
+                        required: false
+                        defaultHidden: true
+                        order: 21
                     specificEvents:
                         label: 'Specific Events'
                         singleLabel: 'param-event'
@@ -4476,7 +4528,19 @@ cyclotronServices.factory 'commonConfigService', ->
                                     dateTimeChange:
                                         value: 'dateTimeChange'
                                 order: 2
-                        order: 20
+                            section:
+                                label: 'Section'
+                                description: 'Specify which handle generates this event. If the slider has only one handle, you can leave this option empty.'
+                                type: 'string'
+                                default: 'first'
+                                required: false
+                                options:
+                                    firstHandle:
+                                        value: 'first'
+                                    secondHandle:
+                                        value: 'second'
+                                order: 3
+                        order: 22
 
             stoplight:
                 name: 'stoplight'
@@ -4970,6 +5034,22 @@ cyclotronServices.factory 'commonConfigService', ->
                         required: false
                         defaultHidden: true
                         order: 20
+
+            widgetContainer:
+                name: 'widgetContainer'
+                label: 'Widget Container'
+                icon: 'fa-desktop'
+                properties: {}
+                    ###widgets:
+                        label: 'Widgets'
+                        singleLabel: 'widget'
+                        description: 'An array of one or more names of Widgets.'
+                        type: 'string[]'
+                        inlineJs: true
+                        required: true
+                        default: []
+                        order: 10
+                    ###
 
             youtube:
                 name: 'youtube'
