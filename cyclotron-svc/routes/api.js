@@ -26,7 +26,8 @@ var auth = require('./auth.js'),
     proxy = require('./api.proxy.js'),
     revisions = require('./api.revisions.js'),
     tags = require('./api.tags.js'),
-    users = require('./api.users.js');
+    users = require('./api.users.js'),
+    wms = require('./api.wms.js');
 
 var notAllowed = function (req, res) {
     res.status(405).send('Not Allowed');
@@ -135,6 +136,8 @@ exports.bindRoutes = function (app) {
     app.get('/crypto/ciphers', crypto.ciphers); //returns ciphers used by crypto algorithms (never used in client)
     app.post('/crypto/encrypt', crypto.encrypt); //encrypts a string (can be used for some datasource properties)
     app.all('/crypto/*', notAllowed);
+
+    app.post('/wms', wms.getFeatureInfo);
 
     /* Enable analytics via Config */
     if (config.analytics && config.analytics.enable == true) {

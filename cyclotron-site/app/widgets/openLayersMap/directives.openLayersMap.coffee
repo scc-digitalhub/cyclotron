@@ -1,15 +1,17 @@
 #
-cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterPropagationService) ->
+cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterPropagationService, openLayersService, logService) ->
     {
         restrict: 'C'
         scope:
             mapConfig: '='
             layerOptions: '='
             sourceOfParams: '='
+            wmsSections: '='
             widgetId: '='
             controlOptions: '='
             genericEventHandlers: '='
             widgetName: '='
+            reloadCounter: '='
         
         link: (scope, element, attrs) ->
             map = null
@@ -77,6 +79,31 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         view: mapView
                         controls: []
                     })
+
+                    if scope.wmsSections?
+                        #Since the function map.forEachLayerAtPixel produces a CORS error for ImageWMS layers, instead of using it to
+                        #find which layer was clicked, feature info is retrieved for each layer whose source is of type ImageWMS
+                        map.on 'singleclick', (event) ->
+                            console.log 'handling singleclick'
+                            _.each mapLayers, (layer) ->
+                                source = layer.getSource()
+                                if source instanceof ol.source.ImageWMS
+                                    _.each scope.wmsSections, (section) ->
+                                        #retrieve param LAYERS from source
+                                        sourceLayers = source.getParams().LAYERS
+
+                                        #check if it includes section
+                                        if sourceLayers.includes section
+                                            successCallback = (featureInfo) ->
+                                                #if there is some feature, store feature info in the parameter
+                                                console.log 'features?', featureInfo.features
+                                                if featureInfo.features?.length > 0
+                                                    parameterPropagationService.parameterBroadcaster scope.widgetId, 'clickOnWMSLayer', featureInfo, section
+                                            
+                                            #call getFeatureInfoJson
+                                            openLayersService.getFeatureInfoJson(source, section, event.coordinate, mapView.getResolution(), mapView.getProjection()).then(successCallback)
+                                            .catch (error) ->
+                                                logService.error 'An error occurred while retrieving feature info: ' + error + '. Dashboard configuration may be incorrect.'
                     
                     #if there are overlays, create them and add them to the map
                     if scope.mapConfig.overlays? and scope.mapConfig.overlays.length > 0
@@ -137,6 +164,32 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                 else
                     currentMapConfig = _.cloneDeep mapConfig
                     createMap()
+            , true)
+
+            scope.$watch('reloadCounter', (reloadCounter, oldReloadCounter) ->
+                console.log 'reloadCounter updated', reloadCounter, oldReloadCounter
+                if map? and reloadCounter > 0
+                    console.log 'refreshing map'
+                    zoom = map.getView().getZoom()
+                    map.getView().setZoom(zoom - 1)
+                    map.getView().setZoom(zoom)
+                    ###
+                    $timeout ->
+                        _.each map.getLayers(), (oldLayer) ->
+                            map.removeLayer oldLayer
+
+                        mapLayers = []
+                        _.each scope.mapConfig.layersToAdd, (layer) ->
+                            options = scope.layerOptions[layer.type]
+                            layerConfig = {}
+                            if layer.source?
+                                configObj = if layer.source.configuration? then _.jsEval(_.jsExec layer.source.configuration) else {}
+                                layerConfig.source = new options.sources[layer.source.name].srcClass(configObj)
+                            mapLayers.push new options.olClass(layerConfig)
+                        map.set 'layers', mapLayers
+
+                        console.log 'end of timeout'
+                    ###
             , true)
             
             # Update on window resizing

@@ -47,6 +47,14 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                     scope.widgetContext.dataSourceErrorMessage = 'Parameter '+param_event.paramName+' not found among dashboard parameters'
                 else
                     scope.sourceOfParams = true
+                    if param_event.event == 'clickOnWMSLayer'
+                        if not scope.wmsSections then scope.wmsSections = []
+                        if param_event.section?
+                            scope.wmsSections.push(param_event.section)
+                        else
+                            scope.widgetContext.dataSourceError = true
+                            scope.widgetContext.dataSourceErrorMessage = 'clickOnWMSLayer events must have property Section'
+                    
                     widget = scope.widget.widget + scope.randomId
                     section = if param_event.section? then param_event.section else if optSection? then optSection else widget
                     if not _widgetEvents[widget] then _widgetEvents[widget] = {}
@@ -138,7 +146,6 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
 
             if changed
                 #notify widgets
-                console.log 'broadcasting', paramName
                 logService.debug 'Broadcasting: '+paramName+':update'
                 $rootScope.$broadcast('parameter:'+paramName+':update', {})
 
@@ -146,6 +153,19 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                 if _dsSubscriptions[paramName]?
                     for ds in _dsSubscriptions[paramName]
                         $window.Cyclotron.dataSources[ds].execute(true)
+    
+    #broadcast parameter change, widget-independent
+    apiBroadcaster = (paramName, value) ->
+        changed = _setParameterValue paramName, value
+        if changed
+            #notify widgets
+            logService.debug 'Broadcasting: '+paramName+':update'
+            $rootScope.$broadcast('parameter:'+paramName+':update', {})
+
+            #re-execute datasources
+            if _dsSubscriptions[paramName]?
+                for ds in _dsSubscriptions[paramName]
+                    $window.Cyclotron.dataSources[ds].execute(true)
     
     _traverseObject = (obj, keys, operation) ->
         for key in keys
@@ -160,7 +180,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
         clone = _.cloneDeep scope.widget
         #check that parameters the widget is subscribed to have a value
         for param in _subscriptions[scope.widget.widget+scope.randomId]
-            if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
+            if not $window.Cyclotron.parameters[param]? or (isNaN($window.Cyclotron.parameters[param]) and _.isEmpty($window.Cyclotron.parameters[param]))
                 scope.widgetContext.dataSourceError = true
                 scope.widgetContext.dataSourceErrorMessage = 'You subscribed to parameter '+param+', but it has no value, therefore the widget cannot be loaded'
                 paramsHaveValue = false
@@ -179,7 +199,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
         paramsHaveValue = true
         for param of _dsSubscriptions
             if _dsSubscriptions[param].includes dsOptions.name
-                if not $window.Cyclotron.parameters[param]? or _.isEmpty($window.Cyclotron.parameters[param])
+                if not $window.Cyclotron.parameters[param]? or (isNaN($window.Cyclotron.parameters[param]) and _.isEmpty($window.Cyclotron.parameters[param]))
                     paramsHaveValue = false
         
         if paramsHaveValue
@@ -195,6 +215,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
         checkSpecificParams: checkSpecificParams
         checkParameterSubscription: checkParameterSubscription
         parameterBroadcaster: parameterBroadcaster
+        apiBroadcaster: apiBroadcaster
         substitutePlaceholders: substitutePlaceholders
         checkDSParameterSubscription: checkDSParameterSubscription
         substituteDSPlaceholders: substituteDSPlaceholders

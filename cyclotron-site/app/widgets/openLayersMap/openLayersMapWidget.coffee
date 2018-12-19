@@ -4,6 +4,7 @@
 cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropagationService, dashboardService, dataService) ->
     $scope.randomId = '' + Math.floor(Math.random()*1000)
     $scope.widgetId = $scope.widget.widget + $scope.randomId
+    $scope.reloadCounter = 0
     mapConfig = {} #map configuration, .layersToAdd, .groups, .overlays, .controls
     firstLoad = true
 
@@ -371,6 +372,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
         $scope.widgetContext.allowExport = false
 
     $scope.loadWidget = ->
+        console.log 'loading map'
         #substitute any placeholder with parameter values, then check the configuration
         if firstLoad
             #when using a datasource, the call to checkSpecificParams is done after the overlay groups
@@ -384,6 +386,8 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                 jqueryElem = $($element).closest('.dashboard-widget')
                 handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
             firstLoad = false
+        else
+            $scope.reloadCounter = $scope.reloadCounter + 1
         
         widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
 
