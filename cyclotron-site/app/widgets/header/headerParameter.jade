@@ -1,7 +1,7 @@
 .parameter(ng-switch='parameter.editorType')
     div(ng-switch-when='autocomplete')
         label {{ parameter.displayName }}: 
-            input(type='text', ng-model='parameter.value.name', typeahead-on-select='onSelect($item, $model, $label)',
+            input(type='text', ng-model='parameter.value', typeahead-on-select='onSelect($item, $model, $label)',
             uib-typeahead='item.name for item in dataSourceData | filter:{name:$viewValue}', typeahead-min-length='minCharNumber')
             i.fa.fa-cog.fa-spin(ng-show='loading')
     div(ng-switch-when='dropdown')
