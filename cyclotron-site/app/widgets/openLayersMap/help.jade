@@ -1,6 +1,6 @@
 h3 OpenLayers Map Widget
 p
-    | The OpenLayers Map Widget wraps the excellent 
+    | The OpenLayers Map Widget wraps 
     a(href='http://openlayers.org/', target="_blank") OpenLayers
     |  library to create dynamic maps and represent geographical data.
 
@@ -266,9 +266,12 @@ table
         tr
             td clickOnOverlay
             td Name of the overlay clicked
+        tr
+            td clickOnWMSLayer
+            td Feature Info
 
 p
-    | The Specific Events property has a subproperty named Section, which can be used to specify the name of the map portion (e.g. an overlay group) 
+    | The Specific Events property has a subproperty named Section, which can be used to specify the name of the map portion (e.g. an overlay group or a WMS layer) 
     | that triggers the event. If the event is triggered by the map itself, you can leave this option empty. Some widgets (e.g. Slider) have one section only, 
     | therefore they do not have Section subproperty, while others may have different sections that trigger the same kind of event. 
     | That is the case of OpenLayers maps, where all overlay groups can trigger the 
@@ -286,6 +289,23 @@ pre.code.
             "event": "clickOnOverlay",
             "paramName": "squareSelected"
             "section": "g2"
+        }
+    ]
+
+p.
+    and all WMS layers can trigger the clickOnWMSLayer event:
+
+pre.code.
+    "specificEvents": [
+        {
+            "event": "clickOnWMSLayer",
+            "paramName": "circleFeatures"
+            "section": "topp:circles"
+        },
+        {
+            "event": "clickOnWMSLayer",
+            "paramName": "squareFeatures"
+            "section": "topp:squares"
         }
     ]
 
@@ -378,3 +398,29 @@ pre.code.
         "widget": "openLayersMap",
         "zoom": 11
     }
+
+h3 Notes
+p
+    | You might notice that some layers displaying images fetched via HTTP requests (e.g. ImageWMS sources) might refresh only at page reload or when the map
+    | is zoomed in or out. This happens because the browser is caching previous results and does not automatically perform a new request if the URL is unchanged. 
+    | One way to avoid the use of cached content is to make every URL unique by adding a parameter that changes every time you need a refresh.
+
+p.
+    In this example
+
+pre.code.
+    "layers": [{
+        "source": {
+            "configuration": "{\"url\": \"http://my.geoserver.com/wms\", \"params\": {\"FORMAT\": \"image/png\", \"LAYERS\": \"my:layer\", \"requestVersion\": \"\#{reqVersion}\"}}",
+            "name": "ImageWMS"
+        },
+        "type": "Image"
+    }],
+    "parameterSubscription": ["reqVersion"]
+
+p
+    | the Widget subscribes to the Parameter 
+    em reqVersion 
+    | and its WMS layer adds it to the parameters that will be appended to the WMS server URL. The server will ignore it, but whenever 
+    em reqVersion 
+    | is updated, the browser will find that the URL has changed and request new content.

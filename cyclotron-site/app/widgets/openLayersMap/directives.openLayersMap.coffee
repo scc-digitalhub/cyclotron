@@ -11,7 +11,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
             controlOptions: '='
             genericEventHandlers: '='
             widgetName: '='
-            reloadCounter: '='
         
         link: (scope, element, attrs) ->
             map = null
@@ -56,6 +55,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
             
             createMap = ->
                 if not map?
+                    console.log 'creating map'
                     #create map layers: each layer is structured as {type: string, source: {name: string, configuration: string}}
                     mapLayers = []
                     _.each scope.mapConfig.layersToAdd, (layer) ->
@@ -164,32 +164,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                 else
                     currentMapConfig = _.cloneDeep mapConfig
                     createMap()
-            , true)
-
-            scope.$watch('reloadCounter', (reloadCounter, oldReloadCounter) ->
-                console.log 'reloadCounter updated', reloadCounter, oldReloadCounter
-                if map? and reloadCounter > 0
-                    console.log 'refreshing map'
-                    zoom = map.getView().getZoom()
-                    map.getView().setZoom(zoom - 1)
-                    map.getView().setZoom(zoom)
-                    ###
-                    $timeout ->
-                        _.each map.getLayers(), (oldLayer) ->
-                            map.removeLayer oldLayer
-
-                        mapLayers = []
-                        _.each scope.mapConfig.layersToAdd, (layer) ->
-                            options = scope.layerOptions[layer.type]
-                            layerConfig = {}
-                            if layer.source?
-                                configObj = if layer.source.configuration? then _.jsEval(_.jsExec layer.source.configuration) else {}
-                                layerConfig.source = new options.sources[layer.source.name].srcClass(configObj)
-                            mapLayers.push new options.olClass(layerConfig)
-                        map.set 'layers', mapLayers
-
-                        console.log 'end of timeout'
-                    ###
             , true)
             
             # Update on window resizing
