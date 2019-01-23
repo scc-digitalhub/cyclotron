@@ -27,7 +27,6 @@ cyclotronDirectives.directive 'slider', ($window, configService, parameterPropag
 
                             sliderElement.noUiSlider.on('set', (values, handle) ->
                                 newDateTime = moment(scope.startdatetime).add(values[handle], scope.timeunit).format scope.momentformat
-                                console.log 'new date on handle', handle, newDateTime
 
                                 if not _.isEqual(newDateTime, scope.currentDateTime.value[handle])
                                     scope.currentDateTime.value[handle] = newDateTime
@@ -53,7 +52,10 @@ cyclotronDirectives.directive 'slider', ($window, configService, parameterPropag
                     console.log(e)
             
             scope.$watch 'sliderconfig', (sliderconfig) ->
-                #TODO check if slider has already been created and check differences between old and new config
+                if sliderCreated
+                    #delete old slider before recreation
+                    sliderElement.noUiSlider.destroy()
+                    sliderCreated = false
                 createSlider()
             
             scope.$watch 'ngModel', (ngModel) ->

@@ -28,7 +28,7 @@
 #
 # Title is optional, but can be used to give the same style title as other widgets.
 
-cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataService, parameterPropagationService) ->
+cyclotronApp.controller 'HtmlWidget', ($scope, $element, $timeout, dashboardService, dataService, parameterPropagationService) ->
     firstLoad = true
     #check parameters
     $scope.randomId = '' + Math.floor(Math.random()*1000)
@@ -52,8 +52,6 @@ cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataS
 
         if widgetWithoutPlaceholders.postHtml?
             $scope.postHtml = _.jsExec widgetWithoutPlaceholders.postHtml
-        
-        console.log 'html prepared'
     
     prepareHtml()
 
@@ -116,17 +114,30 @@ cyclotronApp.controller 'HtmlWidget', ($scope, $element, dashboardService, dataS
         # Override the widget feature of exporting data, since there is no data
         $scope.widgetContext.allowExport = false
 
+        # Check for hardcoded HTML
+        buildStrings = ->
+            $scope.htmlStrings.push $scope.preHtml if $scope.preHtml?
+            $scope.htmlStrings.push _.jsExec widgetWithoutPlaceholders.html
+            $scope.htmlStrings.push $scope.postHtml if $scope.postHtml?
+
         $scope.loadWidget = ->
             #update configuration with new parameter values
-            if not firstLoad
+            ###if not firstLoad
                 widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
                 prepareHtml()
 
-            # Check for hardcoded HTML
             if widgetWithoutPlaceholders.html?
-                $scope.htmlStrings.push $scope.preHtml if $scope.preHtml?
-                $scope.htmlStrings.push _.jsExec widgetWithoutPlaceholders.html
-                $scope.htmlStrings.push $scope.postHtml if $scope.postHtml?
+                # Ensure that HTML content is updated
+                if firstLoad then buildStrings() else $timeout(buildStrings)###
+            
+            if firstLoad
+                if widgetWithoutPlaceholders.html? then buildStrings()
+            else
+                widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+                if widgetWithoutPlaceholders.html?
+                    $timeout ->
+                        prepareHtml()
+                        buildStrings()
             
             firstLoad = false
         

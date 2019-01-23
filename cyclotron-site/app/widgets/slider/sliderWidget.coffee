@@ -24,6 +24,9 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterP
             timeUnit = if widget.timeUnit? then widget.timeUnit else 'days'
             minDateMillis = moment(widget.minValue, $scope.momentFormat).toDate().getTime()
             maxVal = moment(widget.maxValue, $scope.momentFormat).diff minDateMillis, timeUnit
+            if maxVal == 0
+                $scope.widgetContext.dataSourceError = true
+                $scope.widgetContext.dataSourceErrorMessage = 'Range extremes cannot be equal'
             step = if widget.step? then parseInt(widget.step, 10) else 1
 
             interval = if widget.player? and widget.player.showPlayer
@@ -127,11 +130,15 @@ cyclotronApp.controller 'SliderWidget', ($scope, $interval, $element, parameterP
                 handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
             firstLoad = false
         
-        widgedWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
-        checkConfiguration(widgedWithoutPlaceholders)
+        widgetWithoutPlaceholders = parameterPropagationService.substitutePlaceholders $scope
+        checkConfiguration(widgetWithoutPlaceholders)
         $scope.widgetContext.loading = false
     
     $scope.loadWidget()
+
+    $scope.reload = ->
+        $scope.widgetContext.dataSourceError = false
+        $scope.widgetContext.dataSourceErrorMessage = null
 
     angular.element ->
         if $scope.widget.player?.startOnPageReady
