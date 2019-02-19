@@ -1,35 +1,36 @@
-.parameter(ng-switch='parameter.editorType')
-    div(ng-switch-when='autocomplete')
+.parameter
+    div(ng-if='parameter.editorType == "autocomplete"')
         label {{ parameter.displayName }}: 
             input(type='text', ng-model='parameter.value', typeahead-on-select='onSelect($item, $model, $label)',
-            uib-typeahead='item.name for item in dataSourceData | filter:{name:$viewValue}', typeahead-min-length='minCharNumber')
+            uib-typeahead='item.name for item in dataSourceData | filter:{name:$viewValue}', typeahead-min-length='minCharNumber',
+            typeahead-editable='editable', typeahead-select-on-blur='selectOnBlur')
             i.fa.fa-cog.fa-spin(ng-show='loading')
-    div(ng-switch-when='dropdown')
+    div(ng-if='parameter.editorType == "dropdown"')
         label {{ parameter.displayName }}: 
             select(ng-hide='loading', ng-model='parameter.value', ng-change='updateParameter()', ng-options='item.value as item.name for item in dataSourceData')
             i.fa.fa-cog.fa-spin(ng-show='loading')
-    div.links(ng-switch-when='links')
+    div.links(ng-if='parameter.editorType == "links"')
         label {{ parameter.displayName }}: 
         a.btn.btn-link(ng-hide='loading', ng-repeat='item in dataSourceData', ng-click='selectValue(item.value)', ng-class='{selected: parameter.value == item.value}') {{ item.name }}
         i.fa.fa-cog.fa-spin(ng-show='loading')
-    div(ng-switch-when='radiobuttons')
+    div(ng-if='parameter.editorType == "radiobuttons"')
         label {{ parameter.displayName }}: 
         div.btn-group
             label.btn.btn-default(ng-repeat='item in dataSourceData', ng-model='parameter.value', uib-btn-radio='item.value', ng-click='updateParameter()') {{ item.name }}
         i.fa.fa-cog.fa-spin(ng-show='loading')
-    div(ng-switch-when='checkbox')
+    div(ng-if='parameter.editorType == "checkbox"')
         label 
             input(type='checkbox', ng-model='parameter.value', ng-change='updateParameter()')
             |  {{ parameter.displayName }}
-    div(ng-switch-when='datetime')
+    div(ng-if='parameter.editorType == "datetime"')
         label {{ parameter.displayName }}: 
             span(datetimepicker, options='parameter.datetimeOptions', ng-model='parameter.value', ng-change='updateParameter()')
-    div(ng-switch-when='date')
+    div(ng-if='parameter.editorType == "date"')
         label {{ parameter.displayName }}: 
             span(datetimepicker, options='parameter.datetimeOptions', ng-model='parameter.value', ng-change='updateParameter()')
-    div(ng-switch-when='time')
+    div(ng-if='parameter.editorType == "time"')
         label {{ parameter.displayName }}: 
             span(datetimepicker, options='parameter.datetimeOptions', ng-model='parameter.value', ng-change='updateParameter()')
-    div(ng-switch-default)
+    div(ng-if='editorTypes.indexOf(parameter.editorType) === -1')
         label {{ parameter.displayName }}: 
             input(type='text', ng-model='parameter.value', ng-blur='updateParameter()')

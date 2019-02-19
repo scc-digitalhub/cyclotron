@@ -1,4 +1,4 @@
-cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationService, dashboardService, dataService) ->
+cyclotronApp.controller 'GchartWidget', ($scope, $element, $timeout, parameterPropagationService, dashboardService, dataService) ->
     $scope.randomId = '' + Math.floor(Math.random()*1000)
     parameterPropagationService.checkGenericParams $scope
 
@@ -8,6 +8,7 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
         handler jqueryElem, $scope.genericEventHandlers.widgetSelection.paramName, $scope.widget.name
 
     currentChart = null
+    currentOptions = null
 
     dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.widget
     $scope.dataSource = dataService.get dsDefinition
@@ -31,6 +32,7 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
             if _.isEmpty(data) then $scope.widgetContext.nodata = 'No data to display'
 
             options = if $scope.widget.options? then _.jsEval(_.jsExec($scope.widget.options)) else null
+            currentOptions = _.cloneDeep options
             
             if $scope.widget.chartType?
                 columns = []
@@ -43,6 +45,29 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
                             form = _.jsEval f.formatter
                             if _.isFunction(form) then formatters[f.columnName] = form
 
+                #if the columns are not defined in $scope.widget.columns, infer column labels and types from the first row
+                for key of data[0]
+                    if $scope.widget.columns?
+                        col = _.find $scope.widget.columns, (c) ->
+                            return c.name? and c.name == key
+                        if col? and col.type?
+                            #use column definition for type, role and label
+                            column = {type: col.type}
+                            if col.role? then column.p = {role: col.role} else column.label = col.name
+                            columns.push column
+                        else
+                            #infer from first data row
+                            if _.isBoolean(data[0][key]) then columns.push {type: 'boolean', label: key}
+                            else if data[0][key] == parseInt(data[0][key]) or data[0][key] == parseFloat(data[0][key])
+                                columns.push {type: 'number', label: key}
+                            else columns.push {type: 'string', label: key}
+                    else
+                        if _.isBoolean(data[0][key]) then columns.push {type: 'boolean', label: key}
+                        else if data[0][key] == parseInt(data[0][key]) or data[0][key] == parseFloat(data[0][key])
+                            columns.push {type: 'number', label: key}
+                        else columns.push {type: 'string', label: key}
+
+                ###
                 if $scope.widget.columns? and not _.isEmpty($scope.widget.columns)
                     for col in $scope.widget.columns
                         if col? and col.type? and col.name?
@@ -59,6 +84,7 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
                         else if data[0][key] == parseInt(data[0][key]) or data[0][key] == parseFloat(data[0][key])
                             columns.push {type: 'number', label: key}
                         else columns.push {type: 'string', label: key}
+                ###
         
                 for row in data
                     c = []
@@ -100,3 +126,10 @@ cyclotronApp.controller 'GchartWidget', ($scope, $element, parameterPropagationS
 
         # Initialize the Data Source
         $scope.dataSource.init dsDefinition
+
+    checkVisibility = ->
+        return $element.parent().height()
+    
+    $scope.$watch checkVisibility, (newHeight) ->
+        #update chart height when widget height changes, unless chart has fixed height
+        if not currentOptions?.height? then $scope.myChartObject?.options?.height = newHeight

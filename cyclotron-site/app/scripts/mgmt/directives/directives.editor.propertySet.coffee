@@ -40,6 +40,7 @@ cyclotronDirectives.directive 'editorPropertySet', (configService) ->
         templateUrl: '/partials/editor/propertySet.html'
 
         controller: ($scope, cryptoService) ->
+            $scope.inputTypes = ['boolean', 'textarea', 'json', 'editor', 'hash', 'string[]', 'propertyset', 'propertyset[]', 'hash[]', 'integer', 'number']
 
             $scope.booleanOptions = [true, false]
 

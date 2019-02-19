@@ -24,6 +24,7 @@ cyclotronDirectives.directive 'headerParameter', ($window, dashboardService, dat
         templateUrl: '/widgets/header/headerParameter.html'
 
         controller: ($scope) ->
+            $scope.editorTypes = ['autocomplete', 'dropdown', 'links', 'radiobuttons', 'checkbox', 'datetime', 'date', 'time']
 
             originalValue = $window.Cyclotron.parameters[$scope.parameterDefinition.name]
 
@@ -64,7 +65,8 @@ cyclotronDirectives.directive 'headerParameter', ($window, dashboardService, dat
                         $scope.parameter.datetimeOptions.datetimeFormat = 'HH:mm'
 
                 when 'autocomplete'
-                    #$scope.parameter.label = '' #previously used as ngModel
+                    if $scope.parameterDefinition.editing?.allowEmpty? then $scope.selectOnBlur = !$scope.parameterDefinition.editing.allowEmpty
+                    if $scope.parameterDefinition.editing?.allowNonMatching? then $scope.editable = $scope.parameterDefinition.editing.allowNonMatching
                     if ($scope.parameterDefinition.editing?.minCharNumber? and parseInt($scope.parameterDefinition.editing.minCharNumber) >= 0)
                         $scope.minCharNumber = parseInt($scope.parameterDefinition.editing.minCharNumber)
                     else

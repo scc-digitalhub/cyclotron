@@ -1662,6 +1662,22 @@ cyclotronServices.factory 'commonConfigService', ->
                                     default: 1
                                     defaultHidden: true
                                     order: 6
+                                allowNonMatching:
+                                    label: 'Allow Non-Matching Values'
+                                    description: 'If true, values that do not match any value in the list can be entered in the autocomplete input field. If false, only values in the list are allowed.'
+                                    type: 'boolean'
+                                    default: true
+                                    required: false
+                                    defaultHidden: true
+                                    order: 7
+                                allowEmpty:
+                                    label: 'Allow Empty Input field'
+                                    description: 'If true, the autocomplete input field can be empty. If false, the field is automatically populated with the currently highlighted value of the list when it is not focused.'
+                                    type: 'boolean'
+                                    default: true
+                                    required: false
+                                    defaultHidden: true
+                                    order: 7
                     sample:
                         name: ''
                         defaultValue: ''
@@ -5039,7 +5055,7 @@ cyclotronServices.factory 'commonConfigService', ->
                 name: 'widgetContainer'
                 label: 'Widget Container'
                 icon: 'fa-desktop'
-                properties: {}
+                properties:
                     ###widgets:
                         label: 'Widgets'
                         singleLabel: 'widget'
@@ -5050,6 +5066,77 @@ cyclotronServices.factory 'commonConfigService', ->
                         default: []
                         order: 10
                     ###
+                    layout:
+                        label: 'Layout'
+                        description: 'Contains properties for configuring the Container layout and dimensions.'
+                        type: 'propertyset'
+                        default: {}
+                        required: false
+                        properties:
+                            gridColumns:
+                                label: 'Grid Columns'
+                                description: 'Specifies the total number of horizonal grid squares available in the grid. The grid squares will be scaled to fit the container. If omitted, the number of columns will be calculated dynamically.'
+                                type: 'integer'
+                                required: false
+                                order: 0
+                            gridRows:
+                                label: 'Grid Rows'
+                                description: 'Specifies the total number of vertical grid squares available in the grid. The grid squares will be scaled vertically to fit the container. If omitted, the grid squares will be literally square, e.g. the height and width will be the same. When omitted, the widgets may not fill the entire container, or they may scroll vertically. Use this property to make widgets scale vertically to fit the container.'
+                                type: 'integer'
+                                required: false
+                                order: 1
+                            gridWidthAdjustment:
+                                label: 'Grid Container Width Adjustment'
+                                description: 'Specifies an adjustment (in pixels) to the width of the container when calculating the grid layout.  If the value is positive, the container width will have the adjustment added to it (making each column wider), whereas if it is negative, the container width will be reduced (making each column skinnier).'
+                                type: 'integer'
+                                default: 0
+                                required: false
+                                defaultHidden: true
+                                order: 2
+                            gridHeightAdjustment:
+                                label: 'Grid Container Height Adjustment'
+                                description: 'Specifies an adjustment (in pixels) to the height of the container when calculating the grid layout.  If the value is positive, the container height will have the adjustment added to it (making each row taller), whereas if it is negative, the container height will be reduced (making each row shorter).'
+                                type: 'integer'
+                                default: 0
+                                required: false
+                                order: 3
+                            gutter:
+                                label: 'Gutter'
+                                description: 'Controls the space (in pixels) between widgets positioned in the grid. The default value is 10.'
+                                type: 'integer'
+                                default: 10
+                                required: false
+                                defaultHidden: true
+                                order: 5
+                            borderWidth:
+                                label: 'Border Width'
+                                description: 'Specifies the pixel width of the border around each widget. Can be set to 0 to remove the border. If omitted, the theme default will be used.'
+                                type: 'integer'
+                                default: null
+                                required: false
+                                defaultHidden: true
+                                order: 6
+                            margin:
+                                label: 'Margin'
+                                description: 'Controls the empty margin width (in pixels) around the outer edge of the container. Can be set to 0 to remove the margin.'
+                                type: 'integer'
+                                default: 10
+                                required: false
+                                defaultHidden: true
+                                order: 7
+                            scrolling:
+                                label: 'Scrolling Enabled'
+                                description: 'Enables vertical scrolling of the container to display content longer than the current size.'
+                                type: 'boolean'
+                                default: true
+                                required: false
+                                defaultHidden: true
+                                order: 8
+                        order: 10
+                sample:
+                    layout: 
+                        gridColumns: 2
+                        gridRows: 2
 
             youtube:
                 name: 'youtube'
