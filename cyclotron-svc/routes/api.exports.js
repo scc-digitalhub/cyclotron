@@ -104,7 +104,9 @@ var exportPdf = function (req, res, sync) {
 
                     if (sync) {
                         /* Redirect to the generated report */
-                        res.redirect(302, 'http://' + ip.address() + ':' + config.port + '/exports/' + id + '.pdf');
+                        //res.redirect(302, 'http://' + ip.address() + ':' + config.port + '/exports/' + id + '.pdf');
+                        let redirectionUrl = config.svcServer && config.svcServer.length > 0 ? (config.svcServer + '/exports/' + id + '.pdf') : ('http://' + ip.address() + ':' + config.port + '/exports/' + id + '.pdf');
+                        res.redirect(302, redirectionUrl);
                     }
                 }
 
@@ -120,7 +122,9 @@ var exportPdf = function (req, res, sync) {
             });
 
             if (!sync) {
-                res.status(201).send({ statusUrl: 'http://' + ip.address() + ':' + config.port + '/exportstatus/' + id });
+                //res.status(201).send({ statusUrl: 'http://' + ip.address() + ':' + config.port + '/exportstatus/' + id });
+                let statusUrl = config.svcServer && config.svcServer.length > 0 ? (config.svcServer + '/exportstatus/' + id) : ('http://' + ip.address() + ':' + config.port + '/exportstatus/' + id);
+                res.status(201).send({ statusUrl: statusUrl });
             }
         });
 };
@@ -155,7 +159,8 @@ exports.status = function (req, res) {
         matchingFiles = _.sortBy(matchingFiles, _.identity);
 
         matchingFiles = _.map(matchingFiles, function (file) {
-            return 'http://' + ip.address() + ':' + config.port + '/exports/' + file;
+            //return 'http://' + ip.address() + ':' + config.port + '/exports/' + file;
+            return (config.svcServer && config.svcServer.length > 0 ? (config.svcServer + '/exports/' + file) : ('http://' + ip.address() + ':' + config.port + '/exports/' + file));
         });
 
         var pngs = [],
@@ -228,7 +233,8 @@ exports.dataAsync = function (req, res) {
                     return res.status(500).send(err);
                 }
                 res.status(201).send({
-                    url: 'http://' + ip.address() + ':' + config.port + '/exports/' + key
+                    //url: 'http://' + ip.address() + ':' + config.port + '/exports/' + key
+                    url: (config.svcServer && config.svcServer.length > 0 ? (config.svcServer + '/exports/' + key) : ('http://' + ip.address() + ':' + config.port + '/exports/' + key))
                 });
             });
             
@@ -245,7 +251,8 @@ exports.dataAsync = function (req, res) {
                     return res.status(500).send(err);
                 }
                 res.status(201).send({
-                    url: 'http://' + ip.address() + ':' + config.port + '/exports/' + key
+                    //url: 'http://' + ip.address() + ':' + config.port + '/exports/' + key
+                    url: (config.svcServer && config.svcServer.length > 0 ? (config.svcServer + '/exports/' + key) : ('http://' + ip.address() + ':' + config.port + '/exports/' + key))
                 });
             });
             
@@ -262,7 +269,8 @@ exports.dataAsync = function (req, res) {
                     return res.status(500).send(err);
                 }
                 res.status(201).send({
-                    url: 'http://' + ip.address() + ':' + config.port + '/exports/' + key
+                    //url: 'http://' + ip.address() + ':' + config.port + '/exports/' + key
+                    url: (config.svcServer && config.svcServer.length > 0 ? (config.svcServer + '/exports/' + key) : ('http://' + ip.address() + ':' + config.port + '/exports/' + key))
                 });
             });
             

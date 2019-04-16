@@ -17,6 +17,11 @@ module.exports = {
      */
     webServer: 'http://localhost:777',
 
+    /* URL of cyclotron-svc
+     * Used for exporting widget data
+     */
+    svcServer: 'http://localhost:8077',
+    
     /* Key for encrypting/decrypting strings on the /crypto endpoint */
     encryptionKey: '',
 
