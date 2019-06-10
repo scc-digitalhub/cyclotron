@@ -185,3 +185,85 @@
     a { color: @color; }
     background-color: @pageBackgroundColor;
 }
+
+/****** Theme for widget container ******/
+
+.dashboard-page {
+    /* Well style, normal only */
+    &.normal {
+        .dashboard-charcoal.container-widgetwrapper > .dashboard-widget {
+            padding: 0px;
+        }
+    }
+}
+
+/* Widget styles */
+.container-widgetwrapper.dashboard-charcoal {
+
+    color: @color;
+
+    > .tooltip {
+        .tooltip-inner {
+            background-color: @pageBackgroundColor;
+            color: @color;
+        }
+        .tooltip-arrow {
+            border-top-color: @pageBackgroundColor;
+            border-bottom-color: @pageBackgroundColor;
+        }
+    }
+
+    > .dashboard-widget {
+
+        .widget-body {
+            box-sizing: border-box;
+            margin: 10px;
+        }
+
+        background-color: @widgetBackgroundColor;
+    }
+
+    /* Import widget styles, using the theme variables */
+    @import "../_widgets.less";
+
+    /* Extra styles */
+    h1.title {
+        box-sizing: border-box;
+        background-color: @widgetBackgroundAccentColor;
+
+        line-height: 3rem;
+        padding-left: 1rem;
+
+        > .tooltip {
+            .tooltip-inner {
+                background-color: @pageBackgroundColor;
+                color: @color;
+            }
+            .tooltip-arrow {
+                border-top-color: @pageBackgroundColor;
+                border-bottom-color: @pageBackgroundColor;
+            }
+        }
+    }
+}
+
+/* Transparent Variant */
+.container-widgetwrapper.dashboard-charcoal.theme-variant-transparent {
+    > .dashboard-widget {
+        background-color: transparent;
+        color: #ddd;
+    }
+}
+
+/* Transparent-Unpadded Variant */
+.container-widgetwrapper.dashboard-charcoal.theme-variant-transparent-unpadded {
+    > .dashboard-widget {
+        padding: 0 !important;
+        background-color: transparent;
+        color: #ddd;
+
+        .widget-body {
+            margin: 0;
+        }
+    }
+}

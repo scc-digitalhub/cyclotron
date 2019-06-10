@@ -121,3 +121,43 @@
     border: 1px dotted @color;
 }
 
+/****** Theme for widget container ******/
+
+.dashboard-page {
+    /* Well style, normal only */
+    &.normal {
+        .dashboard-gto.container-widgetwrapper > .dashboard-widget {
+            padding: 10px;
+            border: 1px solid #999;
+        }
+    }
+}
+
+/* Widget styles */
+.container-widgetwrapper.dashboard-gto {
+    color: @color;
+
+    > .dashboard-widget {
+        background-color: @widgetBackgroundColor;
+    }
+
+    /* Import widget styles, using the theme variables */
+    @import "../_widgets.less";
+}
+
+/* Transparent Variant */
+.container-widgetwrapper.dashboard-gto.theme-variant-transparent {
+    > .dashboard-widget {
+        background-color: transparent;
+        border: 0px !important;
+    }
+}
+
+/* Transparent-Unpadded Variant */
+.container-widgetwrapper.dashboard-gto.theme-variant-transparent-unpadded {
+    > .dashboard-widget {
+        padding: 0 !important;
+        background-color: transparent;
+        border: 0px !important;
+    }
+}

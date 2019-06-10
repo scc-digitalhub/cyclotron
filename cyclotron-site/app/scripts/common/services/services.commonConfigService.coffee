@@ -5056,16 +5056,6 @@ cyclotronServices.factory 'commonConfigService', ->
                 label: 'Widget Container'
                 icon: 'fa-desktop'
                 properties:
-                    ###widgets:
-                        label: 'Widgets'
-                        singleLabel: 'widget'
-                        description: 'An array of one or more names of Widgets.'
-                        type: 'string[]'
-                        inlineJs: true
-                        required: true
-                        default: []
-                        order: 10
-                    ###
                     layout:
                         label: 'Layout'
                         description: 'Contains properties for configuring the Container layout and dimensions.'

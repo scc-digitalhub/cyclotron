@@ -1,0 +1,6 @@
+.widget-container-widget(ng-controller='WidgetContainerWidget')
+    h1.title(ng-if='::widget.title') {{ widgetTitle() }}
+    
+    .widget-body
+        widget-container(inner-widgets='innerWidgets', page='page', page-overrides='pageOverrides',
+        dashboard='dashboard', container='container')

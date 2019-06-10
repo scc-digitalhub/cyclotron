@@ -173,3 +173,75 @@
     border: 1px dotted @color;
 }
 
+/****** Theme for widget container ******/
+
+.dashboard-page {
+    /* Well style, normal only */
+    &.normal {
+        .dashboard-dark.container-widgetwrapper > .dashboard-widget {
+            .rounded(4px);
+            padding: 10px;
+            -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 6px 0px inset;
+            -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 6px 0px inset;
+            -o-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 6px 0px inset;
+            box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 6px 0px inset;
+        }
+    }
+}
+
+/* Widget styles */
+.container-widgetwrapper.dashboard-dark {
+    color: @color;
+
+    > .tooltip {
+        .tooltip-inner {
+            background-color: @pageBackgroundColor;
+            color: @color;
+        }
+        .tooltip-arrow {
+            border-top-color: @pageBackgroundColor;
+            border-bottom-color: @pageBackgroundColor;
+        }
+    }
+
+    > .dashboard-widget {
+        background-color: @widgetBackgroundColor;
+    }
+
+    /* Import widget styles, using the theme variables */
+    @import "../_widgets.less";
+
+    /* Extra styles */
+    h1.title {
+        > .tooltip {
+            .tooltip-inner {
+                background-color: @pageBackgroundColor;
+                color: @color;
+            }
+            .tooltip-arrow {
+                border-top-color: @pageBackgroundColor;
+                border-bottom-color: @pageBackgroundColor;
+            }
+        }
+    }
+}
+
+/* Transparent Variant */
+.container-widgetwrapper.dashboard-dark.theme-variant-transparent {
+    > .dashboard-widget {
+        background-color: transparent;
+        box-shadow: none !important;
+        color: #ddd;
+    }
+}
+
+/* Transparent-Unpadded Variant */
+.container-widgetwrapper.dashboard-dark.theme-variant-transparent-unpadded {
+    > .dashboard-widget {
+        padding: 0 !important;
+        background-color: transparent;
+        box-shadow: none !important;
+        color: #ddd;
+    }
+}
+

@@ -1,0 +1,162 @@
+@import "../../../vendor/lesselements/_elements.less";
+@import "../../styles/common/variables.less";
+
+.widget-noscroll .widget-container-widget {
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.widget-container-widget {
+    overflow-y: auto;
+    overflow-x: auto;
+    height: 100%;
+}
+
+widget-container {
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+
+    .dashboard-page {
+        //NOTE: removed distinction between normal style and fullscreen style, which is present in dashboard.less
+        padding: 5px; //avoids cutting borders
+        height: 100%;
+        .box-sizing(border-box);
+
+        @media only screen and (orientation:portrait) and (max-width: @phonePortraitMaxWidth) { 
+            height: auto; 
+        }
+    }
+
+    .container-inner {
+        height: 100%;
+        width: 100%;
+    }
+
+    .container-widgetwrapper {
+        float: left;
+        background: none;
+
+        > .widget-control-bar {
+            position: absolute;
+            top: 0px;
+            right: 4px;
+            z-index: 1000;
+            .user-select(none);
+
+            > .widget-control {
+                display: inline-block;
+                margin-left: 0.5rem;
+                cursor: pointer;
+                opacity: 0.4;
+                &:hover {
+                    opacity: 0.7;
+                }
+
+                > i {
+                    vertical-align: top;
+                }
+
+                /* Dropdown menu has a div wrapping the <i> tag */
+                &.widget-dropdown-menu {
+                    opacity: 1;
+
+                    > i {
+                        opacity: 0.4;
+                        &:hover {
+                            opacity: 0.7; 
+                        }
+                    }
+
+                    .dropdown-menu {
+                        a {
+                            border-bottom: 0;
+                            &:hover {
+                                border-bottom: 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            > .tooltip {
+                .tooltip-arrow {
+                    right: 1px !important;
+                }
+            }
+        }
+
+        > .dashboard-widget {
+            .box-sizing(border-box);
+            overflow: hidden;
+            height: 100%;
+
+            &:-webkit-full-screen {
+                width: 100%;
+                height: 100%;
+            }
+
+            h1.title {
+                @media only screen and (max-width: 1024px) { font-size: 1.5em; } 
+                @media only screen and (max-width: 600px) { font-size: 1.3em; } 
+                font-size: 1.8em;
+
+                &.big {
+                    font-size: 3.3em;
+                    line-height: 1.5em;
+                    @media only screen and (max-width: 1024px) { font-size: 2.5em; line-height: 1.3em; } 
+                    @media only screen and (max-width: 600px) { font-size: 2.0em; line-height: 1.3em; } 
+                }
+
+                i.fa.fa-question-circle {
+                    opacity: 0.7;
+                    &:hover {
+                        opacity: 1;
+                    }
+                }
+                
+            }
+
+            /* Style for loading spinner */
+            .widget-loading {
+                /* Center in the middle of the widget */
+                position: absolute;
+                top: 50%;
+                left: 50%;
+            }
+
+            /* Style for widget error messages */
+            .widget-error {
+                overflow: hidden;
+                text-align: center;
+                max-width: 26rem;
+                margin: auto;
+
+                .fa-exclamation {
+                    color: #A60000;
+                }
+
+                .widget-reload {
+                    cursor: pointer;
+                }
+
+                .widget-error-message {
+                    color: #666;
+                    font-size: 90%;
+                    margin: auto;
+                    margin-top: 0.5rem;
+                }
+            }
+
+            /* Style for no data message */
+            .widget-nodata {
+                position: absolute;
+                top: 45%;
+                left: 0;
+                width: 100%;
+                height: 10%;
+                text-align: center;
+            }
+        }
+    }
+}

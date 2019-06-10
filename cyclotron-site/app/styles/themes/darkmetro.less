@@ -164,3 +164,68 @@
     a { color: @color; }
     background-color: @pageBackgroundColor;
 }
+
+/****** Theme for widget container ******/
+
+.dashboard-page {
+    /* Well style, normal only */
+    &.normal {
+        .dashboard-darkmetro.container-widgetwrapper > .dashboard-widget {
+            padding: 10px;
+        }
+    }
+}
+
+/* Widget styles */
+.container-widgetwrapper.dashboard-darkmetro {
+    color: @color;
+
+    > .tooltip {
+        .tooltip-inner {
+            background-color: @pageBackgroundColor;
+            color: @color;
+        }
+        .tooltip-arrow {
+            border-top-color: @pageBackgroundColor;
+            border-bottom-color: @pageBackgroundColor;
+        }
+    }
+
+    > .dashboard-widget {
+        background-color: @widgetBackgroundColor;
+    }
+
+    /* Import widget styles, using the theme variables */
+    @import "../_widgets.less";
+
+    /* Extra styles */
+    h1.title {
+        > .tooltip {
+            .tooltip-inner {
+                background-color: @pageBackgroundColor;
+                color: @color;
+            }
+            .tooltip-arrow {
+                border-top-color: @pageBackgroundColor;
+                border-bottom-color: @pageBackgroundColor;
+            }
+        }
+    }
+}
+
+/* Transparent Variant */
+.container-widgetwrapper.dashboard-darkmetro.theme-variant-transparent {
+    > .dashboard-widget {
+        background-color: transparent;
+        color: #ddd;
+    }
+}
+
+/* Transparent-Unpadded Variant */
+.container-widgetwrapper.dashboard-darkmetro.theme-variant-transparent-unpadded {
+    > .dashboard-widget {
+        padding: 0 !important;
+        background-color: transparent;
+        color: #ddd;
+    }
+}

@@ -81,6 +81,28 @@ cyclotronDirectives.directive 'dashboardPage', ($compile, $window, $timeout, con
                     # No overrides, so take the Widgets as-is
                     scope.sortedWidgets = scope.page.widgets
 
+            # Separate Widgets that must be contained in other Widgets and pass them to their container
+            checkWidgetHierarchy = ->
+                hierarchy = {} #map of containers and their items
+                firstLevelWidgets = [] #widgets that will be placed on the page
+
+                containers = _.filter scope.sortedWidgets, (widget) ->
+                    return widget.widget == 'widgetContainer'
+
+                _.map containers, (container) ->
+                    if container.name? then hierarchy[container.name] = []
+                
+                _.each scope.sortedWidgets, (widget) ->
+                    if widget.container?
+                        if hierarchy[widget.container]? then hierarchy[widget.container].push _.cloneDeep(widget)
+                    else
+                        firstLevelWidgets.push _.cloneDeep(widget)
+                
+                _.each firstLevelWidgets, (widget) ->
+                    if widget.widget == 'widgetContainer' and widget.name?
+                        widget.gridItems = hierarchy[widget.name]
+                
+                scope.sortedWidgets = firstLevelWidgets
 
             updatePage = ->
                 scope.page.widgets = scope.page?.widgets || []
@@ -107,13 +129,17 @@ cyclotronDirectives.directive 'dashboardPage', ($compile, $window, $timeout, con
 
                 # Sort Widgets per overrides
                 resortWidgets()
-            
+
+                # Separate Widgets in containers from Widgets placed on the page
+                checkWidgetHierarchy()
+
                 # Update the layout -- this triggers all widgets to update
                 # Masonry will be called after all widgets have redrawn
                 updateLayout = ->
 
                     # Create a run-once function that triggers Masonry after all the Widgets have drawn themselves
-                    scope.postLayout = _.after scope.page.widgets.length, ->
+                    #scope.postLayout = _.after scope.page.widgets.length, ->
+                    scope.postLayout = _.after scope.sortedWidgets.length, ->
                         if (scope.page.enableMasonry != false)
                             masonry()
                         return
@@ -174,6 +200,7 @@ cyclotronDirectives.directive 'dashboardPage', ($compile, $window, $timeout, con
             scope.$watch 'pageOverrides', (pageOverrides, previous) ->
                 return if _.isEqual pageOverrides, previous
                 resortWidgets()
+                checkWidgetHierarchy()
 
                 $timeout ->
                     $dashboardPageInner.masonry('reloadItems')

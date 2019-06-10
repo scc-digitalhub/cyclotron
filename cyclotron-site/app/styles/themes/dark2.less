@@ -174,3 +174,59 @@
     border: 1px solid @widgetBackgroundColor;
 }
 
+/****** Theme for widget container ******/
+
+.dashboard-page {
+    &.normal {
+        .dashboard-dark2.container-widgetwrapper > .dashboard-widget {
+            padding: 1px;
+        }
+    }
+}
+
+/* Widget styles */
+.container-widgetwrapper.dashboard-dark2 {
+    color: @color;
+
+    > .widget-fullscreen, > .widget-helptext {
+        top: (2*@headerPadding);
+        right: (2*@headerPadding);
+
+        &:hover {
+            color: @accentColor;
+        }
+    }
+
+    > .tooltip {
+        .tooltip-inner {
+            background-color: #666;
+            color: White;
+        }
+        .tooltip-arrow {
+            border-top-color: #666;
+            border-bottom-color: #666;
+        }
+    }
+
+    > .dashboard-widget {
+        background-color: @widgetBackgroundColor;
+    }
+
+    /* Import widget styles, using the theme variables */
+    @import "../_widgets.less";
+}
+
+/* Transparent Variant */
+.container-widgetwrapper.dashboard-dark2.theme-variant-transparent {
+    > .dashboard-widget {
+        background-color: transparent;
+    }
+}
+
+/* Transparent-Unpadded Variant */
+.container-widgetwrapper.dashboard-dark2.theme-variant-transparent-unpadded {
+    > .dashboard-widget {
+        padding: 0 !important;
+        background-color: transparent;
+    }
+}

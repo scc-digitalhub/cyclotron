@@ -123,3 +123,44 @@
     border: 1px dotted @color;
 }
 
+/****** Theme for widget container ******/
+
+.dashboard-page {
+    /* Well style, normal only */
+    &.normal {
+        .dashboard-light.container-widgetwrapper > .dashboard-widget {
+            .rounded(4px);
+            padding: 10px;
+            .box-shadow(1px 1px 6px 0 rgba(0, 0, 0, 0.8));
+        }
+    }
+}
+
+/* Widget styles */
+.container-widgetwrapper.dashboard-light {
+    color: @color;
+
+    > .dashboard-widget {
+        background-color: @widgetBackgroundColor;
+    }
+
+    /* Import widget styles, using the theme variables */
+    @import "../_widgets.less";
+}
+
+/* Transparent Variant */
+.container-widgetwrapper.dashboard-light.theme-variant-transparent {
+    > .dashboard-widget {
+        background-color: transparent;
+        box-shadow: none !important;
+    }
+}
+
+/* Transparent-Unpadded Variant */
+.container-widgetwrapper.dashboard-light.theme-variant-transparent-unpadded {
+    > .dashboard-widget {
+        padding: 0 !important;
+        background-color: transparent;
+        box-shadow: none !important;
+    }
+}
