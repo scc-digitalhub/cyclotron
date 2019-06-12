@@ -12,8 +12,10 @@ cyclotronServices.factory 'authInterceptorService', ($injector, $q, $window, $lo
             if $location.search().apikey?
                 console.log 'apikey', $location.search().apikey
             ###
-            if config.url.startsWith(configService.restServiceUrl)
-                console.log 'request intercepted', config.url, config.params, 'logged in?', userService.isLoggedIn()
+
+            #if config.url.startsWith(configService.restServiceUrl)
+            #    console.log 'request intercepted', config.url, config.params, 'logged in?', userService.isLoggedIn()
+            
             ###
             if config.url.startsWith(configService.restServiceUrl) and
             configService.authentication.enable == true and userService.isLoggedIn()
