@@ -839,6 +839,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     defaultHidden: true
                                     order: 11
+                                oauth2ClientCredentials:
+                                    label: 'OAuth2.0 Client Credentials'
+                                    description: 'Optional OAuth2.0 client credentials for making authenticated requests.  If set, the request will be added an Authorization header before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 18
+                                    properties:
+                                        authorizationServerUrl:
+                                            label: 'Authorization Server URL'
+                                            description: 'URL of the server that will provide the access token'
+                                            type: 'url'
+                                            placeholder: 'Authorization Server URL'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        clientId:
+                                            label: 'Client ID'
+                                            description: 'Client ID of the application'
+                                            type: 'string'
+                                            placeholder: 'Client ID'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                                        clientSecret:
+                                            label: 'Client Secret'
+                                            description: 'Client secret of the application'
+                                            type: 'string'
+                                            placeholder: 'Client Secret'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 3
                                 
                         cyclotronData:
                             value: 'cyclotronData'
@@ -1002,6 +1034,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     defaultHidden: true
                                     order: 23
+                                oauth2ClientCredentials:
+                                    label: 'OAuth2.0 Client Credentials'
+                                    description: 'Optional OAuth2.0 client credentials for making authenticated requests.  If set, the request will be added an Authorization header before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 24
+                                    properties:
+                                        authorizationServerUrl:
+                                            label: 'Authorization Server URL'
+                                            description: 'URL of the server that will provide the access token'
+                                            type: 'url'
+                                            placeholder: 'Authorization Server URL'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        clientId:
+                                            label: 'Client ID'
+                                            description: 'Client ID of the application'
+                                            type: 'string'
+                                            placeholder: 'Client ID'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                                        clientSecret:
+                                            label: 'Client Secret'
+                                            description: 'Client secret of the application'
+                                            type: 'string'
+                                            placeholder: 'Client Secret'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 3
 
                         graphite:
                             value: 'graphite'
@@ -1076,6 +1140,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     defaultHidden: true
                                     order: 11
+                                oauth2ClientCredentials:
+                                    label: 'OAuth2.0 Client Credentials'
+                                    description: 'Optional OAuth2.0 client credentials for making authenticated requests.  If set, the request will be added an Authorization header before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 17
+                                    properties:
+                                        authorizationServerUrl:
+                                            label: 'Authorization Server URL'
+                                            description: 'URL of the server that will provide the access token'
+                                            type: 'url'
+                                            placeholder: 'Authorization Server URL'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        clientId:
+                                            label: 'Client ID'
+                                            description: 'Client ID of the application'
+                                            type: 'string'
+                                            placeholder: 'Client ID'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                                        clientSecret:
+                                            label: 'Client Secret'
+                                            description: 'Client secret of the application'
+                                            type: 'string'
+                                            placeholder: 'Client Secret'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 3
 
                         influxdb:
                             value: 'influxdb'
@@ -1176,6 +1272,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     defaultHidden: true
                                     order: 11
+                                oauth2ClientCredentials:
+                                    label: 'OAuth2.0 Client Credentials'
+                                    description: 'Optional OAuth2.0 client credentials for making authenticated requests.  If set, the request will be added an Authorization header before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 24
+                                    properties:
+                                        authorizationServerUrl:
+                                            label: 'Authorization Server URL'
+                                            description: 'URL of the server that will provide the access token'
+                                            type: 'url'
+                                            placeholder: 'Authorization Server URL'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        clientId:
+                                            label: 'Client ID'
+                                            description: 'Client ID of the application'
+                                            type: 'string'
+                                            placeholder: 'Client ID'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                                        clientSecret:
+                                            label: 'Client Secret'
+                                            description: 'Client secret of the application'
+                                            type: 'string'
+                                            placeholder: 'Client Secret'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 3
 
                         javascript: 
                             value: 'javascript'
@@ -1306,6 +1434,47 @@ cyclotronServices.factory 'commonConfigService', ->
                                             inlineJs: true
                                             inlineEncryption: true
                                             order: 2
+                                oauth2ClientCredentials:
+                                    label: 'OAuth2.0 Client Credentials'
+                                    description: 'Optional OAuth2.0 client credentials for making authenticated requests.  If set, the request will be added an Authorization header before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 18
+                                    properties:
+                                        authorizationServerUrl:
+                                            label: 'Authorization Server URL'
+                                            description: 'URL of the server that will provide the access token'
+                                            type: 'url'
+                                            placeholder: 'Authorization Server URL'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        clientId:
+                                            label: 'Client ID'
+                                            description: 'Client ID of the application'
+                                            type: 'string'
+                                            placeholder: 'Client ID'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                                        clientSecret:
+                                            label: 'Client Secret'
+                                            description: 'Client secret of the application'
+                                            type: 'string'
+                                            placeholder: 'Client Secret'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 3
+                                        ###scopes:
+                                            label: 'Scopes'
+                                            description: 'Optional list of scopes (comma- or space-separated, according to what the authorization server accepts) that will be passed to the authorization server'
+                                            type: 'string'
+                                            placeholder: 'Scopes'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 4
+                                        ###
 
                         mock: 
                             value: 'mock'
@@ -1443,6 +1612,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                             inlineJs: true
                                             inlineEncryption: true
                                             order: 2
+                                oauth2ClientCredentials:
+                                    label: 'OAuth2.0 Client Credentials'
+                                    description: 'Optional OAuth2.0 client credentials for making authenticated requests.  If set, the request will be added an Authorization header before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 19
+                                    properties:
+                                        authorizationServerUrl:
+                                            label: 'Authorization Server URL'
+                                            description: 'URL of the server that will provide the access token'
+                                            type: 'url'
+                                            placeholder: 'Authorization Server URL'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        clientId:
+                                            label: 'Client ID'
+                                            description: 'Client ID of the application'
+                                            type: 'string'
+                                            placeholder: 'Client ID'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                                        clientSecret:
+                                            label: 'Client Secret'
+                                            description: 'Client secret of the application'
+                                            type: 'string'
+                                            placeholder: 'Client Secret'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 3
                         
                         splunk: 
                             value: 'splunk'
@@ -1544,6 +1745,38 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     defaultHidden: true
                                     order: 20
+                                oauth2ClientCredentials:
+                                    label: 'OAuth2.0 Client Credentials'
+                                    description: 'Optional OAuth2.0 client credentials for making authenticated requests.  If set, the request will be added an Authorization header before it is sent.'
+                                    type: 'propertyset'
+                                    required: false
+                                    defaultHidden: true
+                                    order: 21
+                                    properties:
+                                        authorizationServerUrl:
+                                            label: 'Authorization Server URL'
+                                            description: 'URL of the server that will provide the access token'
+                                            type: 'url'
+                                            placeholder: 'Authorization Server URL'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 1
+                                        clientId:
+                                            label: 'Client ID'
+                                            description: 'Client ID of the application'
+                                            type: 'string'
+                                            placeholder: 'Client ID'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 2
+                                        clientSecret:
+                                            label: 'Client Secret'
+                                            description: 'Client secret of the application'
+                                            type: 'string'
+                                            placeholder: 'Client Secret'
+                                            inlineJs: true
+                                            inlineEncryption: true
+                                            order: 3
 
                 parameters:
                     label: 'Parameters'

@@ -32,7 +32,8 @@ var decrypter = function (req) {
     var decrypt = function (value) {
         if (_.isString(value)) {
             /* Decrypt */
-            return value.replace(/!(\{|%7B)(.*?)(\}|%7D)/gi, function (all, opener, inner, closer) {
+            //return value.replace(/!(\{|%7B)(.*?)(\}|%7D)/gi, function (all, opener, inner, closer) {
+            return value.replace(/!|%21(\{|%7B)(.*?)(\}|%7D)/gi, function (all, opener, inner, closer) {
                 var uriDecoded = decodeURIComponent(inner);
                 var cipher = crypto.createDecipher('aes-256-cbc', config.encryptionKey);
                 var encrypted = cipher.update(uriDecoded, 'base64', 'utf8');
@@ -51,6 +52,7 @@ var decrypter = function (req) {
 }
 
 var sendRequest = function (req, callback) {
+    //console.log('----', req);
     var proxyRequest = decrypter(req);
 
     if (proxyRequest.awsCredentials) {
@@ -58,33 +60,97 @@ var sendRequest = function (req, callback) {
         aws4.sign(proxyRequest, proxyRequest.awsCredentials);
     }
 
-    request(proxyRequest, function (err, proxyResponse, body) {
-        if (err) {
-            console.log('Proxy Error: ' + err + ' ' + JSON.stringify(proxyResponse) + ', err.connect: ' + err.connect);
-            return callback({
-                error: err,
+    /* With OAuth2 authentication, a request for an access token is necessary before performing
+     * synchronously the actual proxy request */
+    if(proxyRequest.oauth2ClientCredentials) {
+        /* Should contain { authorizationServerUrl: '', clientId: '' , clientSecret: ''} */
+        console.log('----', proxyRequest);
+
+        var queryParams = {
+            client_id: proxyRequest.oauth2ClientCredentials.clientId,
+            client_secret: proxyRequest.oauth2ClientCredentials.clientSecret,
+            grant_type: 'client_credentials'
+        }
+
+        var tokenRequest = {
+            url: proxyRequest.oauth2ClientCredentials.authorizationServerUrl,
+            method: 'POST',
+            qs: queryParams,
+            json: true
+        }
+
+        request(tokenRequest, function (error, response, tokenBody) {
+            if (error || !tokenBody.access_token) {
+                console.log('Error retrieving access token: ' + error + ' ' + JSON.stringify(response));
+                return callback({
+                    error: error,
+                    proxyResponse: response,
+                    body: tokenBody
+                });
+            }
+
+            /* Set authorization header */
+            if(!proxyRequest.headers) { proxyRequest.headers = {}; }
+            proxyRequest.headers.Authorization = 'Bearer ' + tokenBody.access_token;
+            
+            /* Perform proxy request */
+            request(proxyRequest, function (err, proxyResponse, body) {
+                if (err) {
+                    console.log('Proxy Error: ' + err + ' ' + JSON.stringify(proxyResponse) + ', err.connect: ' + err.connect);
+                    return callback({
+                        error: err,
+                        proxyResponse: proxyResponse,
+                        body: body
+                    });
+                }
+    
+                if (_.isString(body) 
+                    && req.json != false
+                    && proxyResponse != null 
+                    && proxyResponse.headers != null
+                    && proxyResponse.headers['content-type']
+                    && proxyResponse.headers['content-type'].toLowerCase().indexOf('application/json') >= 0) {
+                    body = JSON.parse(body);
+                }
+    
+                console.log('Proxy complete');
+                callback({
+                    proxyResponse: proxyResponse,
+                    statusCode: proxyResponse.statusCode,
+                    headers: proxyResponse.headers,
+                    body: body
+                });
+            });
+        });
+    } else {
+        request(proxyRequest, function (err, proxyResponse, body) {
+            if (err) {
+                console.log('Proxy Error: ' + err + ' ' + JSON.stringify(proxyResponse) + ', err.connect: ' + err.connect);
+                return callback({
+                    error: err,
+                    proxyResponse: proxyResponse,
+                    body: body
+                });
+            }
+
+            if (_.isString(body) 
+                && req.json != false
+                && proxyResponse != null 
+                && proxyResponse.headers != null
+                && proxyResponse.headers['content-type']
+                && proxyResponse.headers['content-type'].toLowerCase().indexOf('application/json') >= 0) {
+                body = JSON.parse(body);
+            }
+
+            console.log('Proxy complete');
+            callback({
                 proxyResponse: proxyResponse,
+                statusCode: proxyResponse.statusCode,
+                headers: proxyResponse.headers,
                 body: body
             });
-        }
-
-        if (_.isString(body) 
-            && req.json != false
-            && proxyResponse != null 
-            && proxyResponse.headers != null
-            && proxyResponse.headers['content-type']
-            && proxyResponse.headers['content-type'].toLowerCase().indexOf('application/json') >= 0) {
-            body = JSON.parse(body);
-        }
-
-        console.log('Proxy complete');
-        callback({
-            proxyResponse: proxyResponse,
-            statusCode: proxyResponse.statusCode,
-            headers: proxyResponse.headers,
-            body: body
         });
-    });
+    }
 };
 
 /* Generic HTTP Proxy */

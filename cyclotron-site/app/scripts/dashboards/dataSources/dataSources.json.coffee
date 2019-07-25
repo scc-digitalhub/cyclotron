@@ -57,6 +57,9 @@ cyclotronDataSources.factory 'jsonDataSource', ($q, $http, configService, dataSo
             proxyBody.path = url.path() + url.search()
             proxyBody.awsCredentials = options.awsCredentials
 
+        if options.oauth2ClientCredentials?
+            proxyBody.oauth2ClientCredentials = options.oauth2ClientCredentials
+
         return proxyBody
 
     runner = (options) ->
