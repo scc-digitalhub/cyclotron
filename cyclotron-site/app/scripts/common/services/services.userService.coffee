@@ -228,6 +228,7 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         return _.contains dashboard.likes, currentSession.user._id
     
     exports.aacLogin = ->
+        $localForage.setItem 'urlBeforeLogin', $location.url()
         authorizationUrl = configService.authentication.authorizationURL
         clientID = configService.authentication.clientID
         scope = configService.authentication.scopes
@@ -275,8 +276,12 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
             alertify.success('Logged in as <strong>' + session.user.name + '</strong>', 2500)
                 
             deferred.resolve(session)
-            #finally redirect to home page
-            $location.path('/').replace()
+            #finally redirect to last url
+            $localForage.getItem('urlBeforeLogin').then (urlBeforeLogin) ->
+                if urlBeforeLogin?
+                    $location.url(urlBeforeLogin).replace()
+                else
+                    $location.path('/').replace()
 
         get.error (error) ->
             console.log 'error or API sent an error response', error
