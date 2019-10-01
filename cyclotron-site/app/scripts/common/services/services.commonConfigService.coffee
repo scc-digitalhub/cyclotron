@@ -4269,6 +4269,13 @@ cyclotronServices.factory 'commonConfigService', ->
                                 type: 'string'
                                 required: false
                                 order: 3
+                            styleFunction:
+                                label: 'Style function'
+                                description: 'Style function (for vector layers, see https://openlayers.org/en/v4.6.5/apidoc/ol.html#.StyleFunction)'
+                                type: 'editor'
+                                editorMode: 'javascript'
+                                required: false
+                                order: 4
                         order: 13
                     overlayGroups:
                         label: 'Overlay Groups'

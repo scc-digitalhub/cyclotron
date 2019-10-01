@@ -64,12 +64,18 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         if layer.source?
                             configObj = if layer.source.configuration? then _.jsEval(_.jsExec layer.source.configuration) else {}
                             layerConfig.source = new options.sources[layer.source.name].srcClass(configObj)
+                        
+                        if layer.styleFunction?
+                            styleFunction = _.jsEval layer.styleFunction
+                            if _.isFunction(styleFunction) then layerConfig.style = styleFunction
+
                         mapLayers.push new options.olClass(layerConfig)
 
                     #create map view
                     mapView = new ol.View({
                         center: ol.proj.fromLonLat scope.mapConfig.center
                         zoom: scope.mapConfig.zoom
+                        #projection: (if scope.mapConfig.projection? then scope.mapConfig.projection else undefined)
                     })
 
                     #create map
