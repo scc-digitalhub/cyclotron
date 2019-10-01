@@ -4196,6 +4196,8 @@ cyclotronServices.factory 'commonConfigService', ->
                                         value: 'Tile'
                                     heatmap:
                                         value: 'Heatmap'
+                                    vector:
+                                        value: 'Vector'
                                     vectortile:
                                         value: 'VectorTile'
                                 order: 1
@@ -4504,6 +4506,19 @@ cyclotronServices.factory 'commonConfigService', ->
                                 required: false
                                 order: 3
                         order: 17
+                    ###projection:
+                        label: 'Projection'
+                        description: 'Projection. Default is EPSG:3857 (Spherical Mercator).'
+                        type: 'string'
+                        required: false
+                        default: 'EPSG:3857'
+                        options:
+                            'EPSG:3857':
+                                value: 'EPSG:3857'
+                            'EPSG:4326':
+                                value: 'EPSG:4326'
+
+                        order: 18###
 
             qrcode: 
                 name: 'qrcode'

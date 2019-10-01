@@ -10,6 +10,10 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
     ###
     # View
     ###
+    #if $scope.widget.projection?
+    #    #set map view projection
+    #    mapConfig.projection = $scope.widget.projection
+
     checkViewProperties = (widget) ->
         if not widget.center?.x? or not widget.center?.y? or
                 _.isEmpty(widget.center.x) or _.isEmpty(widget.center.y)
@@ -121,6 +125,17 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                     srcClass: ol.source.Vector
                     configRequired: false
                     config: ['attributions', 'features', 'format', 'loader', 'logo', 'overlaps', 'strategy', 'url', 'useSpatialIndex', 'wrapX']
+        'Vector':
+            olClass: ol.layer.Vector
+            sources:
+                'Vector':
+                    srcClass: ol.source.Vector
+                    configRequired: false
+                    config: ['attributions', 'features', 'format', 'loader', 'logo', 'overlaps', 'strategy', 'url', 'useSpatialIndex', 'wrapX']
+                'Cluster':
+                    srcClass: ol.source.Cluster
+                    configRequired: true
+                    config: ['attributions', 'distance', 'extent', 'geometryFunction', 'format', 'logo', 'projection', 'source', 'wrapX']
         'VectorTile':
             olClass: ol.layer.VectorTile
             sources:
