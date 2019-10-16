@@ -123,16 +123,16 @@ When a user logs in via AAC, Cyclotron reads their roles from AAC and assigns th
 
 * user A is provider of space T1 and reader of space T2:
 ```
-{context":"components/cyclotron","space":"T1","role":"ROLE_PROVIDER","authority":"components/cyclotron/T1:ROLE_PROVIDER"}
-{context":"components/cyclotron","space":"T2","role":"reader","authority":"components/cyclotron/T2:reader"}
+{"context":"components/cyclotron","space":"T1","role":"ROLE_PROVIDER","authority":"components/cyclotron/T1:ROLE_PROVIDER"}
+{"context":"components/cyclotron","space":"T2","role":"reader","authority":"components/cyclotron/T2:reader"}
 ```
 * user B is reader of space T1:
 ```
-{context":"components/cyclotron","space":"T1","role":"reader","authority":"components/cyclotron/T1:reader"}
+{"context":"components/cyclotron","space":"T1","role":"reader","authority":"components/cyclotron/T1:reader"}
 ```
 * user C is writer of space T1:
 ```
-{context":"components/cyclotron","space":"T1","role":"writer","authority":"components/cyclotron/T1:writer"}
+{"context":"components/cyclotron","space":"T1","role":"writer","authority":"components/cyclotron/T1:writer"}
 ```
 When these users log in to Cyclotron via AAC they are assigned the following property:
 
