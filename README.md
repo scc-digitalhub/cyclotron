@@ -54,7 +54,7 @@ Open `cyclotron-svc/config/config.js` and update the properties according to you
         parentSpace: 'components/cyclotron'
     }
 
-Do the same with `cyclotron-site/_public/js/conf/configService.js`. Be sure to set the following properties under `authentication` (you will set the client ID later):
+Open `cyclotron-site/_public/js/conf/configService.js` and update it too. Be sure to set the following properties under `authentication` (you will set the client ID later):
 
     enable: true,
     authProvider: 'aac',
