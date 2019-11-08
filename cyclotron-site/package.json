@@ -58,5 +58,9 @@
     "main-bower-files": "~2.13.1",
     "merge-stream": "~0.1.7",
     "phantomjs-prebuilt": "~2.1.13"
+  },
+  "dependencies": {
+    "@deck.gl/core": "^7.3.2",
+    "@deck.gl/layers": "^7.3.2"
   }
 }

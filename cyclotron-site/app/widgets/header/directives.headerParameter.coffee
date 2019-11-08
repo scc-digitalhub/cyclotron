@@ -87,7 +87,8 @@ cyclotronDirectives.directive 'headerParameter', ($window, dashboardService, dat
                     $window.Cyclotron.parameters[$scope.parameterDefinition.name] = $scope.parameter.value
                     originalValue = $scope.parameter.value
                     logService.debug 'Header Widget:', 'Updated Parameter [' + $scope.parameterDefinition.name + ']:', $scope.parameter.value
-                    parameterPropagationService.parameterBroadcaster 'header', null, null, null, [$scope.parameterDefinition]
+                    if $scope.parameterDefinition.editing?.broadcastUpdate != false
+                        parameterPropagationService.parameterBroadcaster 'header', null, null, null, [$scope.parameterDefinition]
 
             # Initialize DataSource (optional)
             dsDefinition = dashboardService.getDataSource $scope.dashboard, $scope.parameterDefinition.editing

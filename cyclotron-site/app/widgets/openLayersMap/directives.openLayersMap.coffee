@@ -75,7 +75,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                     mapView = new ol.View({
                         center: ol.proj.fromLonLat scope.mapConfig.center
                         zoom: scope.mapConfig.zoom
-                        #projection: (if scope.mapConfig.projection? then scope.mapConfig.projection else undefined)
+                        projection: (if scope.mapConfig.projection? then scope.mapConfig.projection else undefined)
                     })
 
                     #create map

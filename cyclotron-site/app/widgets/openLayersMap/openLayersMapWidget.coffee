@@ -10,9 +10,9 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
     ###
     # View
     ###
-    #if $scope.widget.projection?
-    #    #set map view projection
-    #    mapConfig.projection = $scope.widget.projection
+    if $scope.widget.projection?
+        #set map view projection
+        mapConfig.projection = $scope.widget.projection
 
     checkViewProperties = (widget) ->
         if not widget.center?.x? or not widget.center?.y? or
@@ -346,7 +346,8 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                                 currentOverlay: group[$scope.mapping.initiallySelectedField] || ''
                             
                             group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
-                            delete group[$scope.mapping.overlayListField]
+                            if $scope.mapping.overlayListField != 'overlays'
+                                delete group[$scope.mapping.overlayListField]
                             
                             mapConfig.overlays = mapConfig.overlays.concat(setOverlays group.overlays, group.name)
 
@@ -359,7 +360,8 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                     for group, i in $scope.ovData
                         group.name = oldData[i].name
                         group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
-                        delete group[$scope.mapping.overlayListField]
+                        if $scope.mapping.overlayListField != 'overlays'
+                            delete group[$scope.mapping.overlayListField]
 
                     updateOverlays $scope.ovData
 

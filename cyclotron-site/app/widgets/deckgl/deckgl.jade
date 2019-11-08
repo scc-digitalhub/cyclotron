@@ -1,0 +1,5 @@
+.deckgl-widget(ng-controller='DeckglWidget')
+    h1.title(ng-if='::widget.title') {{ widgetTitle() }}
+    .widget-body
+        .widget-error(ng-if='widgetContext.dataSourceError == true')
+        .the-deck(ng-if='widgetContext.dataSourceError == false', id='{{ randomId }}', deck-config='deckConfig')

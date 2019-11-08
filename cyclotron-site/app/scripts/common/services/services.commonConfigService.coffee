@@ -1911,6 +1911,14 @@ cyclotronServices.factory 'commonConfigService', ->
                                     required: false
                                     defaultHidden: true
                                     order: 7
+                                broadcastUpdate:
+                                    label: 'Broadcast Parameter update'
+                                    description: 'Notify the dashboard that the value has changed'
+                                    type: 'boolean'
+                                    default: true
+                                    required: false
+                                    defaultHidden: true
+                                    order: 8
                     sample:
                         name: ''
                         defaultValue: ''
@@ -3506,6 +3514,8 @@ cyclotronServices.factory 'commonConfigService', ->
                         type: 'string'
                         required: true
                         options:
+                            AnnotatedTimeLine:
+                                value: 'AnnotatedTimeLine'
                             AreaChart:
                                 value: 'AreaChart'
                             BarChart:
@@ -3518,12 +3528,20 @@ cyclotronServices.factory 'commonConfigService', ->
                                 value: 'ColumnChart'
                             ComboChart:
                                 value: 'ComboChart'
+                            Gauge:
+                                value: 'Gauge'
                             GeoChart:
                                 value: 'GeoChart'
+                            IntensityMap:
+                                value: 'IntensityMap'
+                            Map:
+                                value: 'Map'
                             Histogram:
                                 value: 'Histogram'
                             LineChart:
                                 value: 'LineChart'
+                            OrgChart:
+                                value: 'OrgChart'
                             PieChart:
                                 value: 'PieChart'
                             ScatterChart:
@@ -3534,8 +3552,6 @@ cyclotronServices.factory 'commonConfigService', ->
                                 value: 'Table'
                             Timeline:
                                 value: 'Timeline'
-                            Gauge:
-                                value: 'Gauge'
                             TreeMap:
                                 value: 'TreeMap'
                             
@@ -3631,6 +3647,132 @@ cyclotronServices.factory 'commonConfigService', ->
                         type: 'string'
                         order: 11
 
+            deckgl:
+                name: 'deckgl'
+                label: 'Deck.gl'
+                properties:
+                    dataSource:
+                        label: 'Data Source'
+                        description: 'The name of the Data Source providing data for the layers.'
+                        placeholder: 'Data Source name'
+                        type: 'string'
+                        required: false
+                        options: datasourceOptions
+                        order: 10
+                    ###mapboxApiAccessToken:
+                        label: 'Mapbox Token'
+                        description: ''
+                        type: 'string'
+                        required: false
+                        order: 11
+                    mapStyle:
+                        label: 'Map Style'
+                        description: ''
+                        type: 'string'
+                        required: false
+                        order: 12###
+                    viewState:
+                        label: 'View State'
+                        description: 'viewState property'
+                        type: 'propertyset'
+                        properties:
+                            longitude:
+                                label: 'Longitude'
+                                description: ''
+                                type: 'string'
+                                required: true
+                                order: 1
+                            latitude:
+                                label: 'Latitude'
+                                description: ''
+                                type: 'string'
+                                required: true
+                                order: 2
+                            zoom:
+                                label: 'Zoom'
+                                description: 'Default is 0'
+                                type: 'integer'
+                                required: false
+                                default: 0
+                                order: 3
+                            bearing:
+                                label: 'Bearing'
+                                description: ''
+                                type: 'integer'
+                                required: false
+                                defaultHidden: true
+                                order: 4
+                            pitch:
+                                label: 'Pitch'
+                                description: ''
+                                type: 'integer'
+                                required: false
+                                defaultHidden: true
+                                order: 5
+                        order: 13
+                    additionalDeckProps:
+                        label: 'Additional Deck Properties'
+                        description: 'Additional supported Deck properties. See https://deck.gl/#/documentation/deckgl-api-reference/deck'
+                        type: 'editor'
+                        editorMode: 'javascript'
+                        required: false
+                        defaultHidden: true
+                        order: 14
+                    layers:
+                        label: 'Layers'
+                        singleLabel: 'layer'
+                        description: ''
+                        type: 'propertyset[]'
+                        properties:
+                            type:
+                                label: 'Type'
+                                description: 'The type of layer that will be added to the deck.'
+                                type: 'string'
+                                required: true
+                                options:
+                                    ArcLayer:
+                                        value: 'ArcLayer'
+                                    BitmapLayer:
+                                        value: 'BitmapLayer'
+                                    ColumnLayer:
+                                        value: 'ColumnLayer'
+                                    GeoJsonLayer:
+                                        value: 'GeoJsonLayer'
+                                    GridCellLayer:
+                                        value: 'GridCellLayer'
+                                    IconLayer:
+                                        value: 'IconLayer'
+                                    LineLayer:
+                                        value: 'LineLayer'
+                                    PathLayer:
+                                        value: 'PathLayer'
+                                    PointCloudLayer:
+                                        value: 'PointCloudLayer'
+                                    PolygonLayer:
+                                        value: 'PolygonLayer'
+                                    ScatterplotLayer:
+                                        value: 'ScatterplotLayer'
+                                    SolidPolygonLayer:
+                                        value: 'SolidPolygonLayer'
+                                    TextLayer:
+                                        value: 'TextLayer'
+                                order: 1
+                            configProperties:
+                                label: 'Configuration Properties'
+                                description: 'See https://deck.gl/#/documentation/deckgl-api-reference/layers/overview for supported properties. Note that they may vary depending on the layer type.'
+                                type: 'editor'
+                                editorMode: 'javascript'
+                                required: false
+                                order: 2
+                            useDataSource:
+                                label: 'Use Data Source'
+                                description: 'Use the Data Source to provide data for this layer. The data will be used for the first layer found with this property set to true.'
+                                type: 'boolean'
+                                required: false
+                                default: false
+                                order: 3
+                        order: 14
+            
             header:
                 name: 'header'
                 label: 'Header'
@@ -4513,7 +4655,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 required: false
                                 order: 3
                         order: 17
-                    ###projection:
+                    projection:
                         label: 'Projection'
                         description: 'Projection. Default is EPSG:3857 (Spherical Mercator).'
                         type: 'string'
@@ -4525,7 +4667,7 @@ cyclotronServices.factory 'commonConfigService', ->
                             'EPSG:4326':
                                 value: 'EPSG:4326'
 
-                        order: 18###
+                        order: 18
 
             qrcode: 
                 name: 'qrcode'
