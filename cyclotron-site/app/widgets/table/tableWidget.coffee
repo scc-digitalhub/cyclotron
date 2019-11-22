@@ -348,7 +348,7 @@ cyclotronApp.controller 'TableWidget', ($scope, $location, $window, $element, da
             _.each data, (row, index) -> row.__index = index
 
             # First load only!
-            if (!isUpdate || !$scope.columns?)
+            if data? and (!isUpdate || !$scope.columns?)
 
                 if _.isNullOrUndefined headers
                     headers = _.keys(_.omit(data[0], '$$hashKey'))
@@ -415,7 +415,7 @@ cyclotronApp.controller 'TableWidget', ($scope, $location, $window, $element, da
             $scope.sortedRows = data
             $scope.sortRows()
 
-            $scope.paging.totalItems = $scope.sortedRows.length
+            $scope.paging.totalItems = if data? then $scope.sortedRows.length else 0
 
             $scope.widgetContext.loading = false
 
