@@ -7,6 +7,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
             layerOptions: '='
             sourceOfParams: '='
             wmsSections: '='
+            featureParams: '='
             widgetId: '='
             controlOptions: '='
             genericEventHandlers: '='
@@ -111,6 +112,58 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                                             .catch (error) ->
                                                 logService.error 'An error occurred while retrieving feature info: ' + error + '. Dashboard configuration may be incorrect.'
                     
+                    #handle feature selection
+                    if scope.featureParams?
+                        selectedFeatures = new ol.Collection([], {unique: true})
+                        select = new ol.interaction.Select({
+                            style: if $window.Cyclotron.featureSelectStyleFunction? then $window.Cyclotron.featureSelectStyleFunction else undefined
+                            features: selectedFeatures
+                        })
+                        map.addInteraction select
+
+                        if scope.featureParams.length == 1
+                            #single feature selection
+                            select.on 'select', (event) ->
+                                feature = selectedFeatures.getArray()[0]
+                                featureProperties = {}
+                                props = feature.getProperties()
+
+                                #clone feature properties excluding geometry to avoid exceeding max call stack size
+                                _.each _.keys(props), (key) ->
+                                    if key != 'geometry'
+                                        featureProperties[key] = props[key]
+                                
+                                parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties
+                        else
+                            #selection of feature of specific layer, every featureParams element has layerIndex
+                            currentFeatures = {}
+                            _.each scope.featureParams, (fp) ->
+                                currentFeatures[''+fp.layerIndex] = null
+
+                            select.on 'select', (event) ->
+                                #get first selected feature (there may be more if shift is used to select them)
+                                feature = selectedFeatures.getArray()[0]
+                                layerIdx = mapLayers.indexOf select.getLayer(feature)
+
+                                if currentFeatures[''+layerIdx] != undefined
+                                    #store feature at corresponding layer index
+                                    currentFeatures[''+layerIdx] = feature
+
+                                    #store feature properties in the corresponding parameter
+                                    featureProperties = {}
+                                    props = feature.getProperties()
+                                    #clone feature properties excluding geometry to avoid exceeding max call stack size
+                                    _.each _.keys(props), (key) ->
+                                        if key != 'geometry'
+                                            featureProperties[key] = props[key]
+
+                                    parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties, ''+layerIdx
+                                
+                                #keep selected also current features of other layers
+                                _.each _.keys(currentFeatures), (key) ->
+                                    if key != (''+layerIdx) and currentFeatures[key] != null
+                                        selectedFeatures.push currentFeatures[key]
+
                     #if there are overlays, create them and add them to the map
                     if scope.mapConfig.overlays? and scope.mapConfig.overlays.length > 0
                         createOverlays()

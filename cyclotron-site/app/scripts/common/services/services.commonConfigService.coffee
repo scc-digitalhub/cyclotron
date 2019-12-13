@@ -4413,7 +4413,7 @@ cyclotronServices.factory 'commonConfigService', ->
                                 order: 3
                             styleFunction:
                                 label: 'Style function'
-                                description: 'Style function (for vector layers, see https://openlayers.org/en/v4.6.5/apidoc/ol.html#.StyleFunction)'
+                                description: 'Style function (for vector layers, see https://openlayers.org/en/v4.6.5/apidoc/ol.html#.StyleFunction). You can specify a style function to be applied when selecting a feature by defining it as "Cyclotron.featureSelectStyleFunction" in the Scripts section, otherwise the default select style will be applied.'
                                 type: 'editor'
                                 editorMode: 'javascript'
                                 required: false
@@ -4647,10 +4647,12 @@ cyclotronServices.factory 'commonConfigService', ->
                                         value: 'clickOnOverlay'
                                     clickOnWMSLayer:
                                         value: 'clickOnWMSLayer'
+                                    selectVectorFeature:
+                                        value: 'selectVectorFeature'
                                 order: 2
                             section:
                                 label: 'Section'
-                                description: 'Name of the overlay group that triggers the event, for the event "clickOnOverlay". For other events, you can leave this option empty. Some widgets (e.g. slider) have one section only, i.e. the whole widget triggers the event, while others may have some sections that trigger the same kind of event (e.g. in OpenLayers maps, any overlay group can trigger clickOnOverlay event).'
+                                description: 'Name of the overlay group that triggers the event, for the event "clickOnOverlay". Name of the WMS layer that triggers the event (e.g. "topp:states"), for the event "clickOnWMSLayer". For other events, you can leave this option empty. For the event "selectVectorFeature", you can set the index (zero-based) of the layer the features should be selected from, so that features of the specified layer will be stored in the parameter, otherwise features of any layer will be stored in the same parameter. Some widgets (e.g. slider) have one section only, i.e. the whole widget triggers the event, while others may have some sections that trigger the same kind of event (e.g. in OpenLayers maps, any overlay group can trigger clickOnOverlay event).'
                                 type: 'string'
                                 required: false
                                 order: 3

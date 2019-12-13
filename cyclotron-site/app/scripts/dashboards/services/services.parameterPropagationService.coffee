@@ -24,6 +24,7 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
             else
                 console.log 'setting', parameterName, value
                 $window.Cyclotron.parameters[parameterName] = value
+                return true
     
     #place a listener for parameter changes
     _parameterListener = (scope, parameterName) ->
@@ -50,11 +51,26 @@ cyclotronServices.factory 'parameterPropagationService', ($rootScope, $window, c
                     if param_event.event == 'clickOnWMSLayer'
                         if not scope.wmsSections then scope.wmsSections = []
                         if param_event.section?
-                            scope.wmsSections.push(param_event.section)
+                            scope.wmsSections.push param_event.section
                         else
                             scope.widgetContext.dataSourceError = true
                             scope.widgetContext.dataSourceErrorMessage = 'clickOnWMSLayer events must have property Section'
                     
+                    if param_event.event == 'selectVectorFeature'
+                        #check that either there is only one param-event or each param-event has a section
+                        if _.filter(scope.widget.specificEvents, {'event': 'selectVectorFeature'}).length > 1 and not param_event.section?
+                            scope.widgetContext.dataSourceError = true
+                            scope.widgetContext.dataSourceErrorMessage = 'Either specify only one param-event for selectVectorFeature event or assign a layer to each param-event'
+                        else
+                            if not scope.featureParams then scope.featureParams = []
+                            interaction = {
+                                paramName: param_event.paramName
+                            }
+                            if param_event.section? and /^\d+$/.test(param_event.section) #check that section is a valid index
+                                interaction.layerIndex = parseInt(param_event.section)
+                            
+                            scope.featureParams.push interaction
+
                     widget = scope.widget.widget + scope.randomId
                     section = if param_event.section? then param_event.section else if optSection? then optSection else widget
                     if not _widgetEvents[widget] then _widgetEvents[widget] = {}
