@@ -39,6 +39,9 @@ cyclotronDataSources.factory 'odataDataSource', ($q, $http, configService, dataS
             proxyBody.host = url.hostname()
             proxyBody.path = url.path() + url.search()
             proxyBody.awsCredentials = options.awsCredentials
+        
+        if options.oauth2ClientCredentials?
+            proxyBody.oauth2ClientCredentials = options.oauth2ClientCredentials
 
         return proxyBody
     

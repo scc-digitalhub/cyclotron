@@ -33,7 +33,7 @@ var decrypter = function (req) {
         if (_.isString(value)) {
             /* Decrypt */
             //return value.replace(/!(\{|%7B)(.*?)(\}|%7D)/gi, function (all, opener, inner, closer) {
-            return value.replace(/!|%21(\{|%7B)(.*?)(\}|%7D)/gi, function (all, opener, inner, closer) {
+            return value.replace(/(!|%21)(\{|%7B)(.*?)(\}|%7D)/gi, function (all, exlMark, opener, inner, closer) {
                 var uriDecoded = decodeURIComponent(inner);
                 var cipher = crypto.createDecipher('aes-256-cbc', config.encryptionKey);
                 var encrypted = cipher.update(uriDecoded, 'base64', 'utf8');
@@ -52,7 +52,6 @@ var decrypter = function (req) {
 }
 
 var sendRequest = function (req, callback) {
-    //console.log('----', req);
     var proxyRequest = decrypter(req);
 
     if (proxyRequest.awsCredentials) {
@@ -64,8 +63,6 @@ var sendRequest = function (req, callback) {
      * synchronously the actual proxy request */
     if(proxyRequest.oauth2ClientCredentials) {
         /* Should contain { authorizationServerUrl: '', clientId: '' , clientSecret: ''} */
-        console.log('----', proxyRequest);
-
         var queryParams = {
             client_id: proxyRequest.oauth2ClientCredentials.clientId,
             client_secret: proxyRequest.oauth2ClientCredentials.clientSecret,
