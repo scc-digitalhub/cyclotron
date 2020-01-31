@@ -114,6 +114,67 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                     
                     #handle feature selection
                     if scope.featureParams?
+                        if scope.featureParams.length == 1
+                            selectedFeatures = []
+                            map.on 'singleclick', (event) ->
+                                map.forEachFeatureAtPixel event.pixel, (feature) ->
+                                    selIndex = selectedFeatures.indexOf feature
+                                    if selIndex < 0
+                                        #set feature as selected
+                                        selectedFeatures.push feature
+                                        selectedStyle = if $window.Cyclotron.featureSelectStyleFunction? then $window.Cyclotron.featureSelectStyleFunction(feature) else undefined
+                                        feature.setStyle(selectedStyle)
+
+                                        featureProperties = {}
+                                        props = feature.getProperties()
+
+                                        #clone feature properties excluding geometry to avoid exceeding max call stack size
+                                        _.each _.keys(props), (key) ->
+                                            if key != 'geometry'
+                                                featureProperties[key] = props[key]
+                                        
+                                        parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties
+                                    else
+                                        #deselect feature
+                                        selectedFeatures.splice(selIndex, 1)
+                                        feature.setStyle undefined
+                                        parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', null
+                        else
+                            #selection of feature of specific layer, every featureParams element has layerIndex
+                            currentFeatures = {}
+                            _.each scope.featureParams, (fp) ->
+                                currentFeatures[''+fp.layerIndex] = null
+                            
+                            map.on 'singleclick', (event) ->
+                                map.forEachFeatureAtPixel event.pixel, (feature, layer) ->
+                                    layerIdx = mapLayers.indexOf layer
+
+                                    #TODO consider adding deselection also here
+                                    if currentFeatures[''+layerIdx] != undefined
+                                        #if another feature was selected for the same layer, deselect it
+                                        if currentFeatures[''+layerIdx] != null
+                                            oldFeature = currentFeatures[''+layerIdx]
+                                            oldFeature.setStyle(undefined)
+
+                                        #store feature at corresponding layer index
+                                        currentFeatures[''+layerIdx] = feature
+
+                                        #store feature properties in the corresponding parameter
+                                        featureProperties = {}
+                                        props = feature.getProperties()
+                                        #clone feature properties excluding geometry to avoid exceeding max call stack size
+                                        _.each _.keys(props), (key) ->
+                                            if key != 'geometry'
+                                                featureProperties[key] = props[key]
+
+                                        parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties, ''+layerIdx
+                                    
+                                    #style all selected features
+                                    _.each _.keys(currentFeatures), (key) ->
+                                        if currentFeatures[key] != null
+                                            selectedStyle = if $window.Cyclotron.featureSelectStyleFunction? then $window.Cyclotron.featureSelectStyleFunction(feature) else undefined
+                                            feature.setStyle(selectedStyle)
+                        ###
                         selectedFeatures = new ol.Collection([], {unique: true})
                         select = new ol.interaction.Select({
                             style: if $window.Cyclotron.featureSelectStyleFunction? then $window.Cyclotron.featureSelectStyleFunction else undefined
@@ -141,28 +202,31 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                                 currentFeatures[''+fp.layerIndex] = null
 
                             select.on 'select', (event) ->
-                                #get first selected feature (there may be more if shift is used to select them)
-                                feature = selectedFeatures.getArray()[0]
-                                layerIdx = mapLayers.indexOf select.getLayer(feature)
+                                if selectedFeatures.getLength() > 0
+                                    #get first selected feature (there may be more if shift is used to select them)
+                                    feature = selectedFeatures.getArray()[0]
+                                    layerIdx = mapLayers.indexOf select.getLayer(feature)
 
-                                if currentFeatures[''+layerIdx] != undefined
-                                    #store feature at corresponding layer index
-                                    currentFeatures[''+layerIdx] = feature
+                                    if currentFeatures[''+layerIdx] != undefined
+                                        #store feature at corresponding layer index
+                                        currentFeatures[''+layerIdx] = feature
 
-                                    #store feature properties in the corresponding parameter
-                                    featureProperties = {}
-                                    props = feature.getProperties()
-                                    #clone feature properties excluding geometry to avoid exceeding max call stack size
-                                    _.each _.keys(props), (key) ->
-                                        if key != 'geometry'
-                                            featureProperties[key] = props[key]
+                                        #store feature properties in the corresponding parameter
+                                        featureProperties = {}
+                                        props = feature.getProperties()
+                                        #clone feature properties excluding geometry to avoid exceeding max call stack size
+                                        _.each _.keys(props), (key) ->
+                                            if key != 'geometry'
+                                                featureProperties[key] = props[key]
 
-                                    parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties, ''+layerIdx
-                                
-                                #keep selected also current features of other layers
+                                        parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties, ''+layerIdx
+                                    
+                                #reset collection to keep selected also current features of other layers
+                                selectedFeatures.clear()
                                 _.each _.keys(currentFeatures), (key) ->
-                                    if key != (''+layerIdx) and currentFeatures[key] != null
+                                    if currentFeatures[key] != null
                                         selectedFeatures.push currentFeatures[key]
+                        ###
 
                     #if there are overlays, create them and add them to the map
                     if scope.mapConfig.overlays? and scope.mapConfig.overlays.length > 0
@@ -189,6 +253,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
 
             #if overlay content has changed (i.e. because it is parametric), update it on the map
             updateOverlays = (newConfig) ->
+                console.log 'foo', map.getOverlays().getArray()
                 if map.getOverlays().getLength() == 0
                     #map has no overlay yet (i.e. overlays are provided by a datasource which has just finished executing)
                     createOverlays()
@@ -200,12 +265,18 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                             overlayElem = document.getElementById overlay.id
                             angular.element(overlayElem).contents().remove()
                             angular.element(overlayElem).append newContent
-                        
-                        if not _.isEqual(overlay.position, currentMapConfig.overlays[index].position)
+                    
+                        ###if not _.isEqual(overlay.position, currentMapConfig.overlays[index].position)
                             map.getOverlayById(overlay.id).setPosition(ol.proj.fromLonLat(overlay.position))
                         
                         if not _.isEqual(overlay.positioning, currentMapConfig.overlays[index].positioning)
-                            map.getOverlayById(overlay.id).setPositioning(overlay.positioning)
+                            map.getOverlayById(overlay.id).setPositioning(overlay.positioning)###
+                    
+                    map.getOverlays().forEach (overlEl) ->
+                        console.log 'overl', overlEl.getId(), _.find(newConfig.overlays, {id: overlEl.getId()})
+                        newOverl = _.find(newConfig.overlays, {id: overlEl.getId()})
+                        overlEl.setPosition(ol.proj.fromLonLat(newOverl.position))
+                        overlEl.setPositioning(newOverl.positioning)
                     
                     currentMapConfig.overlays = _.cloneDeep newConfig.overlays
             

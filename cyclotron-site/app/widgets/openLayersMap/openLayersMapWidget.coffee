@@ -212,6 +212,16 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
         for group in groups
             newOverlays = setOverlays group.overlays, group.name
             for overlay, index in newOverlays
+                oldOverlIndex = _.findIndex mapConfig.overlays, { id: overlay.id }
+                if oldOverlIndex >= 0
+                    console.log 'updating', overlay.id, mapConfig.overlays[oldOverlIndex].id
+                    mapConfig.overlays[oldOverlIndex].template = overlay.template
+                    mapConfig.overlays[oldOverlIndex].cssClass = overlay.cssClass
+                    mapConfig.overlays[oldOverlIndex].cssClassSelected = overlay.cssClassSelected
+                    mapConfig.overlays[oldOverlIndex].position = overlay.position
+                    mapConfig.overlays[oldOverlIndex].positioning = overlay.positioning
+
+                ###
                 if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
                     mapConfig.overlays[index].template = overlay.template
                 if not _.isEqual(overlay.cssClass, mapConfig.overlays[index].cssClass)
@@ -222,6 +232,7 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                     mapConfig.overlays[index].position = overlay.position
                 if not _.isEqual(overlay.positioning, mapConfig.overlays[index].positioning)
                     mapConfig.overlays[index].positioning = overlay.positioning
+                ###
 
     ###
     # Overlays
