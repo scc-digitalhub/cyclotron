@@ -115,30 +115,27 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                     #handle feature selection
                     if scope.featureParams?
                         if scope.featureParams.length == 1
-                            selectedFeatures = []
+                            selectedFeature = null
                             map.on 'singleclick', (event) ->
                                 map.forEachFeatureAtPixel event.pixel, (feature) ->
-                                    selIndex = selectedFeatures.indexOf feature
-                                    if selIndex < 0
-                                        #set feature as selected
-                                        selectedFeatures.push feature
-                                        selectedStyle = if $window.Cyclotron.featureSelectStyleFunction? then $window.Cyclotron.featureSelectStyleFunction(feature) else undefined
-                                        feature.setStyle(selectedStyle)
+                                    #if another feature was selected, deselect it
+                                    if selectedFeature != null
+                                        selectedFeature.setStyle(undefined)
+                                    
+                                    #set feature as selected
+                                    selectedFeature = feature
+                                    selectedStyle = if $window.Cyclotron.featureSelectStyleFunction? then $window.Cyclotron.featureSelectStyleFunction(feature) else undefined
+                                    feature.setStyle(selectedStyle)
 
-                                        featureProperties = {}
-                                        props = feature.getProperties()
+                                    featureProperties = {}
+                                    props = feature.getProperties()
 
-                                        #clone feature properties excluding geometry to avoid exceeding max call stack size
-                                        _.each _.keys(props), (key) ->
-                                            if key != 'geometry'
-                                                featureProperties[key] = props[key]
-                                        
-                                        parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties
-                                    else
-                                        #deselect feature
-                                        selectedFeatures.splice(selIndex, 1)
-                                        feature.setStyle undefined
-                                        parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', null
+                                    #clone feature properties excluding geometry to avoid exceeding max call stack size
+                                    _.each _.keys(props), (key) ->
+                                        if key != 'geometry'
+                                            featureProperties[key] = props[key]
+                                    
+                                    parameterPropagationService.parameterBroadcaster scope.widgetId, 'selectVectorFeature', featureProperties
                         else
                             #selection of feature of specific layer, every featureParams element has layerIndex
                             currentFeatures = {}
@@ -149,7 +146,6 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                                 map.forEachFeatureAtPixel event.pixel, (feature, layer) ->
                                     layerIdx = mapLayers.indexOf layer
 
-                                    #TODO consider adding deselection also here
                                     if currentFeatures[''+layerIdx] != undefined
                                         #if another feature was selected for the same layer, deselect it
                                         if currentFeatures[''+layerIdx] != null
