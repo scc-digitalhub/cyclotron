@@ -49,6 +49,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         
                         #add overlay to map
                         config =
+                            id: overlay.id
                             element: overlayElem
                         if overlay.position? then config.position = ol.proj.fromLonLat(overlay.position)
                         if overlay.positioning? then config.positioning = overlay.positioning
@@ -268,8 +269,7 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                         if not _.isEqual(overlay.positioning, currentMapConfig.overlays[index].positioning)
                             map.getOverlayById(overlay.id).setPositioning(overlay.positioning)###
                     
-                    map.getOverlays().forEach (overlEl) ->
-                        console.log 'overl', overlEl.getId(), _.find(newConfig.overlays, {id: overlEl.getId()})
+                    map.getOverlays().forEach (overlEl, idx) ->
                         newOverl = _.find(newConfig.overlays, {id: overlEl.getId()})
                         overlEl.setPosition(ol.proj.fromLonLat(newOverl.position))
                         overlEl.setPositioning(newOverl.positioning)
