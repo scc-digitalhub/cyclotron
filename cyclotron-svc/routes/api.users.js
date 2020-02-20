@@ -168,49 +168,6 @@ exports.logout = function (req, res) {
     });
 };
 
-exports.oauthLogin = function (req, res) {
-    if(req.header('Authorization')){
-        try {
-            var session = req.session;
-            session.user.admin = _.includes(config.admins, session.user.distinguishedName);
-
-            // Check that user roles are up to date
-            var bearer = req.header('Authorization');
-            auth.getUserRoles(bearer).then(function(roles){
-                session.user.memberOf = auth.setUserMembership(roles);
-                console.log('user', session.user.memberOf, session.user.sAMAccountName);
-
-                //save roles
-                Users.update({ sAMAccountName: session.user.sAMAccountName}, { $set: { memberOf: session.user.memberOf }}).exec()
-
-                //finish login
-                req.login(session.user, { session: false }, function (err) {
-                    if (err) {
-                        console.log(err);
-                        res.status(500).send(err);
-                    } else {
-                        console.log('sending session with', session.user);
-                        res.send(session);
-                    }
-                });
-            })
-            .catch(function(error) {
-                console.log(error);
-                res.status(500).send(error);
-            });
-
-            // Cleanup expired sessions
-            auth.removeExpiredSessions();
-        }
-        catch(e) {
-            console.log(e);
-            res.status(500).send(e);
-        }
-    } else {
-        console.log('Authorization header missing from request');
-        res.status(401).send('Authorization header missing from request');
-    }
-};
 
 exports.search = function (req, res) {
     var nameFilter = req.query.q || ''

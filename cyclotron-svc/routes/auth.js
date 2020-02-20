@@ -12,8 +12,8 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
  * either express or implied. See the License for the specific 
  * language governing permissions and limitations under the License. 
- */ 
- 
+ */
+
 /* 
  * Service for authentication/authorization.
  */
@@ -26,7 +26,7 @@ var config = require('../config/config'),
     uuid = require('node-uuid'),
     Promise = require('bluebird'),
     request = require('request');
-    
+
 var Sessions = mongoose.model('session');
 var Dashboards = mongoose.model('dashboard2');
 
@@ -47,7 +47,7 @@ exports.removeSession = function (key) {
 /* Removes all expired Sessions from the database. */
 exports.removeExpiredSessions = function () {
     return Sessions.removeAsync({
-        expiration: { $lt: Date.now() } 
+        expiration: { $lt: Date.now() }
     });
 };
 
@@ -69,61 +69,47 @@ exports.createNewSession = function (ipAddress, sessionType, value, expiration, 
     return session.saveAsync();
 };
 
-/* Find a Session by type and value. */
-exports.findSession = function (type, value) {
-    return new Promise(function(resolve, reject){
-        Sessions.findOne({
-            type: type,
-            value: value
-        })
-        .populate('user')
-        .exec()
-        .then(function (session) {
-            if (session == null) {
-                reject('Session invalid');
-            }
-            resolve(session);
-        });
-    });
-    
-};
+// /* Find a Session by type and value. */
+// exports.findSession = function (type, value) {
+//     return new Promise(function(resolve, reject){
+//         Sessions.findOne({
+//             type: type,
+//             value: value
+//         })
+//         .populate('user')
+//         .exec()
+//         .then(function (session) {
+//             if (session == null) {
+//                 reject('Session invalid');
+//             }
+//             resolve(session);
+//         });
+//     });
 
-/* Find a Dashboard by id. */
-exports.findDashboardById = function (id) {
-    return new Promise(function(resolve, reject){
-        Dashboards.findById(id)
-        .exec()
-        .then(function (dashboard) {
-            if (dashboard == null) {
-                reject('Dashboard ID invalid');
-            }
-            resolve(dashboard);
-        });
-    });
-};
+// };
 
 /* Validate and extend Session. */
 exports.validateSession = function (key) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         Sessions.findOne({
             key: key,
             expiration: { $gt: Date.now() }
         })
-        .populate('user')
-        .exec()
-        .then(function (session) {
-            if (session == null) {
-                reject('Session invalid');
-            }
+            .populate('user')
+            .exec()
+            .then(function (session) {
+                if (session == null) {
+                    reject('Session invalid');
+                }
 
-            //for sessions created via login with credentials, extend validity
-            if (session.type == 'credentials') {
-                Sessions.updateOne({ key: key}, { $set: { expiration: getExpiration() }}).exec()
-            }
-            
-            session.user.admin = _.includes(config.admins, session.user.distinguishedName);
-            resolve(session);
-        });
+                //for sessions created via login with credentials, extend validity
+                if (session.type == 'credentials') {
+                    Sessions.updateOne({ key: key }, { $set: { expiration: getExpiration() } }).exec()
+                }
+
+                session.user.admin = _.includes(config.admins, session.user.distinguishedName);
+                resolve(session);
+            });
     });
     /*
     return new Promise(function (resolve, reject) {
@@ -192,7 +178,7 @@ exports.hasEditPermission = function (dashboard, req) {
     }
 
     var user = req.session.user;
-    
+
     /* By default, everyone can edit */
     if (_.isEmpty(dashboard.editors)) {
         return true;
@@ -206,7 +192,7 @@ exports.hasEditPermission = function (dashboard, req) {
 
     /* If user is in Editors, or a member of a group that is */
     return _.some(dashboard.editors, function (editor) {
-        if (user.distinguishedName === editor.dn || 
+        if (user.distinguishedName === editor.dn ||
             _.includes(user.memberOf, editor.dn)) {
             console.log('Has Permission due to ' + editor.dn);
             return true;
@@ -245,7 +231,7 @@ exports.hasViewPermission = function (dashboard, req) {
 
     /* If user is in Viewers, or a member of a group that is */
     return _.some(dashboard.viewers, function (viewer) {
-        if (user.distinguishedName === viewer.dn || 
+        if (user.distinguishedName === viewer.dn ||
             _.includes(user.memberOf, viewer.dn)) {
             console.log('Has Permission due to ' + viewer.dn);
             return true;
@@ -263,130 +249,17 @@ exports.getUserId = function (req) {
     }
 };
 
-/* Retrieve info associated to OAuth2 token. */
-exports.getTokenInfo = function (bearer) {
-    var options = {
-        url: config.oauth.tokenInfoEndpoint,
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': bearer
-        }
-    };
-
-    return new Promise(function (resolve, reject){
-        request(options, function(error, response, body){
-            if(!error && response.statusCode == 200){
-                var info = JSON.parse(response.body);
-                resolve(info);
-            } else {
-                console.log(error);
-                reject('error retrieving token info');
-            }
-        });
+//TODO move to another file
+/* Find a Dashboard by id. */
+exports.findDashboardById = function (id) {
+    return new Promise(function (resolve, reject) {
+        Dashboards.findById(id)
+            .exec()
+            .then(function (dashboard) {
+                if (dashboard == null) {
+                    reject('Dashboard ID invalid');
+                }
+                resolve(dashboard);
+            });
     });
-};
-
-/* Retrieve info associated to OAuth2 token. */
-exports.checkApiKey = function (key) {
-    var options = {
-        url: config.oauth.apikeyCheckEndpoint + '?apiKey=' + key,
-        headers: {
-            'Accept': 'application/json'
-        }
-    };
-
-    return new Promise(function (resolve, reject){
-        request(options, function(error, response, body){
-            if(!error && response.statusCode == 200){
-                var info = JSON.parse(response.body);
-                resolve(info);
-            } else {
-                console.log(error);
-                reject('error validating apikey');
-            }
-        });
-    });
-};
-
-/* Retrieve user profile from provider. */
-exports.getUserProfile = function (bearer) {
-    var options = {
-        url: config.oauth.userProfileEndpoint,
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': bearer
-        }
-    };
-
-    return new Promise(function (resolve, reject){
-        request(options, function(error, response, body){
-            if(!error && response.statusCode == 200){
-                var profile = JSON.parse(response.body);
-                resolve({
-                    sAMAccountName: profile.username,
-                    displayName: profile.name + ' ' + profile.surname,
-                    distinguishedName: profile.username,
-                    mail: profile.username
-                });
-            } else {
-                console.log(error);
-                reject('error retrieving user profile');
-            }
-        });
-    });
-};
-
-/* Retrieve user roles from provider. */
-exports.getUserRoles = function (bearer, client = false) {
-    var url = null;
-    if (client) {
-        url = config.oauth.tokenRolesEndpoint
-        if(!_.endsWith(url, '/')) { url += '/'; }
-        url += bearer.split(' ')[1]
-    } else {
-        url = config.oauth.userRolesEndpoint;
-    }
-    
-    var options = {
-        url: url,
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': bearer
-        }
-    };
-
-    return new Promise(function (resolve, reject){
-        request(options, function(error, response, body){
-            if(!error && response.statusCode == 200){
-                resolve(JSON.parse(response.body));
-            } else {
-                console.log(error);
-                reject('error retrieving user roles');
-            }
-        });
-    });
-};
-
-/* Receives an array of AAC roles and converts them to groups */
-exports.setUserMembership = function (roles) {
-    //[{context":"components","space":"cyclotron","role":"ROLE_PROVIDER","authority":"components/cyclotron:ROLE_PROVIDER"}]
-    var groups = [];
-    var rolesFiltered = _.filter(roles, function(role){
-        return role.authority.startsWith(config.oauth.parentSpace);
-    });
-
-    _.each(rolesFiltered, function(role){
-        var group = role.authority.slice(config.oauth.parentSpace.length).split(':')[0];
-        if(group.length > 0){
-            var suffix = null;
-            //role is either 'writer', 'reader' or 'ROLE_PROVIDER', writers and providers are treated as equal
-            if(role.role == 'reader'){ suffix = '_viewers'; } else { suffix = '_editors'; }
-            if(group.startsWith('/')){ group = group.slice(1) }
-            groups.push(group + suffix);
-            //edit permission implies also viewing permission
-            if(suffix == '_editors') { groups.push(group + '_viewers'); }
-        }
-    });
-
-    return groups;
 };

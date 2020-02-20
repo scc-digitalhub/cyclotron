@@ -15,7 +15,7 @@ module.exports = {
     /* URL for website using this service
      * Used for exporting Dashboards as PDFs via CasperJS 
      */
-    webServer: 'http://localhost:777',
+    webServer: 'http://localhost:7777',
 
     /* Key for encrypting/decrypting strings on the /crypto endpoint */
     encryptionKey: '',
@@ -79,19 +79,41 @@ module.exports = {
         ]
     },
 
-    /* AAC provider configuration, if authentication is enabled.
-     * Scopes must be comma-separated.
-     */
+    /* OAuth2 provider configuration, if authentication is enabled.
+    * to enable JWT set jwks uri + clientId
+    * to use introspection set endpoints + clientId + clientSecret
+    */
     oauth: {
-        userProfileEndpoint: 'http://aac:8080/aac/basicprofile/me',
-        userRolesEndpoint: 'http://aac:8080/aac/userroles/me',
-        scopes: 'profile.basicprofile.me,user.roles.me',
-        tokenValidityEndpoint: 'http://aac:8080/aac/resources/access',
-        tokenInfoEndpoint: 'http://aac:8080/aac/resources/token',
-        tokenRolesEndpoint: 'http://aac:8080/aac/userroles/token',
-        apikeyCheckEndpoint: 'http://aac:8080/aac/apikeycheck',
-        parentSpace: 'components/cyclotron'
+        clientId: '480466f2-53ea-41f9-8d05-0a1e01482aea',
+        clientSecret: '***',
+        jwksEndpoint: '',
+        tokenIntrospectionEndpoint: 'http://localhost:8080/aac/oauth/introspect',
+        userProfileEndpoint: 'http://localhost:8080/aac/userinfo',
+        parentSpace: 'components/cyclotron',
+        editorRoles: ['ROLE_PROVIDER', 'ROLE_EDITOR']
     },
+
+    /*
+     * API Key support
+     */
+    apikey: {
+        apikeyCheckEndpoint: 'http://localhost:8080/aac/apikeycheck'
+    },
+
+
+    // /* AAC provider configuration, if authentication is enabled.
+    //  * Scopes must be comma-separated.
+    //  */
+    // oauth: {
+    //     userProfileEndpoint: 'http://172.17.0.1:9090/aac/basicprofile/me',
+    //     userRolesEndpoint: 'http://172.17.0.1:9090/aac/userroles/me',
+    //     scopes: 'profile.basicprofile.me,user.roles.me',
+    //     tokenValidityEndpoint: 'http://172.17.0.1:9090/aac/oauth/introspect',
+    //     tokenInfoEndpoint: 'http://172.17.0.1:9090/aac/oauth/introspect',
+    //     tokenRolesEndpoint: 'http://172.17.0.1:9090/aac/userroles/token',
+    //     apikeyCheckEndpoint: 'http://172.17.0.1:9090/aac/apikeycheck',
+    //     parentSpace: 'components/cyclotron'
+    // },
 
     /* List of LDAP distinguished names for Admin users
      * These user(s) can override normal permission settings
