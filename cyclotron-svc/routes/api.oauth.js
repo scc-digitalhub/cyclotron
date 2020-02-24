@@ -26,7 +26,10 @@ var config = require('../config/config'),
     moment = require('moment'),
     auth = require('./auth'),
     request = require('request'),
-    Promise = require('bluebird');
+    Promise = require('bluebird'),
+    jwks = require('jwks-rsa'),
+    jwt = require('jsonwebtoken');
+
 
 
 
@@ -35,73 +38,120 @@ var config = require('../config/config'),
 */
 exports.login = function (req, res) {
 
+    //TODO rework to clear up callback..
     if (req.header('Authorization')) {
-        try {
-            //extract token 
-            var bearer = req.header('Authorization');
-            token = bearer.replace("Bearer ", "");
+        //extract token 
+        var bearer = req.header('Authorization');
+        token = bearer.replace("Bearer ", "");
 
-            //TODO check if jwksUri provided, then try as JWT
+        //TODO implement a session.maxDuration property and check
+        var sessionExpire = moment().add(1, 'hours').toDate();
+        var userp;
 
+        //check JWT
+        if (config.oauth.useJWT === true) {
+            userp = new Promise(
+                function (resolve, reject) {
+                    //parse as JWT
+                    resolve(jwt.decode(token, { complete: true, json: true }));
+                })
+                .then(function (decoded) {
+                    console.log(decoded);
+                    var tokenExpire = moment.unix(decoded.payload.exp).toDate();
+                    console.log("set expire to " + tokenExpire);
+                    sessionExpire = tokenExpire;
+                    return decoded;
+                })
+                .then(function (decoded) {
+                    if (_.isEmpty(config.oauth.jwksEndpoint)) {
+                        //use clientSecret as key
+                        return config.oauth.clientSecret;
+                    } else {
+                        return getJWKey(decoded.header);
+                    }
+                }).then(function (verifyKey) {
+                    //verify sync, will throw error if invalid
+                    var payload = jwt.verify(token, verifyKey);
+                    console.log("token is valid");
+
+                    //build user object 
+                    var u = {
+                        sAMAccountName: payload.sub,
+                        displayName: payload.name,
+                        distinguishedName: payload.username,
+                        email: payload.email,
+                        memberOf: getUserMembership(payload.roles)
+                    }
+
+                    return u;
+
+                }).catch(function (error) {
+                    console.log(error);
+                    res.status(500).send(error);
+                });
+
+        } else {
             //validate via introspection
-            getTokenInfo(token).then(function (info) {
-                if (!info.active) {
-                    res.status(401).send('Authentication failed: token provided but not valid.');
-                } else {
+            userp = getTokenInfo(token)
+                .then(function (info) {
+                    console.log(info);
                     var tokenExpire = moment.unix(info.exp).toDate();
-                    //TODO implement a session.maxDuration property and check
-                    var sessionExpire = tokenExpire;
+                    return tokenExpire;
+                })
+                .then(function (tokenExpire) {
+                    console.log("set expire to " + tokenExpire);
+                    sessionExpire = tokenExpire;
+                    return sessionExpire;
+                })
+                .then(() => getUserProfile(token))
+                .then(function (profile) {
+                    console.log(profile)
+                    //build user object 
+                    var u = {
+                        sAMAccountName: profile.sub,
+                        displayName: profile.name,
+                        distinguishedName: profile.username,
+                        email: profile.email,
+                        memberOf: getUserMembership(profile.roles)
+                    }
 
-                    //get userinfo
-                    getUserProfile(token).then(function (profile) {
-                        console.log(profile)
-                        //build user object 
-                        var user = {
-                            sAMAccountName: profile.sub,
-                            displayName: profile.name,
-                            distinguishedName: profile.username,
-                            email: profile.email,
-                            memberOf: getUserMembership(profile.roles)
-                        }
+                    return u;
+                }).catch(function (error) {
+                    console.log(error);
+                    res.status(500).send(error);
+                });
 
-                        apiUsers.createSession(user, req.ip, 'token', token, sessionExpire).then(function (session) {
-                            session.user.admin = _.includes(config.admins, session.user.distinguishedName);
+        }
 
-                            /* Finally, passport.js login */
-                            req.login(user, { session: false }, function (err) {
-                                if (err) {
-                                    console.log(err);
-                                    res.status(500).send(err);
-                                } else {
-                                    res.send(session);
-                                }
-                            });
+        //build session for user
+        userp
+            .then(function (user) {
+                console.log(user);
+                return user;
+            })
+            .then(user => apiUsers.createSession(user, req.ip, 'token', token, sessionExpire))
+            .then(function (session) {
+                session.user.admin = _.includes(config.admins, session.user.distinguishedName);
 
-                            /* Cleanup expired sessions */
-                            auth.removeExpiredSessions();
-                        }).catch(function (err) {
-                            console.log(err);
-                            res.status(500).send(err);
-                        });
+                /* Finally, passport.js login */
+                req.login(session.user, { session: false }, function (err) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500).send(err);
+                    } else {
+                        res.send(session);
+                    }
+                });
 
+                /* Cleanup expired sessions */
+                auth.removeExpiredSessions();
 
-                    }).catch(function (error) {
-                        console.log(error);
-                        res.status(500).send(error);
-                    });
-
-
-                }
-            }).catch(function (error) {
+                return session;
+            })
+            .catch(function (error) {
                 console.log(error);
                 res.status(500).send(error);
             });
-
-        }
-        catch (e) {
-            console.log(e);
-            res.status(500).send(e);
-        }
     } else {
         console.log('Authorization header missing from request');
         res.status(401).send('Authorization header missing from request');
@@ -155,6 +205,26 @@ exports.login = function (req, res) {
 //     }
 // };
 
+/* Get JWKS and extract RSA key */
+var getJWKey = function (header) {
+    var client = jwks({
+        jwksUri: config.oauth.jwksEndpoint
+    });
+
+    return new Promise(function (resolve, reject) {
+        client.getSigningKey(header.kid, function (err, key) {
+            if (!err && key) {
+                var signingKey = key.publicKey || key.rsaPublicKey;
+                resolve(signingKey);
+            } else {
+                console.log(error);
+                reject('error retrieving jwks');
+            }
+        });
+    });
+};
+
+
 /* Retrieve info associated to OAuth2 token. */
 var getTokenInfo = function (token) {
     console.log("get tokenInfo for " + token);
@@ -178,7 +248,13 @@ var getTokenInfo = function (token) {
         request.post(options, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var info = JSON.parse(response.body);
-                resolve(info);
+
+                //reject invalid tokens
+                if (!info.active) {
+                    reject('invalid token');
+                } else {
+                    resolve(info);
+                }
             } else {
                 console.log(error);
                 reject('error retrieving token info');
@@ -201,8 +277,6 @@ var getUserProfile = function (token) {
 
     return new Promise(function (resolve, reject) {
         request(options, function (error, response, body) {
-            console.log("userprofile is ")
-            console.log(body)
             if (!error && response.statusCode == 200) {
                 var profile = JSON.parse(response.body);
                 resolve({
@@ -232,13 +306,11 @@ var getUserMembership = function (roles) {
     });
     console.log(rolesFiltered);
     _.each(rolesFiltered, function (r) {
-        console.log(role);
         var authority = r.slice(config.oauth.parentSpace.length).split(':');
         var group = authority[0];
         var role = authority[1];
         if (group.startsWith('/')) { group = group.slice(1) }
 
-        console.log('process group ' + group);
         if (group.length > 0) {
             var suffix = '_viewers';
             //check if role matches one of editors
@@ -257,9 +329,3 @@ var getUserMembership = function (roles) {
     return groups;
 };
 
-
-var validateJWTToken = function (token) {
-    return new Promise(function (resolve, reject) {
-        //TODO
-    });
-}
