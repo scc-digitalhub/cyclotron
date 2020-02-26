@@ -289,4 +289,55 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
             deferred.reject(error)
             $location.path('/').replace()
 
+
+
+    exports.storeApiKey = () ->
+        hash = $location.path().substr(1)
+        params = hash.split('&')
+        keyProperties = {}
+
+        _.each params, (value) ->
+            keyValuePair = value.split('=')
+            key = keyValuePair[0]
+            val = keyValuePair[1]
+            keyProperties[key] = val
+
+        deferred = $q.defer()
+
+        get = $http({
+            method: 'GET'
+            url: configService.restServiceUrl + '/users/apikey?apikey=' + keyProperties.apikey
+        })
+
+        get.success (session) ->
+            currentSession = session
+            
+            # Store session and username in localstorage
+            $localForage.setItem 'session', session
+            $localForage.setItem 'username', session.user.sAMAccountName
+            $localForage.setItem 'cachedUserId', session.user._id
+            exports.cachedUsername = session.user.sAMAccountName
+            exports.cachedUserId = session.user._id
+
+            loggedIn = true
+
+            $rootScope.$broadcast 'login', { }
+            if $window.Cyclotron?
+                $window.Cyclotron.currentUser = session.user
+            alertify.success('Logged in as <strong>' + session.user.name + '</strong>', 2500)
+                
+            deferred.resolve(session)
+            #finally redirect to last url
+            $localForage.getItem('urlBeforeLogin').then (urlBeforeLogin) ->
+                if urlBeforeLogin?
+                    $location.url(urlBeforeLogin).replace()
+                else
+                    $location.path('/').replace()
+
+        get.error (error) ->
+            console.log 'error or API sent an error response', error
+            exports.setLoggedOut()
+            deferred.reject(error)
+            $location.path('/').replace()            
+
     return exports
