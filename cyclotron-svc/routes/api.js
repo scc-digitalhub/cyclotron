@@ -125,6 +125,7 @@ exports.bindRoutes = function (app) {
     app.get('/users', users.get); //TODO it shows all user profiles, restrict access to admin? never used by client
     app.get('/users/search', requiresAuth, users.search);
     app.get('/users/oauth', oauth.login);
+    app.get('/users/apikey', apikey.login);
     app.get('/users/:name', users.getSingle); //TODO it shows user profile given a username, restrict access? never used by client
 
     app.post('/users/login', users.login);
