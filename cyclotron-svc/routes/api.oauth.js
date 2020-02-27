@@ -71,7 +71,13 @@ exports.login = function (req, res) {
                     }
                 }).then(function (verifyKey) {
                     //verify sync, will throw error if invalid
-                    var payload = jwt.verify(token, verifyKey);
+                    var voptions = {
+                        'audience': config.oauth.clientId
+                    }
+                    if(!!config.oauth.issuer) {
+                        voptions['issuer'] = config.oauth.issuer;
+                    }
+                    var payload = jwt.verify(token, verifyKey, voptions);
                     console.log("token is valid");
 
                     //build user object 
@@ -87,7 +93,7 @@ exports.login = function (req, res) {
 
                 }).catch(function (error) {
                     console.log(error);
-                    res.status(500).send(error);
+                    return error;
                 });
 
         } else {
@@ -118,7 +124,7 @@ exports.login = function (req, res) {
                     return u;
                 }).catch(function (error) {
                     console.log(error);
-                    res.status(500).send(error);
+                    return error;
                 });
 
         }
@@ -126,6 +132,9 @@ exports.login = function (req, res) {
         //build session for user
         userp
             .then(function (user) {
+                if(!_.has(user, 'sAMAccountName', 'displayName', 'distinguishedName')) {
+                    throw 'invalid user';
+                }
                 console.log(user);
                 return user;
             })
@@ -150,11 +159,11 @@ exports.login = function (req, res) {
             })
             .catch(function (error) {
                 console.log(error);
-                res.status(500).send(error);
+                return res.status(500).send(error);
             });
     } else {
         console.log('Authorization header missing from request');
-        res.status(401).send('Authorization header missing from request');
+        return res.status(401).send('Authorization header missing from request');
     }
 };
 

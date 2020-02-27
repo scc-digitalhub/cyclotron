@@ -94,8 +94,16 @@ oauth: {
 
 ```
 
+Do note that the default validation will check for a valid signature and for the correspondence between ``clientId`` and ``audience``.
+If you want to also validate the *issuer* of JWT tokens set the corresponding property in config:
+```
+oauth: {
+    issuer: <issuer>
+}
+```
 
-Otherwise, you can use **opaque tokens** as bearer, and thus leverage *OAuth2 introspection* plus *OpenID userProfile*. This configuration requires ``useJWT:false`` and all the endpoints properly populated (except ``jwksEndpoint``).
+
+Alternatively, you can use **opaque tokens** as bearer, and thus leverage *OAuth2 introspection* plus *OpenID userProfile*. This configuration requires ``useJWT:false`` and all the endpoints properly populated (except ``jwksEndpoint``).
 
 Example:
 ```
