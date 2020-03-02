@@ -74,7 +74,7 @@ exports.login = function (req, res) {
                     var voptions = {
                         'audience': config.oauth.clientId
                     }
-                    if(!!config.oauth.issuer) {
+                    if (!!config.oauth.issuer) {
                         voptions['issuer'] = config.oauth.issuer;
                     }
                     var payload = jwt.verify(token, verifyKey, voptions);
@@ -132,7 +132,7 @@ exports.login = function (req, res) {
         //build session for user
         userp
             .then(function (user) {
-                if(!_.has(user, 'sAMAccountName', 'displayName', 'distinguishedName')) {
+                if (!_.has(user, 'sAMAccountName', 'displayName', 'distinguishedName')) {
                     throw 'invalid user';
                 }
                 console.log(user);
@@ -168,51 +168,68 @@ exports.login = function (req, res) {
 };
 
 
-// exports.oauthLogin = function (req, res) {
+exports.getUserFromIntrospection = function (token) {
+    return getTokenInfo(token)
+        .then(() => getUserProfile(token))
+        .then(function (profile) {
+            console.log(profile)
+            //build user object 
+            var u = {
+                sAMAccountName: profile.sub,
+                displayName: profile.name,
+                distinguishedName: profile.username,
+                email: profile.email,
+                memberOf: getUserMembership(profile.roles)
+            }
 
-//     if (req.header('Authorization')) {
-//         try {
-//             var session = req.session;
-//             console.log(session);
-//             session.user.admin = _.includes(config.admins, session.user.distinguishedName);
+            return u;
+        }).catch(function (error) {
+            console.log(error);
+            return error;
+        });
+}
 
-//             // Check that user roles are up to date
-//             var bearer = req.header('Authorization');
-//             auth.getUserRoles(bearer).then(function (roles) {
-//                 session.user.memberOf = auth.setUserMembership(roles);
-//                 console.log('user', session.user.memberOf, session.user.sAMAccountName);
 
-//                 //save roles
-//                 Users.update({ sAMAccountName: session.user.sAMAccountName }, { $set: { memberOf: session.user.memberOf } }).exec()
+exports.getUserFromJWT = function (token) {
+    return new Promise(
+        function (resolve, reject) {
+            //parse as JWT
+            resolve(jwt.decode(token, { complete: true, json: true }));
+        })
+        .then(function (decoded) {
+            if (_.isEmpty(config.oauth.jwksEndpoint)) {
+                //use clientSecret as key
+                return config.oauth.clientSecret;
+            } else {
+                return getJWKey(decoded.header);
+            }
+        }).then(function (verifyKey) {
+            //verify sync, will throw error if invalid
+            var voptions = {
+                'audience': config.oauth.clientId
+            }
+            if (!!config.oauth.issuer) {
+                voptions['issuer'] = config.oauth.issuer;
+            }
+            var payload = jwt.verify(token, verifyKey, voptions);
+            console.log("token is valid");
 
-//                 //finish login
-//                 req.login(session.user, { session: false }, function (err) {
-//                     if (err) {
-//                         console.log(err);
-//                         res.status(500).send(err);
-//                     } else {
-//                         console.log('sending session with', session.user);
-//                         res.send(session);
-//                     }
-//                 });
-//             })
-//                 .catch(function (error) {
-//                     console.log(error);
-//                     res.status(500).send(error);
-//                 });
+            //build user object 
+            var u = {
+                sAMAccountName: payload.sub,
+                displayName: payload.name,
+                distinguishedName: payload.username,
+                email: payload.email,
+                memberOf: getUserMembership(payload.roles)
+            }
 
-//             // Cleanup expired sessions
-//             auth.removeExpiredSessions();
-//         }
-//         catch (e) {
-//             console.log(e);
-//             res.status(500).send(e);
-//         }
-//     } else {
-//         console.log('Authorization header missing from request');
-//         res.status(401).send('Authorization header missing from request');
-//     }
-// };
+            return u;
+
+        }).catch(function (error) {
+            console.log(error);
+            return error;
+        });
+}
 
 /* Get JWKS and extract RSA key */
 var getJWKey = function (header) {
