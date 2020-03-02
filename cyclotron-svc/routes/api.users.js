@@ -170,58 +170,72 @@ exports.logout = function (req, res) {
 
 
 exports.search = function (req, res) {
-    var nameFilter = req.query.q || ''
-    var permissionFilter = '_' + req.query.permission //possible value: editors, viewers
-    var sessionKey = req.query.session || req.session.key
+    var nameFilter = req.query.q || ''    
+    //possible value: editors, viewers, set default on anything else
+    var permissionFilter =  (req.query.permission === 'viewers') ? '_viewers': '_editors';
 
-    Sessions.findOne({key: sessionKey})
-    .populate('user')
-    .exec()
-    .then(function (session) {
-        if (session == null) {
-            return res.status(500).send('Invalid session key');
-        }
+    //get current user
+    var user = auth.getUser(req);   
+    if(user == null) { 
+        return res.status(500).send('Invalid user');
+    }
 
-        var groups = _.filter(session.user.memberOf, function(group){
-            return _.includes(group, permissionFilter);
-        });
-        
-        //TODO if user is not member of any group, can he give permissions?
-        var allowedGroups = _.filter(groups, function(group){
-            //exclude groups that do not contain the query string
-            return _.includes(group, nameFilter);
-        });
-        
-        //find users that are member of at least one group the current user is member of, and whose name matches q
-        Users.find({
-            memberOf: {$in: groups},
-            $or: [ { sAMAccountName: { $regex: nameFilter} }, { displayName: { $regex: nameFilter} } ]
-        })
-        .lean()
-        .exec()
-        .then(function(results){
-            console.log('user results:', results);
-            if(results == []){
-                console.log('No users found that match the search string and are members of the allowed groups');
-            }
-            //categories: Security Group, Group, User, Distribution List
-            _.each(results, function(user){
-                user.category = 'User';
-                user.displayName = user.name || user.givenName;
-                user.mail = user.email;
-                user.dn = user.distinguishedName;
-            });
-            
-            //add groups to result
-            _.each(allowedGroups, function(group){
-                results.push({
-                    category: 'Group',
-                    dn: group,
-                    displayName: group.split('_')[0]
-                })
-            })
-            res.send(results);
-        });
+    //TODO if user is not member of any group, can he give permissions?
+    var groups = _.filter(user.memberOf, function(group){
+        return _.includes(group, permissionFilter);
     });
+    
+    //filter groups for search
+    var resGroups = _.filter(groups, function(group){
+        //exclude groups that do not contain the query string
+        return _.includes(group, nameFilter);
+    });
+
+    var results = [];
+
+    //add groups to result
+    _.each(resGroups, function(group){
+        results.push({
+            'category': 'Group',
+            'dn': group,
+            'displayName': group.split('_')[0]
+        })
+    });
+    
+    //find users that are member of at least one group the current user is member of, and whose name matches q
+    Users.find({
+        memberOf: {$in: groups},
+        $or: [ 
+             { sAMAccountName: { $regex: nameFilter} },
+             { distinguishedName: { $regex: nameFilter} },
+             { displayName: { $regex: nameFilter} }
+            ]
+    })
+    .lean()
+    .exec()
+    .then(function(users){
+        //console.log('user results:', users);
+        if(_.isEmpty(users)){
+            console.log('No users found that match the search string and are members of the allowed groups');
+        }
+        //categories: Security Group, Group, User, Distribution List
+        _.each(users, function(u){
+            // return only required info, avoid disclosing private data
+            results.push({
+                'category': 'User',
+                'displayName': u.name || u.givenName,
+                'mail': u.email,
+                'dn': u.distinguishedName
+            })
+        });
+        
+
+        res.send(results);
+    })
+    .catch(function(error) {
+        console.log('Error retrieving users '+error);
+        return results;
+    });
+   
 
 };

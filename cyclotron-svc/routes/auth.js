@@ -249,6 +249,17 @@ exports.getUserId = function (req) {
     }
 };
 
+/* Retrieves the current user. */
+exports.getUser = function (req) {
+    if (req.session != null &&
+        req.session.user != null) {
+        return req.session.user;
+    } else {
+        return null;
+    }
+};
+
+
 //TODO move to another file
 /* Find a Dashboard by id. */
 exports.findDashboardById = function (id) {
