@@ -142,8 +142,11 @@ exports.isUnauthenticated = function (req) {
         return false;
     }
 
-    //req.session is set by session middleware if session key param is present
-    return _.isUndefined(req.session);
+    // //req.session is set by session middleware if session key param is present
+    // return _.isUndefined(req.session);
+
+    //req.user is set by middleware
+    return _.isUndefined(req.user);
 };
 
 /* Returns true if the current user has admin permissions */
@@ -153,11 +156,11 @@ exports.isAdmin = function (req) {
         return true;
     }
 
-    if (req.session == null) {
+    if (req.user == null) {
         return false;
     }
 
-    var user = req.session.user;
+    var user = req.user;
 
     if (_.includes(config.admins, user.distinguishedName)) {
         return true;
@@ -173,11 +176,11 @@ exports.hasEditPermission = function (dashboard, req) {
         return true;
     }
 
-    if (req.session == null) {
+    if (req.user == null) {
         return false;
     }
 
-    var user = req.session.user;
+    var user = req.user;
 
     /* By default, everyone can edit */
     if (_.isEmpty(dashboard.editors)) {
@@ -207,11 +210,11 @@ exports.hasViewPermission = function (dashboard, req) {
         return true;
     }
 
-    if (req.session == null) {
+    if (req.user == null) {
         return false;
     }
 
-    var user = req.session.user;
+    var user = req.user;
 
     /* By default, everyone can view */
     if (_.isEmpty(dashboard.viewers)) {
@@ -241,9 +244,9 @@ exports.hasViewPermission = function (dashboard, req) {
 
 /* Retrieves the user id for the current user. */
 exports.getUserId = function (req) {
-    if (req.session != null &&
-        req.session.user != null) {
-        return req.session.user._id;
+    if (req.user != null) {
+        //TODO extend for non-session based users
+        return req.user._id;
     } else {
         return null;
     }
@@ -251,9 +254,8 @@ exports.getUserId = function (req) {
 
 /* Retrieves the current user. */
 exports.getUser = function (req) {
-    if (req.session != null &&
-        req.session.user != null) {
-        return req.session.user;
+    if (req.user != null) {
+        return req.user;
     } else {
         return null;
     }
