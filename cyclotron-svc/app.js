@@ -60,6 +60,10 @@ if (config.enableAuth == true) {
     var session = require('./middleware/session');
     app.use(session.sessionLoader);
 
+    /* Oauth session management */
+    var oauth = require('./middleware/oauth');
+    app.use(oauth.oauthLoader);    
+
     /* Passport.js LDAP authentication */
     var passport = require('passport'),
         LdapStrategy = require('passport-ldapauth');
