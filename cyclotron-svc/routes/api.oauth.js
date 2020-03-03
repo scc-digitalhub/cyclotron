@@ -43,6 +43,7 @@ exports.login = function (req, res) {
         //extract token 
         var bearer = req.header('Authorization');
         token = bearer.replace("Bearer ", "");
+        console.log('login with token ' + token);
 
         //TODO implement a session.maxDuration property and check
         var sessionExpire = moment().add(1, 'hours').toDate();
@@ -56,9 +57,9 @@ exports.login = function (req, res) {
                     resolve(jwt.decode(token, { complete: true, json: true }));
                 })
                 .then(function (decoded) {
-                    console.log(decoded);
+                    //console.log(decoded);
                     var tokenExpire = moment.unix(decoded.payload.exp).toDate();
-                    console.log("set expire to " + tokenExpire);
+                    //console.log("set expire to " + tokenExpire);
                     sessionExpire = tokenExpire;
                     return decoded;
                 })
@@ -91,27 +92,24 @@ exports.login = function (req, res) {
 
                     return u;
 
-                }).catch(function (error) {
-                    console.log(error);
-                    return error;
                 });
 
         } else {
             //validate via introspection
             userp = getTokenInfo(token)
                 .then(function (info) {
-                    console.log(info);
+                    //console.log(info);
                     var tokenExpire = moment.unix(info.exp).toDate();
                     return tokenExpire;
                 })
                 .then(function (tokenExpire) {
-                    console.log("set expire to " + tokenExpire);
+                    //console.log("set expire to " + tokenExpire);
                     sessionExpire = tokenExpire;
                     return sessionExpire;
                 })
                 .then(() => getUserProfile(token))
                 .then(function (profile) {
-                    console.log(profile)
+                    //console.log(profile)
                     //build user object 
                     var u = {
                         sAMAccountName: profile.sub,
@@ -122,9 +120,6 @@ exports.login = function (req, res) {
                     }
 
                     return u;
-                }).catch(function (error) {
-                    console.log(error);
-                    return error;
                 });
 
         }
@@ -135,7 +130,7 @@ exports.login = function (req, res) {
                 if (!_.has(user, 'sAMAccountName', 'displayName', 'distinguishedName')) {
                     throw 'invalid user';
                 }
-                console.log(user);
+                //console.log(user);
                 return user;
             })
             .then(user => apiUsers.createSession(user, req.ip, 'token', token, sessionExpire))
@@ -172,7 +167,6 @@ exports.getUserFromIntrospection = function (token) {
     return getTokenInfo(token)
         .then(() => getUserProfile(token))
         .then(function (profile) {
-            console.log(profile)
             //build user object 
             var u = {
                 sAMAccountName: profile.sub,
@@ -183,9 +177,6 @@ exports.getUserFromIntrospection = function (token) {
             }
 
             return u;
-        }).catch(function (error) {
-            console.log(error);
-            return error;
         });
 }
 
@@ -225,9 +216,6 @@ exports.getUserFromJWT = function (token) {
 
             return u;
 
-        }).catch(function (error) {
-            console.log(error);
-            return error;
         });
 }
 
