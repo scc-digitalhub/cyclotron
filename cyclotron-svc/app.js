@@ -64,6 +64,10 @@ if (config.enableAuth == true) {
     var oauth = require('./middleware/oauth');
     app.use(oauth.oauthLoader);    
 
+    /* Apikey session management */
+    var apikey = require('./middleware/apikey');
+    app.use(apikey.apikeyLoader);     
+
     /* Passport.js LDAP authentication */
     var passport = require('passport'),
         LdapStrategy = require('passport-ldapauth');

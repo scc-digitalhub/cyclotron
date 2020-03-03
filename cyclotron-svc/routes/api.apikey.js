@@ -26,7 +26,11 @@ var config = require('../config/config'),
     moment = require('moment'),
     auth = require('./auth'),
     request = require('request'),
-    Promise = require('bluebird');
+    Promise = require('bluebird'),
+    NodeCache = require("node-cache");
+
+//init cache
+const _cache = new NodeCache();
 
 
 /*
@@ -36,14 +40,14 @@ exports.login = function (req, res) {
     if (req.query.apikey != undefined) {
         //fetch from param
         var apikey = req.query.apikey;
-
+        console.log('apikey login with key '+apikey);
         //TODO implement a session.maxDuration property and check apiKey
         //for now use a fixed duration
         var sessionExpire = moment().add(config.apikey.validity, 'seconds').toDate();
 
         validateApiKey(apikey)
             .then(function (info) {
-                console.log(info);
+                //console.log(info);
 
                 //extract normalized roles
                 var roles = [];
@@ -64,7 +68,7 @@ exports.login = function (req, res) {
 
             })
             .then(function (user) {
-                console.log(user);
+                //console.log(user);
                 return user;
             })
             .then(user => apiUsers.createSession(user, req.ip, 'apikey', apikey, sessionExpire))
@@ -100,10 +104,34 @@ exports.login = function (req, res) {
 
 }
 
+
+exports.getUserFromApiKey = function (key) {
+    return validateApiKey(key)
+        .then(function (info) {
+
+            //extract normalized roles
+            var roles = [];
+            _.each(info.roles, function (r) {
+                roles.push(r.authority);
+            });
+
+            //build user object 
+            var u = {
+                sAMAccountName: info.userId,
+                displayName: info.username,
+                distinguishedName: info.username,
+                email: null,
+                memberOf: getUserMembership(roles)
+            }
+
+            return u;
+
+        });
+};
+
 /* Retrieve info associated to OAuth2 token. */
 var validateApiKey = function (key) {
     console.log("check apikey for " + key);
-
 
     var options = {
         url: config.apikey.apikeyCheckEndpoint + '?apiKey=' + key,
@@ -115,15 +143,32 @@ var validateApiKey = function (key) {
 
 
     return new Promise(function (resolve, reject) {
-        request(options, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var info = JSON.parse(response.body);
-                resolve(info);
-            } else {
-                console.log(error);
-                reject('error validating apikey');
-            }
-        });
+
+        //hit cache
+        info = _cache.get(key);
+
+        if (info == undefined) {
+            console.log('cache miss for key ' + key);
+            request(options, function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    var info = JSON.parse(response.body);
+
+                    //store in cache
+                    //TODO implement a session.maxDuration property and check apiKey
+                    //for now use a fixed duration
+                    var ttl = config.apikey.validity;
+                    _cache.set(key, info, ttl);
+
+                    resolve(info);
+                } else {
+                    console.log('error validating apikey '+error);
+                    reject('error validating apikey');
+                }
+            });
+        } else {
+            console.log('cache hit for key ' + key);
+            resolve(info);
+        }
     });
 };
 
