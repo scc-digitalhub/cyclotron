@@ -158,8 +158,13 @@ exports.logout = function (req, res) {
 
     auth.removeSession(key).then(function (session) {
         if (_.isNull(session)) {
-            res.status(401).send('Session not found.');
+            // res.status(401).send('Session not found.');
+            //logout anyway, no reason to refuse logout to a not logged user.
+            console.log('logout: session not found');
+            req.logout();
+            res.send('OK');
         } else {
+            console.log('logout: session found');
             req.logout();
             res.send('OK');
         }
