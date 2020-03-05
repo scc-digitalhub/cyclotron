@@ -211,28 +211,28 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
     updateOverlays = (groups) ->
         for group in groups
             newOverlays = setOverlays group.overlays, group.name
+            #TODO handle mapConfig.groups
             for overlay, index in newOverlays
                 oldOverlIndex = _.findIndex mapConfig.overlays, { id: overlay.id }
-                if oldOverlIndex >= 0
-                    console.log 'updating', overlay.id, mapConfig.overlays[oldOverlIndex].id
-                    mapConfig.overlays[oldOverlIndex].template = overlay.template
-                    mapConfig.overlays[oldOverlIndex].cssClass = overlay.cssClass
-                    mapConfig.overlays[oldOverlIndex].cssClassSelected = overlay.cssClassSelected
-                    mapConfig.overlays[oldOverlIndex].position = overlay.position
-                    mapConfig.overlays[oldOverlIndex].positioning = overlay.positioning
-
-                ###
-                if not _.isEqual(overlay.template, mapConfig.overlays[index].template)
-                    mapConfig.overlays[index].template = overlay.template
-                if not _.isEqual(overlay.cssClass, mapConfig.overlays[index].cssClass)
-                    mapConfig.overlays[index].cssClass = overlay.cssClass
-                if not _.isEqual(overlay.cssClassSelected, mapConfig.overlays[index].cssClassSelected)
-                    mapConfig.overlays[index].cssClassSelected = overlay.cssClassSelected
-                if not _.isEqual(overlay.position, mapConfig.overlays[index].position)
-                    mapConfig.overlays[index].position = overlay.position
-                if not _.isEqual(overlay.positioning, mapConfig.overlays[index].positioning)
-                    mapConfig.overlays[index].positioning = overlay.positioning
-                ###
+                if oldOverlIndex > -1
+                    #overlay is already on map, update it
+                    if not _.isEqual(overlay.template, mapConfig.overlays[oldOverlIndex].template)
+                        mapConfig.overlays[oldOverlIndex].template = overlay.template
+                    if not _.isEqual(overlay.cssClass, mapConfig.overlays[oldOverlIndex].cssClass)
+                        mapConfig.overlays[oldOverlIndex].cssClass = overlay.cssClass
+                    if not _.isEqual(overlay.cssClassSelected, mapConfig.overlays[oldOverlIndex].cssClassSelected)
+                        mapConfig.overlays[oldOverlIndex].cssClassSelected = overlay.cssClassSelected
+                    if not _.isEqual(overlay.position, mapConfig.overlays[oldOverlIndex].position)
+                        mapConfig.overlays[oldOverlIndex].position = overlay.position
+                    if not _.isEqual(overlay.positioning, mapConfig.overlays[oldOverlIndex].positioning)
+                        mapConfig.overlays[oldOverlIndex].positioning = overlay.positioning
+                else
+                    #overlay is new, add it
+                    mapConfig.overlays.push overlay
+                
+            #remove overlays on map that are not in data anymore
+            removedOverlays = _.remove mapConfig.overlays, (ov) ->
+                return ov.group == group.name and _.findIndex(newOverlays, { id: ov.id }) == -1
 
     ###
     # Overlays
@@ -369,7 +369,18 @@ cyclotronApp.controller 'OpenLayersMapWidget', ($scope, $element, parameterPropa
                     _.each $scope.ovData, (row, index) -> row.__index = index
 
                     for group, i in $scope.ovData
+                        ### OLD CODE
                         group.name = oldData[i].name
+                        group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
+                        if $scope.mapping.overlayListField != 'overlays'
+                            delete group[$scope.mapping.overlayListField]
+                        ###
+                        
+                        group.name = if $scope.mapping.groupIdField? then group[$scope.mapping.groupIdField] else (if oldData[i] then oldData[i].name else 'group' + Math.floor(Math.random()*1000))
+                        if !mapConfig.groups[group.name]
+                            mapConfig.groups[group.name] =
+                                currentOverlay: group[$scope.mapping.initiallySelectedField] || ''
+                        
                         group.overlays = mapOverlays group[$scope.mapping.overlayListField], $scope.mapping
                         if $scope.mapping.overlayListField != 'overlays'
                             delete group[$scope.mapping.overlayListField]

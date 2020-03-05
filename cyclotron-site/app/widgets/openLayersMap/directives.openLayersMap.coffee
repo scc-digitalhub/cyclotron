@@ -28,9 +28,10 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
                 if map?
                     map.updateSize()
             
-            createOverlays = ->
+            createOverlays = (overlaysToCreate) ->
+                if not overlaysToCreate? then overlaysToCreate = scope.mapConfig.overlays
                 $timeout ->
-                    for overlay in scope.mapConfig.overlays
+                    for overlay in overlaysToCreate
                         overlayElem = document.getElementById overlay.id
 
                         if overlay.template?
@@ -250,29 +251,32 @@ cyclotronDirectives.directive 'map', ($window, $timeout, $compile, parameterProp
 
             #if overlay content has changed (i.e. because it is parametric), update it on the map
             updateOverlays = (newConfig) ->
-                console.log 'foo', map.getOverlays().getArray()
                 if map.getOverlays().getLength() == 0
                     #map has no overlay yet (i.e. overlays are provided by a datasource which has just finished executing)
                     createOverlays()
                     currentMapConfig.overlays = _.cloneDeep newConfig.overlays
                 else
                     _.each newConfig.overlays, (overlay, index) ->
-                        if not _.isEqual(overlay.template, currentMapConfig.overlays[index].template)
-                            newContent = $compile(overlay.template)(scope)
-                            overlayElem = document.getElementById overlay.id
-                            angular.element(overlayElem).contents().remove()
-                            angular.element(overlayElem).append newContent
+                        currentOverl = _.find currentMapConfig.overlays, {id: overlay.id}
+                        if currentOverl?
+                            #remove old template from overlay element to avoid duplication
+                            angular.element(document.getElementById(overlay.id)).empty()
+                            ###
+                            Note: currently overlays already existing are re-added to the map creating duplicates (non visible)
+                            that do not seem to affect map behavior. Decommenting the following line would avoid such duplicates
+                            but cause the correct overlay HTML elements to become null in some cases.
+                            ###
+                            #map.removeOverlay map.getOverlayById(overlay.id)
                     
-                        ###if not _.isEqual(overlay.position, currentMapConfig.overlays[index].position)
-                            map.getOverlayById(overlay.id).setPosition(ol.proj.fromLonLat(overlay.position))
-                        
-                        if not _.isEqual(overlay.positioning, currentMapConfig.overlays[index].positioning)
-                            map.getOverlayById(overlay.id).setPositioning(overlay.positioning)###
+                    #remove old overlays, if any
+                    overlaysToRemove = _.filter currentMapConfig.overlays, (ov) ->
+                        return _.findIndex(newConfig.overlays, { id: ov.id }) == -1
                     
-                    map.getOverlays().forEach (overlEl, idx) ->
-                        newOverl = _.find(newConfig.overlays, {id: overlEl.getId()})
-                        overlEl.setPosition(ol.proj.fromLonLat(newOverl.position))
-                        overlEl.setPositioning(newOverl.positioning)
+                    _.each overlaysToRemove, (ov) ->
+                        map.removeOverlay map.getOverlayById(ov.id)
+                    
+                    #(re)create the new overlays
+                    createOverlays(newConfig.overlays)
                     
                     currentMapConfig.overlays = _.cloneDeep newConfig.overlays
             
