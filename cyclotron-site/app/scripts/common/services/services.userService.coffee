@@ -113,14 +113,16 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
         #TODO possible check for apikey: $location.search().apikey != undefined
 
         deferred = $q.defer()
-        errorHandler = ->
+        errorHandler = (error) ->
+            console.log("got error "+error)
             exports.setLoggedOut()
             deferred.resolve(null)
 
         if configService.authentication.enable == true
 
             $localForage.getItem('session').then (existingSession) ->
-
+                console.log("got from forage session")
+                console.dir(existingSession)
                 if existingSession?
                     validator = $http.post(configService.restServiceUrl + '/users/validate', { key: existingSession.key })
                     validator.success (session) ->
@@ -133,12 +135,12 @@ cyclotronServices.factory 'userService', ($http, $localForage, $q, $rootScope, $
                     validator.error (error) ->
                         $localForage.removeItem('session')
                         alertify.log('Previous session expired', 2500) unless hideAlerts
-                        errorHandler()
+                        errorHandler(error)
                 else
-                    errorHandler()
+                    errorHandler('missing existing session')
             , errorHandler
         else
-            errorHandler()
+            errorHandler('auth disabled')
 
         return deferred.promise
 
