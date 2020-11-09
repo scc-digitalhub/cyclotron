@@ -137,6 +137,11 @@ cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $con
         userService.storeAccessToken()
     ]
 
+    # Store api key
+    storeApiKey = ['userService', (userService) ->
+        userService.storeApiKey()
+    ]
+
     #
     # Application Router
     #
@@ -302,6 +307,13 @@ cyclotronApp.config ($stateProvider, $urlRouterProvider, $locationProvider, $con
             resolve:
                 token: storeAccessToken
         })
+        .state('apikeyCallback', {
+            url: '/apikey=:apikey'
+            data:
+                title: 'Cyclotron'
+            resolve:
+                apiKey: storeApiKey
+        })        
         .state('dashboard', {
             url: '/{dashboard:.+}'
             templateUrl: '/partials/dashboard.html'

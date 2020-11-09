@@ -23,6 +23,8 @@ var auth = require('./auth.js'),
     data = require('./api.data.js'),
     exporter = require('./api.exports.js'),
     ldap = require('./api.ldap.js'),
+    oauth = require('./api.oauth.js'),
+    apikey = require('./api.apikey.js'),
     proxy = require('./api.proxy.js'),
     revisions = require('./api.revisions.js'),
     tags = require('./api.tags.js'),
@@ -122,7 +124,8 @@ exports.bindRoutes = function (app) {
 
     app.get('/users', users.get); //TODO it shows all user profiles, restrict access to admin? never used by client
     app.get('/users/search', requiresAuth, users.search);
-    app.get('/users/oauth', users.oauthLogin);
+    app.get('/users/oauth', oauth.login);
+    app.get('/users/apikey', apikey.login);
     app.get('/users/:name', users.getSingle); //TODO it shows user profile given a username, restrict access? never used by client
 
     app.post('/users/login', users.login);

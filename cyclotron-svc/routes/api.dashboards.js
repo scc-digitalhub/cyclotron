@@ -229,7 +229,11 @@ exports.getSingle = function (req, res) {
 
 var checkEditors = function(editors, creator){
     return new Promise(function(resolve, reject){
-        if(!editors){
+        if(creator == null) {
+            //we are not logged (thus public dashboard)
+            resolve([]);
+        }        
+        if(!editors || _.isEmpty(editors)){
             /* Limit edit permissions to creator */
             var editor = {
                 category: 'User',
@@ -293,7 +297,12 @@ var checkEditors = function(editors, creator){
 
 var checkViewers = function(viewers, creator){
     return new Promise(function(resolve, reject){
-        if(!viewers){
+        if(creator == null) {
+            //we are not logged (thus public dashboard)
+            resolve([]);
+        }
+
+        if(!viewers || _.isEmpty(viewers)){
             /* Limit view permissions to creator */
             var viewer = {
                 category: 'User',
@@ -377,54 +386,42 @@ exports.putPostSingle = function (req, res) {
     dashboard.date = new Date();
     dashboard.deleted = false;
     dashboard.lastUpdatedBy = auth.getUserId(req);
+    if (!dashboard.editors) {
+        dashboard.editors = [];
+    }
+    if (!dashboard.viewers) {
+        dashboard.viewers = [];
+    }
 
-    Dashboards.findOne({ name: name}, function (err, existingDashboard) {
-        if (err) {
-            res.status(500).send(err);
-        } else if (_.isUndefined(existingDashboard) || _.isNull(existingDashboard)) {
-            /* Exclude all unexpected and automatic properties */
-            dashboard = _.pick(dashboard, ['name', 'deleted', 'date', 'tags', 'description', 'dashboard', 'lastUpdatedBy', 'editors', 'viewers']);
-            dashboard.rev = 1;
-            dashboard.createdBy = auth.getUserId(req);
-
-            /* Check that editors and viewers are valid if authentication is enabled */
-            if(req.session == null || req.session.user == null){
-                dashboard.editors = [];
-                dashboard.viewers = [];
-
+    //filter editors/viewers
+    var user = auth.getUser(req);
+    checkEditors(dashboard.editors, user)
+    .then(function(e) {
+        dashboard.editors = e;
+        return dashboard;
+    })
+    .then(() => checkViewers(dashboard.viewers, user))
+    .then(function(v) {
+        dashboard.viewers = v;
+        return dashboard;
+    })
+    .then(() => {
+        Dashboards.findOne({ name: name}, function (err, existingDashboard) {
+            if (err) {
+                res.status(500).send(err);
+            } else if (_.isUndefined(existingDashboard) || _.isNull(existingDashboard)) {
+                /* Exclude all unexpected and automatic properties */
+                dashboard = _.pick(dashboard, ['name', 'deleted', 'date', 'tags', 'description', 'dashboard', 'lastUpdatedBy', 'editors', 'viewers']);
+                dashboard.rev = 1;
+                dashboard.createdBy = auth.getUserId(req);
+    
                 /* Create dashboard */
-                Dashboards.create(dashboard, _.wrap(res, updateCallback));
+                Dashboards.create(dashboard, _.wrap(res, updateCallback));                
             } else {
-                checkEditors(dashboard.editors, req.session.user.toObject())
-                .then(function(editors){
-                    checkViewers(dashboard.viewers, req.session.user.toObject())
-                    .then(function(viewers){
-                        dashboard.editors = editors;
-                        dashboard.viewers = viewers;
-
-                        /* Create dashboard */
-                        Dashboards.create(dashboard, _.wrap(res, updateCallback));
-                    })
-                    .catch(function(err){
-                        console.log(err);
-                        res.status(500).send(err);
-                    });
-                })
-                .catch(function(err){
-                    console.log(err);
-                    res.status(500).send(err);
-                });
-            }
-        } else {
-            if (!auth.hasEditPermission(existingDashboard, req)) {
-                return res.status(403).send('Edit Permission denied for this Dashboard.');
-            }
-
-            /* Check that editors and viewers are valid if authentication is enabled */
-            if(req.session == null || req.session.user == null){
-                dashboard.editors = [];
-                dashboard.viewers = [];
-
+                if (!auth.hasEditPermission(existingDashboard, req)) {
+                    return res.status(403).send('Edit Permission denied for this Dashboard.');
+                }
+    
                 /* Update dashboard */
                 Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
                     $set: {
@@ -443,46 +440,14 @@ exports.putPostSingle = function (req, res) {
                 })
                 .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
                 .exec(_.wrap(res, updateCallback));
-            } else {
-                checkEditors(dashboard.editors, req.session.user.toObject())
-                .then(function(editors){
-                    checkViewers(dashboard.viewers, req.session.user.toObject())
-                    .then(function(viewers){
-                        dashboard.editors = editors;
-                        dashboard.viewers = viewers;
-
-                        /* Update dashboard */
-                        //NOTE: added {new: true} to return the updated document (not used in the client, may be used by other clients)
-                        Dashboards.findOneAndUpdate({ _id: existingDashboard._id}, {
-                            $set: {
-                                date: dashboard.date,
-                                dashboard: dashboard.dashboard,
-                                tags: dashboard.tags,
-                                description: dashboard.description,
-                                lastUpdatedBy: dashboard.lastUpdatedBy,
-                                deleted: dashboard.deleted,
-                                editors: dashboard.editors,
-                                viewers: dashboard.viewers
-                            },
-                            $inc: { rev: 1 }
-                        }, {
-                            new: true
-                        })
-                        .populate('createdBy lastUpdatedBy', 'sAMAccountName name email')
-                        .exec(_.wrap(res, updateCallback));
-                    })
-                    .catch(function(err){
-                        console.log(err);
-                        res.status(500).send(err);
-                    });
-                })
-                .catch(function(err){
-                    console.log(err);
-                    res.status(500).send(err);
-                });
             }
-        }
+        });
+    })
+    .catch(function(err){
+        console.log(err);
+        res.status(500).send(err);
     });
+
 };
 
 exports.putTagsSingle = function(req, res) {
