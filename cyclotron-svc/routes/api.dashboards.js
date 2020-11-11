@@ -27,6 +27,8 @@ var Dashboards = mongoose.model('dashboard2'),
     Revisions = mongoose.model('revision'),
     Users = mongoose.model('user');
 
+var systemRoles = ['_public'];
+
 var createRevision = function(dashboard) {
     /* Create new record in the Revision collection */
     var newRev = new Revisions({
@@ -97,11 +99,25 @@ var searchDashboards = function (req, res, filters, searchItems) {
             }
 
             var filteredResults = _.filter(obj, function(dashboard) {
-                if (!_.isEmpty(dashboard.viewers)){
+                if (!_.isEmpty(dashboard.viewers)) {
+                    /* short circuit for public role */
+                    var isPublic = _.some(dashboard.viewers, function (viewer) {
+                        if (viewer.category == 'System' && viewer.dn == '_public') {
+                            return true;
+                        }
+                    });
+
+                    if (isPublic) {
+                        return true;
+                    }
+
                     if (auth.isUnauthenticated(req)){
                         return false
-                    } else if (!auth.hasViewPermission(dashboard, req))
+                    } else if (!auth.hasViewPermission(dashboard, req)) {
                         return false;
+                    }
+                } else {
+                    return true;
                 }
 
                 return _.every(searchItems, function(searchItem) {
@@ -132,10 +148,26 @@ exports.get = function (req, res) {
             .populate('createdBy lastUpdatedBy', 'name')
             .exec(function(err, results){
                 var filteredResults = _.filter(results, function(dashboard){
-                    if(_.isEmpty(dashboard.viewers))
-                        return true
-                    else
-                        return auth.hasViewPermission(dashboard, req);
+                    if (!_.isEmpty(dashboard.viewers)) {
+                        /* short circuit for public role */
+                        var isPublic = _.some(dashboard.viewers, function (viewer) {
+                            if (viewer.category == 'System' && viewer.dn == '_public') {
+                                return true;
+                            }
+                        });
+    
+                        if (isPublic) {
+                            return true;
+                        }
+    
+                        if (auth.isUnauthenticated(req)){
+                            return false
+                        } else if (!auth.hasViewPermission(dashboard, req)) {
+                            return false;
+                        }
+                    } else {
+                        return true;
+                    }
                 });
                 res.send(filteredResults);
             });
@@ -206,14 +238,20 @@ exports.getSingle = function (req, res) {
             } else if (_.isUndefined(dashboard) || _.isNull(dashboard)) {
                 return res.status(404).send('Dashboard not found.');
             }
-
             if (!_.isEmpty(dashboard.viewers)) {
-                if (auth.isUnauthenticated(req)) {
+                /* short circuit for public role */
+                var isPublic = _.some(dashboard.viewers, function (viewer) {
+                    if (viewer.category == 'System' && viewer.dn == '_public') {
+                        return true;
+                    }
+                });
+
+                if (!isPublic && auth.isUnauthenticated(req)) {
                     return res.status(401).send('Authentication required: this dashboard has restricted permissions.');
                 }
 
                 /* Check view permissions */
-                if (!auth.hasViewPermission(dashboard, req)) {
+                if (!isPublic && !auth.hasViewPermission(dashboard, req)) {
                     return res.status(403).send({
                         message: 'View Permission denied for this Dashboard.',
                         data: {
@@ -285,6 +323,11 @@ var checkEditors = function(editors, creator){
                             if(!allowed){
                                 reject('Editors contain a user not allowed to edit');
                             }
+                        } else if (userOrGroup.category == 'System'){
+                            /* system roles are statically resolved */
+                            if (!_.includes(systemRoles, userOrGroup.dn)) {
+                                reject('Editors contain an invalid system role');
+                            }
                         } else { reject('Category must be either Group or User') }
                     });
                     /* Editors list passed all checks */
@@ -354,6 +397,11 @@ var checkViewers = function(viewers, creator){
                             if(!allowed){
                                 reject('Viewers contain a user not allowed to view');
                             }
+                        } else if (userOrGroup.category == 'System'){
+                                /* system roles are statically resolved */
+                                if (!_.includes(systemRoles, userOrGroup.dn)) {
+                                    reject('Viewers contain an invalid system role');
+                                }                                                    
                         } else { reject('Category must be either Group or User') }
                     });
                     /* Viewers list passed all checks */

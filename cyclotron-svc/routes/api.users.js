@@ -32,6 +32,9 @@ var crypto = require('crypto');
 var Users = mongoose.model('user');
     Sessions = mongoose.model('session');
 
+
+var systemRoles = ['_public'];    
+
 var createSession = exports.createSession = function (user, ip, type = null, value = null, expiration = null) {
     /* Ensure memberOf list is an array */
     var userMemberOf = user.memberOf || []
@@ -197,6 +200,19 @@ exports.search = function (req, res) {
     });
 
     var results = [];
+
+    //add system roles
+    _.each(systemRoles, function(sr) {
+        //substing check old school.. 
+        if(sr.indexOf(nameFilter) !== -1) {
+            results.push({
+                'category': 'System',
+                'dn': sr,
+                'displayName': sr.substring(1).charAt(0).toUpperCase() + sr.substring(2)
+            })
+        }
+    });
+
 
     //add groups to result
     _.each(resGroups, function(group){
