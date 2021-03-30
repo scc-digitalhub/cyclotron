@@ -66,7 +66,7 @@ Open `cyclotron-svc/config/config.js` and update the properties according to you
 In order to use **JWTs** as bearer tokens, and locally verify them, please set ``useJWT:true`` and provide only one of these two configurations:
 
 * populate ``jwksEndpoint`` with the JWKS uri to use public/private key verification via RSA
-* set ``clientSecret`` and leave ``jwjwksEndpoint`` empty to use simmetric HMAC with clientSecret as key
+* set ``clientSecret`` and leave ``jwksEndpoint`` empty to use simmetric HMAC with clientSecret as key
 
 Examples:
 
@@ -184,10 +184,11 @@ Log in to AAC as a provider user and click "New App" to create a client applicat
 
 In the API Access tab:
 
-* under Basic Profile Service, check ``openid`` and `profile.basicprofile.me` to give access to user profiles to the client app
-* under Role Management Service, check `user.roles.me` to give access to user roles
+* under OpenID Connect, check `openid`
+* under User Profile Service, check `profile.basicprofile.me` to give access to user profiles to the client app
+* under Role Service, check `user.roles.me` to give access to user roles
 
-In the Overview tab, copy `clientId` property, then go back to `cyclotron-site/_public/js/conf/configService.js` and add it in the `authentication` section.
+You can find `clientId` and `clientSecret` properties in the Overview tab. Add `clientId` to `cyclotron-site/_public/js/conf/configService.js` and `cyclotron-svc/config/config.js`. Add `clientSecret` as well if needed.
 
 Now you can (re)start Cyclotron API and website with authentication enabled. Most services will now be protected and will require login and specific privileges.
 
@@ -198,27 +199,25 @@ Now you can (re)start Cyclotron API and website with authentication enabled. Mos
 On the **web app**, login can be performed:
 
 * via LDAP by providing username and password
-* via AAC using OAuth2 protocol, i.e., being redirected on AAC for authentication
+* via OAuth2/OpenID, i.e., being redirected to an identity provider (e.g. AAC) for authentication
 
 On the **API**, requests can be authenticated:
 
-* via session key
+* via session key, which is the internal mechanism used by Cyclotron web app to authenticate its requests to the API
 * via `Authentication` HTTP header
 * via API key
 
-Session key is the internal mechanism used by Cyclotron web app to authenticate its requests to the API.
-
-Authentication header must provide a valid token issued by AAC. It is used by the web app if login is performed via AAC and can be used to request API services directly:
+The Authentication header must provide a valid token issued by the IdP. It is used by the web app if login is performed via OAuth2/OpenID and can be used to request API services directly:
 ```
 GET /dashboards/mydashboard HTTP/1.1 
 Host: localhost:8077 
 Accept: application/json 
-Authorization: Bearer 025a90d4-d4dd-4d90-8354-779415c0c6d8
+Authorization: Bearer <my_token>
 ```
 
-API key is issued by AAC and can be passed as query parameter in the URL to request API services:
+The API key is issued by the IdP and can be passed as query parameter in the URL to request API services:
 ```
-http://localhost:8077/dashboards/mydashboard?apikey=dee7889d-ef09-474a-b69a-74b2ace47c50
+http://localhost:8077/dashboards/mydashboard?apikey=<my_apikey>
 ```
 
 ## Using Cyclotron API
@@ -229,30 +228,37 @@ http://localhost:8077/dashboards/mydashboard?apikey=dee7889d-ef09-474a-b69a-74b2
 
 In Cyclotron you can restrict access to a dashboard by specifiying a set of **viewers** and **editors**. These can be either users or *groups*. If you use AAC as authentication provider, then groups correspond to AAC *spaces*. By default, owners of a space in AAC have the role `ROLE_PROVIDER`. In the AAC console, in the tab User Roles, owners (providers) of a space can add other users to it and assign them roles.
 
-When a user logs in via AAC, Cyclotron reads their roles from AAC and assigns them certain groups depending on such roles. Precisely, Cyclotron checks whether the user has roles `ROLE_PROVIDER`, `reader` or `writer` in some spaces. Here are some examples of roles:
+The `oauth.editorRoles` property configured in `cyclotron-svc/config/config.js` specifies which AAC roles must be mapped as **editor** role in Cyclotron. Any other AAC role will be mapped as **viewer**. When a user logs in via AAC, Cyclotron reads their AAC roles and derives both their groups (i.e. AAC spaces) and their role inside such groups.
 
-* user A is provider of space T1 and reader of space T2:
+Here are some examples:
+
+* user A is provider of space T1 and user of space T2:
 ```
-{"context":"components/cyclotron","space":"T1","role":"ROLE_PROVIDER","authority":"components/cyclotron/T1:ROLE_PROVIDER"}
-{"context":"components/cyclotron","space":"T2","role":"reader","authority":"components/cyclotron/T2:reader"}
+components/cyclotron/T1:ROLE_PROVIDER
+components/cyclotron/T2:ROLE_USER
 ```
-* user B is reader of space T1:
+* user B is user of space T1:
 ```
-{"context":"components/cyclotron","space":"T1","role":"reader","authority":"components/cyclotron/T1:reader"}
+components/cyclotron/T1:ROLE_USER
 ```
-* user C is writer of space T1:
+* user C is editor of space T1:
 ```
-{"context":"components/cyclotron","space":"T1","role":"writer","authority":"components/cyclotron/T1:writer"}
+components/cyclotron/T1:ROLE_EDITOR
 ```
-When these users log in to Cyclotron via AAC they are assigned the following property:
+
+Suppose `oauth.editorRoles=['ROLE_PROVIDER','ROLE_EDITOR']`. Then when these users log in to Cyclotron via AAC they are assigned the following property:
 
 * user A: `memberOf: ['T1_viewers', 'T1_editors', 'T2_viewers']`
 * user B: `memberOf: ['T1_viewers']`
 * user C: `memberOf: ['T1_viewers', 'T1_editors']`
 
-**Note 1**: providers and writers are equally considered editors by Cyclotron, i.e., user A as provider of T1 is member of T1_editors group.
+**NOTE**: editors can also view, i.e., users A and C being members of T1_editors are also members of T1_viewers; but viewers cannot edit, i.e., groups *<group_name>\_viewers* cannot be assigned as editors of a dashboard.
 
-**Note 2**: editors can also view, i.e., users A and C being members of T1_editors are also members of T1_viewers; but viewers cannot edit, i.e., groups *<group_name>\_viewers* cannot be assigned as editors of a dashboard.
+### Creating Private and Public Dashboards
+
+When authentication is enabled, if a dashboard has no editors or viewers specified when it is created, by default both edit and view permissions are restricted to the dashboard creator only, who is allowed to change this behaviour later on. In order to allow anyone to view a dashboard, even anonymously, its view permissions can be given to the system role **Public**. Edit permissions can be given to **Public** as well, in which case the dashboard is editable by every user.
+
+If you want to restrict access to a dashboard, you can give view/edit permissions either to specific users or to groups you are a member of. Some examples are provided in the next section.
 
 ### Restricting Access to Dashboards in JSON
 
@@ -272,9 +278,7 @@ If you create a dashboard as a JSON document (either by POSTing it on the API or
         "viewers": []
     }
 
-NOTE: if a dashboard has no editors or viewers specified, by default the permissions are restricted to the dashboard creator only, who is allowed to change this behaviour later on.
-
-Resuming the example above, suppose user A wants to restrict access to its dashboard:
+Resuming the examples above, suppose user A wants to restrict access to its dashboard:
 * dashboard editors list: can contain only group **T1_editors** or its members (e.g. user C)
 * dashboard viewers list: can contain groups **T1_viewers** (*not* T1_editors as it is already a subset of T1_viewers, since editors are automatically also viewers) and **T2_viewers** or their members (e.g. users B and C)
 
@@ -308,7 +312,13 @@ Example 2. User A restricts both edit and view permissions to group T2, i.e., ev
 
 In short: use *<group_name>\_editors* syntax for editors and *<group_name>\_viewers* syntax for viewers.
 
-If authentication is enabled, only dashboards that have no restriction on viewers can be viewed anonymously.
+**NOTE**: the system role **Public** is represented by the following properties:
+
+    {
+        "category": "System",
+        "displayName": "Public",
+        "dn": "_public"
+    }
 
 ### Testing
 
