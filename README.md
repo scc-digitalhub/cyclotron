@@ -62,19 +62,19 @@ authentication: {
 Open `cyclotron-svc/config/config.js` and update the properties according to your needs:
 
 ```
-    enableAuth: true,
-    authProvider: 'aac',
+enableAuth: true,
+authProvider: 'aac',
 
-    oauth: {
-        useJWT: <true|false>,
-        clientId: '<clientId>',
-        clientSecret: '<clientSecret>',
-        jwksEndpoint: 'http://localhost:8080/aac/jwk',
-        tokenIntrospectionEndpoint: 'http://localhost:8080/aac/oauth/introspect',
-        userProfileEndpoint: 'http://localhost:8080/aac/userinfo',
-        parentSpace: 'components/cyclotron',
-        editorRoles: ['ROLE_PROVIDER','ROLE_EDITOR']
-    },
+oauth: {
+    useJWT: <true|false>,
+    clientId: '<clientId>',
+    clientSecret: '<clientSecret>',
+    jwksEndpoint: 'http://localhost:8080/aac/jwk',
+    tokenIntrospectionEndpoint: 'http://localhost:8080/aac/oauth/introspect',
+    userProfileEndpoint: 'http://localhost:8080/aac/userinfo',
+    parentSpace: 'components/cyclotron',
+    editorRoles: ['ROLE_PROVIDER','ROLE_EDITOR']
+},
 ```
 
 In order to use **JWTs** as bearer tokens, and locally verify them, please set ``useJWT:true`` and provide only one of these two configurations:
@@ -179,7 +179,7 @@ Log in to AAC as a provider user and click "New App" to create a client applicat
 * add Cyclotron website as redirect URL: `http://localhost:8088/,http://localhost:8088` (change the domain if it runs on a different host and port)
 * check all the Grant Types and at least `internal` as identity provider (this must be approved on the Admin account under tab Admin -> IdP Approvals)
 
-In the API Access tab:
+In the API Access tab (the following scopes must match those in the frontend config file):
 
 * under OpenID Connect, check `openid` and `profile`
 * under User Profile Service, check `profile.basicprofile.me` to give access to user profiles to the client app
