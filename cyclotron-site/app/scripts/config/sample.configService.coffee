@@ -68,9 +68,7 @@ cyclotronServices.factory 'configService', (commonConfigService) ->
             authorizationURL: 'http://localhost:8080/aac/eauth/authorize'
             clientID: ''
             callbackDomain: 'http://localhost:8088'
-            scopes: 'profile.basicprofile.me user.roles.me'
-            userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me'
-            tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access'
+            scopes: 'openid profile user.roles.me'
 
         # Analytics settings
         analytics:

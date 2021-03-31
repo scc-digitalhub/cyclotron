@@ -44,8 +44,23 @@ The module is usable with any *OAuth2/OIDC-compliant* identity provider, but som
 
 Remember to set the same configuration (when needed) to both backend and frontend, without exposing private variables.
 
+### Frontend configuration
+Open `cyclotron-site/_public/js/conf/configService.js` and set the following properties under `authentication`:
+
+```
+authentication: {
+  enable: true,
+  authProvider: 'aac',
+  authorizationURL: 'http://localhost:8080/aac/eauth/authorize',
+  clientID: '<clientID>',
+  callbackDomain: 'http://localhost:8088',
+  scopes: 'openid profile user.roles.me'
+}
+```
+
 ### Backend configuration
-Open `cyclotron-svc/config/config.js` and update the properties according to your needs.
+Open `cyclotron-svc/config/config.js` and update the properties according to your needs:
+
 ```
     enableAuth: true,
     authProvider: 'aac',
@@ -61,7 +76,6 @@ Open `cyclotron-svc/config/config.js` and update the properties according to you
         editorRoles: ['ROLE_PROVIDER','ROLE_EDITOR']
     },
 ```
-
 
 In order to use **JWTs** as bearer tokens, and locally verify them, please set ``useJWT:true`` and provide only one of these two configurations:
 
@@ -82,7 +96,6 @@ oauth: {
 },
 
 #JWT + private HMAC key
-
 oauth: {
     useJWT: true,
     clientId: '<clientId>',
@@ -96,19 +109,18 @@ oauth: {
 
 Do note that the default validation will check for a valid signature and for the correspondence between ``clientId`` and ``audience``.
 If you want to also validate the *issuer* of JWT tokens set the corresponding property in config:
+
 ```
 oauth: {
     issuer: <issuer>
 }
 ```
 
-
 Alternatively, you can use **opaque tokens** as bearer, and thus leverage *OAuth2 introspection* plus *OpenID userProfile*. This configuration requires ``useJWT:false`` and all the endpoints properly populated (except ``jwksEndpoint``).
 
 Example:
 ```
 #opaque oauth
-
 oauth: {
     useJWT: false,
     clientId: '<clientId>',
@@ -121,15 +133,13 @@ oauth: {
 ```
 
 ### Role mapping
-By default, valid users are given the permission to create and manage their own dashboards, but can not access private dashboard without a proper role.
+By default, valid users are given the permission to create and manage their own dashboards, but can not access private dashboards without a proper role. A dashboard is private if the ability to **view** and/or **edit** it is restricted to specific users or *groups*.
 
 Cyclotron supports two different roles:
 * ``viewers``
 * ``editors``
 
-When using an external IdP (such as AAC) it is possible to map ``roles`` and ``groups`` by defining a mapping for the **editor** role and a context for the component space.
-
-As such, it is possible to dynamically assign roles to users at login, by deriving their group membership from the IdP user profile.
+When using an external IdP (such as AAC) it is possible to map **roles** and **groups** by defining a context for the component space and a mapping for the **editor** role (i.e. a list of external roles that must be mapped as **editor** role in Cyclotron):
 
 ```
 oauth: {
@@ -137,11 +147,15 @@ oauth: {
     editorRoles: ['ROLE_PROVIDER','ROLE_EDITOR']
 },
 ```
-By setting the ``parentSpace`` we define a prefix for roles obtained from the IdP, which is then used to derive the ``group`` from the following pattern:
+
+As such, Cyclotron dynamically assigns roles to users at login, by deriving their **group memberships** and their role inside such groups from the IdP user profile. Any role that is not included in ``editorRoles`` will be mapped as **viewer**.
+
+By setting ``parentSpace`` we define a prefix for roles obtained from the IdP, which is then used to derive the group from the following pattern:
 
 ```
 <parentSpace>/<groupName>:<roleName>
 ```
+
 For example, the upstream role ``components/cyclotron/testgroup:ROLE_PROVIDER`` with the given configuration can be translated to:
 
 * (``parentSpace=components/cyclotron``)
@@ -150,30 +164,13 @@ For example, the upstream role ``components/cyclotron/testgroup:ROLE_PROVIDER`` 
 
 because the upstream ``ROLE_PROVIDER`` role is recognized as an editor role.
 
-An upstream role as ``components/cyclotron/testgroup:ROLE_USER`` will be translated as 
+The upstream role ``components/cyclotron/testgroup:ROLE_USER`` will be translated to:
 
 * (``parentSpace=components/cyclotron``)
 * ``group=testgroup``
 * ``role=viewer``
 
-Without a direct mapping to a given group, the system won't assign any role to the current user in such group. The user won't thus be able to access any dashboard restricted to the group.
-
-
-
-### Frontend configuration
-Open `cyclotron-site/_public/js/conf/configService.js` and update it too. Be sure to set the following properties under `authentication`:
-
-```
-    authentication: {
-      enable: true,
-      authProvider: 'aac',
-      authorizationURL: 'http://localhost:8080/aac/eauth/authorize',
-      clientID: '<clientID>',
-      callbackDomain: 'http://localhost:8088',
-      scopes: 'openid profile user.roles.me'
-    }
-```
-
+Without a direct mapping to a given group, the system won't assign any role to the current user in such group. The user won't thus be able to access any dashboard restricted to that group.
 
 ## Client Application Configuration on AAC
 
@@ -184,7 +181,7 @@ Log in to AAC as a provider user and click "New App" to create a client applicat
 
 In the API Access tab:
 
-* under OpenID Connect, check `openid`
+* under OpenID Connect, check `openid` and `profile`
 * under User Profile Service, check `profile.basicprofile.me` to give access to user profiles to the client app
 * under Role Service, check `user.roles.me` to give access to user roles
 
@@ -223,14 +220,11 @@ http://localhost:8077/dashboards/mydashboard?apikey=<my_apikey>
 ## Using Cyclotron API
 
 ### AAC Roles and Cyclotron Permissions
+**NOTE**: refer to AAC documentation on its Data Model if you are not familiar with the concepts of "role" and "space".
 
-**NOTE**: read Data Model section on AAC page to understand the concepts of *role* and *space*.
+If you use AAC as authentication provider, then Cyclotron *groups* correspond to AAC *spaces*. By default, owners of a space in AAC have the role `ROLE_PROVIDER`. In the AAC console, in the tab User Roles, owners (providers) of a space can add other users to it and assign them roles.
 
-In Cyclotron you can restrict access to a dashboard by specifiying a set of **viewers** and **editors**. These can be either users or *groups*. If you use AAC as authentication provider, then groups correspond to AAC *spaces*. By default, owners of a space in AAC have the role `ROLE_PROVIDER`. In the AAC console, in the tab User Roles, owners (providers) of a space can add other users to it and assign them roles.
-
-The `oauth.editorRoles` property configured in `cyclotron-svc/config/config.js` specifies which AAC roles must be mapped as **editor** role in Cyclotron. Any other AAC role will be mapped as **viewer**. When a user logs in via AAC, Cyclotron reads their AAC roles and derives both their groups (i.e. AAC spaces) and their role inside such groups.
-
-Here are some examples:
+Suppose you configured `oauth.editorRoles=['ROLE_PROVIDER','ROLE_EDITOR']` and the following AAC roles exist:
 
 * user A is provider of space T1 and user of space T2:
 ```
@@ -246,7 +240,7 @@ components/cyclotron/T1:ROLE_USER
 components/cyclotron/T1:ROLE_EDITOR
 ```
 
-Suppose `oauth.editorRoles=['ROLE_PROVIDER','ROLE_EDITOR']`. Then when these users log in to Cyclotron via AAC they are assigned the following property:
+When these users log in to Cyclotron via AAC they are assigned the following property:
 
 * user A: `memberOf: ['T1_viewers', 'T1_editors', 'T2_viewers']`
 * user B: `memberOf: ['T1_viewers']`

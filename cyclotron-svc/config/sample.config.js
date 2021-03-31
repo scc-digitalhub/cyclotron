@@ -84,18 +84,27 @@ module.exports = {
         ]
     },
 
-    /* AAC provider configuration, if authentication is enabled.
-     * Scopes must be comma-separated.
+    /* OAuth2 provider configuration, if authentication is enabled.
+     * to enable JWT set jwks uri + clientId
+     * to use introspection set endpoints + clientId + clientSecret
      */
     oauth: {
-        userProfileEndpoint: 'http://localhost:8080/aac/basicprofile/me',
-        userRolesEndpoint: 'http://localhost:8080/aac/userroles/me',
-        scopes: 'profile.basicprofile.me,user.roles.me',
-        tokenValidityEndpoint: 'http://localhost:8080/aac/resources/access',
-        tokenInfoEndpoint: 'http://localhost:8080/aac/resources/token',
-        tokenRolesEndpoint: 'http://localhost:8080/aac/userroles/token',
-        apikeyCheckEndpoint: 'http://localhost:8080/aac/apikeycheck',
-        parentSpace: 'components/cyclotron'
+        useJWT: false,
+        clientId: '',
+        clientSecret: '',
+        jwksEndpoint: 'http://localhost:8080/aac/jwk',
+        tokenIntrospectionEndpoint: 'http://localhost:8080/aac/oauth/introspect',
+        userProfileEndpoint: 'http://localhost:8080/aac/userinfo',
+        issuer: '',
+        parentSpace: 'components/cyclotron',
+        editorRoles: ['ROLE_PROVIDER','ROLE_EDITOR']
+    },
+
+    /*
+     * API Key support
+     */
+    apikey: {
+        apikeyCheckEndpoint: 'http://localhost:8080/aac/apikeycheck'
     },
 
     /* List of LDAP distinguished names for Admin users
